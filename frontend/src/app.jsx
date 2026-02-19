@@ -1,35 +1,118 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Layout from './components/layout/Layout';
+/**
+ * I-CAMS Main App Component
+ * Root component with all providers and configuration
+ */
+
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import { I18nProvider } from './i18n';
+import { NotificationProvider } from './context/NotificationContext';
+import NotificationDisplay from './modules/notifications';
+import ProtectedRoute from './context/ProtectedRoute';
+
+// Pages
 import HomePage from './pages/HomePage';
+
+// Auth Components
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
-import PatientDashboard from './components/patient/PatientDashboard';
-import HealthcareDashboard from './components/healthcare/HealthcareDashboard';
-import HealthUpdate from './components/patient/HealthUpdate';
-import PatientProfile from './components/patient/PatientProfile';
+
+// Modules
+import PatientDashboard from './modules/patient';
+import HealthcareDashboard from './modules/healthcare';
+import MessagingHub from './modules/communication';
+
+// Styles
 import './styles/main.css';
+import './styles/theme.css';
+import './styles/components.css';
+
+// Constants
+import { ROUTES, LANGUAGES } from './constants';
 
 function App() {
-  const [userType, setUserType] = React.useState(null); // 'patient', 'nurse', 'doctor'
+  useEffect(() => {
+    // Initialize app
+    console.log('I-CAMS Application Initialized');
+
+    // Set up response interceptors and global error handling
+    window.addEventListener('unhandledrejection', (event) => {
+      console.error('Unhandled Promise Rejection:', event.reason);
+    });
+
+    // Check session validity
+    const sessionCheckInterval = setInterval(() => {
+      const session = localStorage.getItem('icams_session');
+      if (session) {
+        try {
+          const parsedSession = JSON.parse(session);
+          if (Date.now() > parsedSession.expiresAt) {
+            localStorage.removeItem('icams_session');
+            localStorage.removeItem('icams_auth_token');
+          }
+        } catch (error) {
+          console.error('Session check error:', error);
+        }
+      }
+    }, 60000); // Check every minute
+
+    return () => clearInterval(sessionCheckInterval);
+  }, []);
 
   return (
     <Router>
-      <Routes>
-        <Route path="/" element={<HomePage setUserType={setUserType} />} />
-        <Route path="/login" element={<Login setUserType={setUserType} />} />
-        <Route path="/register" element={<Register />} />
+      <I18nProvider defaultLanguage={LANGUAGES.EN}>
+        <AuthProvider>
+          <NotificationProvider>
+            <NotificationDisplay />
 
-        {/* Protected Routes */}
-        <Route path="/dashboard" element={
-          userType === 'patient' ?
-            <Layout><PatientDashboard /></Layout> :
-            <Layout><HealthcareDashboard userType={userType} /></Layout>
-        } />
+            <Routes>
+              {/* Public Routes */}
+              <Route path={ROUTES.HOME} element={<HomePage />} />
+              <Route path={ROUTES.LOGIN} element={<Login />} />
+              <Route path={ROUTES.REGISTER} element={<Register />} />
 
-        <Route path="/health-update" element={<Layout><HealthUpdate /></Layout>} />
-        <Route path="/profile" element={<Layout><PatientProfile /></Layout>} />
-      </Routes>
+              {/* Patient Routes */}
+              <Route
+                path={ROUTES.PATIENT_DASHBOARD}
+                element={
+                  <ProtectedRoute requiredRole="patient">
+                    <PatientDashboard />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Healthcare Routes */}
+              <Route
+                path={ROUTES.HEALTHCARE_DASHBOARD}
+                element={
+                  <ProtectedRoute requiredRole={['doctor', 'nurse']}>
+                    <HealthcareDashboard />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Common Routes */}
+              <Route
+                path={ROUTES.MESSAGES}
+                element={
+                  <ProtectedRoute>
+                    <MessagingHub />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Error Routes */}
+              <Route path={ROUTES.UNAUTHORIZED} element={<div>Unauthorized Access</div>} />
+              <Route path={ROUTES.NOT_FOUND} element={<div>Page Not Found</div>} />
+
+              {/* Catch-all Route */}
+              <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
+            </Routes>
+          </NotificationProvider>
+        </AuthProvider>
+      </I18nProvider>
     </Router>
   );
 }

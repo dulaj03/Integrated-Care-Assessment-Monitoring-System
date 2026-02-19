@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import './HomePage.css';
 
-const HomePage = ({ setUserType }) => {
+const HomePage = () => {
   return (
     <div className="homepage">
       <nav className="navbar">
@@ -67,21 +67,21 @@ const HomePage = ({ setUserType }) => {
         <div className="container">
           <h2>Choose Your Role</h2>
           <div className="role-cards">
-            <div className="role-card" onClick={() => setUserType('patient')}>
+            <div className="role-card">
               <div className="role-icon">👤</div>
               <h3>Patient</h3>
               <p>Update health status, track progress, communicate with care team</p>
               <Link to="/login" className="btn">Access as Patient</Link>
             </div>
 
-            <div className="role-card" onClick={() => setUserType('nurse')}>
+            <div className="role-card">
               <div className="role-icon">👩‍⚕️</div>
               <h3>Nurse</h3>
               <p>Monitor patients, provide care instructions, manage updates</p>
               <Link to="/login" className="btn">Access as Nurse</Link>
             </div>
 
-            <div className="role-card" onClick={() => setUserType('doctor')}>
+            <div className="role-card">
               <div className="role-icon">👨‍⚕️</div>
               <h3>Doctor</h3>
               <p>Review patient data, prescribe treatments, coordinate care</p>
