@@ -5,6 +5,7 @@ import { Features } from "./pages/Features";
 import { Contact } from "./pages/Contact";
 import { Register } from "./pages/Register";
 import { Login } from "./pages/Login";
+import { LoginForm } from "./pages/LoginForm";
 import { DashboardLayout } from "./components/DashboardLayout";
 import { PatientDashboard } from "./pages/patient/Dashboard";
 import { HealthLog } from "./pages/patient/HealthLog";
@@ -46,6 +47,10 @@ export const router = createBrowserRouter([
       {
         path: "login",
         Component: Login,
+      },
+      {
+        path: "login/:role",
+        Component: LoginForm,
       },
       {
         path: "patient",

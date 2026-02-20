@@ -1,0 +1,561 @@
+import { useState } from "react";
+import { Link, useSearchParams, useNavigate } from "react-router";
+import { UserPlus, Upload } from "lucide-react";
+import { Navbar } from "../components/Navbar";
+
+export function Register() {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const roleParam = searchParams.get('role') || 'patient';
+
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    role: roleParam,
+    password: '',
+    confirmPassword: '',
+    // Professional fields
+    licenseNumber: '',
+    specialization: '',
+    yearsOfExperience: '',
+    institutionName: '',
+    registrationNumber: '',
+    qualifications: '',
+    licenseDocument: null as File | null,
+  });
+
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
+
+  const isProfessional = formData.role === 'doctor' || formData.role === 'nurse';
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+    // Clear error for this field
+    if (errors[name]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: '',
+      }));
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type and size
+      const validTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+      const maxSize = 5 * 1024 * 1024; // 5MB
+
+      if (!validTypes.includes(file.type)) {
+        setErrors((prev) => ({
+          ...prev,
+          licenseDocument: 'Please upload a PDF or image file (JPG/PNG)',
+        }));
+        return;
+      }
+
+      if (file.size > maxSize) {
+        setErrors((prev) => ({
+          ...prev,
+          licenseDocument: 'File size must be less than 5MB',
+        }));
+        return;
+      }
+
+      setFormData((prev) => ({
+        ...prev,
+        licenseDocument: file,
+      }));
+
+      if (errors.licenseDocument) {
+        setErrors((prev) => ({
+          ...prev,
+          licenseDocument: '',
+        }));
+      }
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.name.trim()) newErrors.name = 'Full name is required';
+    if (!formData.email.trim()) newErrors.email = 'Email is required';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = 'Please enter a valid email';
+    if (!formData.password) newErrors.password = 'Password is required';
+    if (formData.password.length < 8) newErrors.password = 'Password must be at least 8 characters';
+    if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = 'Passwords do not match';
+
+    // Professional validation
+    if (isProfessional) {
+      if (!formData.licenseNumber.trim()) newErrors.licenseNumber = 'License number is required';
+      if (!formData.specialization.trim()) newErrors.specialization = formData.role === 'doctor' ? 'Specialization is required' : 'Qualification is required';
+      if (!formData.yearsOfExperience) newErrors.yearsOfExperience = 'Years of experience is required';
+      if (parseInt(formData.yearsOfExperience) < 0) newErrors.yearsOfExperience = 'Years of experience must be a positive number';
+      if (!formData.institutionName.trim()) newErrors.institutionName = 'Institution/Hospital name is required';
+      if (!formData.registrationNumber.trim()) newErrors.registrationNumber = 'Registration number is required';
+      if (!formData.licenseDocument) newErrors.licenseDocument = 'Professional license document is required';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!validateForm()) return;
+
+    setLoading(true);
+    try {
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      // Store user data (in a real app, send to backend)
+      sessionStorage.setItem('userRole', formData.role);
+      sessionStorage.setItem('userEmail', formData.email);
+
+      // For professionals, store verification status as pending
+      if (isProfessional) {
+        sessionStorage.setItem('verificationStatus', 'pending');
+      }
+
+      // Redirect to login page for the selected role
+      navigate(`/login/${formData.role}`);
+    } catch (error) {
+      setErrors({ submit: 'An error occurred. Please try again.' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+      <Navbar />
+      <div className="flex min-h-full flex-1 flex-col justify-center py-12 sm:px-6 lg:px-8">
+        <div className="sm:mx-auto sm:w-full sm:max-w-md">
+          <div className="flex justify-center">
+            <UserPlus className="h-12 w-12 text-blue-600 dark:text-blue-500" />
+          </div>
+          <h2 className="mt-6 text-center text-2xl font-bold leading-9 tracking-tight text-slate-900 dark:text-white">
+            Create a new account
+          </h2>
+          <p className="mt-2 text-center text-sm text-slate-600 dark:text-slate-400">
+            Or{' '}
+            <Link to={roleParam ? `/login/${roleParam}` : "/login"} className="font-semibold text-blue-600 dark:text-blue-500 hover:text-blue-500 dark:hover:text-blue-400 transition-colors duration-200">
+              sign in to your existing account
+            </Link>
+          </p>
+        </div>
+
+        <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-[480px]">
+          <div className="bg-white dark:bg-slate-900 px-6 py-12 shadow dark:shadow-xl sm:rounded-lg sm:px-12">
+            {errors.submit && (
+              <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-md text-red-700 dark:text-red-400 text-sm">
+                {errors.submit}
+              </div>
+            )}
+
+            {isProfessional && (
+              <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-md">
+                <p className="text-sm text-blue-800 dark:text-blue-300 font-medium">
+                  📋 Professional Verification Required
+                </p>
+                <p className="text-xs text-blue-700 dark:text-blue-400 mt-1">
+                  Please provide your professional credentials. Your information will be verified by our admin team before activation.
+                </p>
+              </div>
+            )}
+
+            <form className="space-y-6" onSubmit={handleSubmit}>
+              {/* Basic fields for all roles */}
+              <div>
+                <label htmlFor="name" className="block text-sm font-medium leading-6 text-slate-900 dark:text-white">
+                  Full Name
+                </label>
+                <div className="mt-2">
+                  <input
+                    id="name"
+                    name="name"
+                    type="text"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                    disabled={loading}
+                    placeholder="John Doe"
+                    className="block w-full rounded-md border-0 py-1.5 text-slate-900 dark:text-white shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-blue-600 dark:focus:ring-blue-500 bg-white dark:bg-slate-800 sm:text-sm sm:leading-6 disabled:opacity-50 transition-colors duration-200"
+                  />
+                  {errors.name && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.name}</p>}
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium leading-6 text-slate-900 dark:text-white">
+                  Email address
+                </label>
+                <div className="mt-2">
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    autoComplete="email"
+                    required
+                    disabled={loading}
+                    placeholder="john@example.com"
+                    className="block w-full rounded-md border-0 py-1.5 text-slate-900 dark:text-white shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-blue-600 dark:focus:ring-blue-500 bg-white dark:bg-slate-800 sm:text-sm sm:leading-6 disabled:opacity-50 transition-colors duration-200"
+                  />
+                  {errors.email && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.email}</p>}
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="role" className="block text-sm font-medium leading-6 text-slate-900 dark:text-white">
+                  I am a...
+                </label>
+                <div className="mt-2">
+                  <select
+                    id="role"
+                    name="role"
+                    value={formData.role}
+                    onChange={handleChange}
+                    disabled={loading}
+                    className="block w-full rounded-md border-0 py-1.5 text-slate-900 dark:text-white shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 focus:ring-2 focus:ring-inset focus:ring-blue-600 dark:focus:ring-blue-500 bg-white dark:bg-slate-800 sm:text-sm sm:leading-6 disabled:opacity-50 transition-colors duration-200"
+                  >
+                    <option value="patient">Patient</option>
+                    <option value="doctor">Doctor</option>
+                    <option value="nurse">Nurse</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Professional Fields - Doctor */}
+              {formData.role === 'doctor' && (
+                <>
+                  <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
+                    <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-4">Professional Credentials</h3>
+                  </div>
+
+                  <div>
+                    <label htmlFor="specialization" className="block text-sm font-medium leading-6 text-slate-900 dark:text-white">
+                      Medical Specialization
+                    </label>
+                    <div className="mt-2">
+                      <select
+                        id="specialization"
+                        name="specialization"
+                        value={formData.specialization}
+                        onChange={handleChange}
+                        disabled={loading}
+                        className="block w-full rounded-md border-0 py-1.5 text-slate-900 dark:text-white shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 focus:ring-2 focus:ring-inset focus:ring-blue-600 dark:focus:ring-blue-500 bg-white dark:bg-slate-800 sm:text-sm sm:leading-6 disabled:opacity-50 transition-colors duration-200"
+                      >
+                        <option value="">Select a specialization</option>
+                        <option value="cardiology">Cardiology</option>
+                        <option value="neurology">Neurology</option>
+                        <option value="orthopedics">Orthopedics</option>
+                        <option value="pediatrics">Pediatrics</option>
+                        <option value="dermatology">Dermatology</option>
+                        <option value="psychology">Psychology</option>
+                        <option value="general">General Practice</option>
+                        <option value="surgery">Surgery</option>
+                        <option value="oncology">Oncology</option>
+                        <option value="other">Other</option>
+                      </select>
+                      {errors.specialization && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.specialization}</p>}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label htmlFor="licenseNumber" className="block text-sm font-medium leading-6 text-slate-900 dark:text-white">
+                      Medical License Number
+                    </label>
+                    <div className="mt-2">
+                      <input
+                        id="licenseNumber"
+                        name="licenseNumber"
+                        type="text"
+                        value={formData.licenseNumber}
+                        onChange={handleChange}
+                        disabled={loading}
+                        placeholder="e.g., MD123456"
+                        className="block w-full rounded-md border-0 py-1.5 text-slate-900 dark:text-white shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-blue-600 dark:focus:ring-blue-500 bg-white dark:bg-slate-800 sm:text-sm sm:leading-6 disabled:opacity-50 transition-colors duration-200"
+                      />
+                      {errors.licenseNumber && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.licenseNumber}</p>}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label htmlFor="registrationNumber" className="block text-sm font-medium leading-6 text-slate-900 dark:text-white">
+                      Medical Council Registration Number
+                    </label>
+                    <div className="mt-2">
+                      <input
+                        id="registrationNumber"
+                        name="registrationNumber"
+                        type="text"
+                        value={formData.registrationNumber}
+                        onChange={handleChange}
+                        disabled={loading}
+                        placeholder="e.g., MCI-2023-123456"
+                        className="block w-full rounded-md border-0 py-1.5 text-slate-900 dark:text-white shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-blue-600 dark:focus:ring-blue-500 bg-white dark:bg-slate-800 sm:text-sm sm:leading-6 disabled:opacity-50 transition-colors duration-200"
+                      />
+                      {errors.registrationNumber && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.registrationNumber}</p>}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label htmlFor="yearsOfExperience" className="block text-sm font-medium leading-6 text-slate-900 dark:text-white">
+                      Years of Experience
+                    </label>
+                    <div className="mt-2">
+                      <input
+                        id="yearsOfExperience"
+                        name="yearsOfExperience"
+                        type="number"
+                        min="0"
+                        value={formData.yearsOfExperience}
+                        onChange={handleChange}
+                        disabled={loading}
+                        placeholder="e.g., 5"
+                        className="block w-full rounded-md border-0 py-1.5 text-slate-900 dark:text-white shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-blue-600 dark:focus:ring-blue-500 bg-white dark:bg-slate-800 sm:text-sm sm:leading-6 disabled:opacity-50 transition-colors duration-200"
+                      />
+                      {errors.yearsOfExperience && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.yearsOfExperience}</p>}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label htmlFor="institutionName" className="block text-sm font-medium leading-6 text-slate-900 dark:text-white">
+                      Current Hospital/Clinic Name
+                    </label>
+                    <div className="mt-2">
+                      <input
+                        id="institutionName"
+                        name="institutionName"
+                        type="text"
+                        value={formData.institutionName}
+                        onChange={handleChange}
+                        disabled={loading}
+                        placeholder="e.g., City Medical Center"
+                        className="block w-full rounded-md border-0 py-1.5 text-slate-900 dark:text-white shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-blue-600 dark:focus:ring-blue-500 bg-white dark:bg-slate-800 sm:text-sm sm:leading-6 disabled:opacity-50 transition-colors duration-200"
+                      />
+                      {errors.institutionName && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.institutionName}</p>}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Professional Fields - Nurse */}
+              {formData.role === 'nurse' && (
+                <>
+                  <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
+                    <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-4">Professional Credentials</h3>
+                  </div>
+
+                  <div>
+                    <label htmlFor="specialization" className="block text-sm font-medium leading-6 text-slate-900 dark:text-white">
+                      Nursing Qualification
+                    </label>
+                    <div className="mt-2">
+                      <select
+                        id="specialization"
+                        name="specialization"
+                        value={formData.specialization}
+                        onChange={handleChange}
+                        disabled={loading}
+                        className="block w-full rounded-md border-0 py-1.5 text-slate-900 dark:text-white shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 focus:ring-2 focus:ring-inset focus:ring-blue-600 dark:focus:ring-blue-500 bg-white dark:bg-slate-800 sm:text-sm sm:leading-6 disabled:opacity-50 transition-colors duration-200"
+                      >
+                        <option value="">Select qualification</option>
+                        <option value="rn">Registered Nurse (RN)</option>
+                        <option value="lpn">Licensed Practical Nurse (LPN)</option>
+                        <option value="bscn">Bachelor of Science in Nursing (BSc N)</option>
+                        <option value="icu">ICU Specialist Nurse</option>
+                        <option value="surgical">Surgical Nurse</option>
+                        <option value="community">Community Health Nurse</option>
+                        <option value="other">Other</option>
+                      </select>
+                      {errors.specialization && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.specialization}</p>}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label htmlFor="licenseNumber" className="block text-sm font-medium leading-6 text-slate-900 dark:text-white">
+                      Nursing License Number
+                    </label>
+                    <div className="mt-2">
+                      <input
+                        id="licenseNumber"
+                        name="licenseNumber"
+                        type="text"
+                        value={formData.licenseNumber}
+                        onChange={handleChange}
+                        disabled={loading}
+                        placeholder="e.g., NL-123456"
+                        className="block w-full rounded-md border-0 py-1.5 text-slate-900 dark:text-white shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-blue-600 dark:focus:ring-blue-500 bg-white dark:bg-slate-800 sm:text-sm sm:leading-6 disabled:opacity-50 transition-colors duration-200"
+                      />
+                      {errors.licenseNumber && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.licenseNumber}</p>}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label htmlFor="registrationNumber" className="block text-sm font-medium leading-6 text-slate-900 dark:text-white">
+                      Nursing Council Registration Number
+                    </label>
+                    <div className="mt-2">
+                      <input
+                        id="registrationNumber"
+                        name="registrationNumber"
+                        type="text"
+                        value={formData.registrationNumber}
+                        onChange={handleChange}
+                        disabled={loading}
+                        placeholder="e.g., NC-2023-123456"
+                        className="block w-full rounded-md border-0 py-1.5 text-slate-900 dark:text-white shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-blue-600 dark:focus:ring-blue-500 bg-white dark:bg-slate-800 sm:text-sm sm:leading-6 disabled:opacity-50 transition-colors duration-200"
+                      />
+                      {errors.registrationNumber && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.registrationNumber}</p>}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label htmlFor="yearsOfExperience" className="block text-sm font-medium leading-6 text-slate-900 dark:text-white">
+                      Years of Experience
+                    </label>
+                    <div className="mt-2">
+                      <input
+                        id="yearsOfExperience"
+                        name="yearsOfExperience"
+                        type="number"
+                        min="0"
+                        value={formData.yearsOfExperience}
+                        onChange={handleChange}
+                        disabled={loading}
+                        placeholder="e.g., 3"
+                        className="block w-full rounded-md border-0 py-1.5 text-slate-900 dark:text-white shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-blue-600 dark:focus:ring-blue-500 bg-white dark:bg-slate-800 sm:text-sm sm:leading-6 disabled:opacity-50 transition-colors duration-200"
+                      />
+                      {errors.yearsOfExperience && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.yearsOfExperience}</p>}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label htmlFor="institutionName" className="block text-sm font-medium leading-6 text-slate-900 dark:text-white">
+                      Current Hospital/Clinic/Facility Name
+                    </label>
+                    <div className="mt-2">
+                      <input
+                        id="institutionName"
+                        name="institutionName"
+                        type="text"
+                        value={formData.institutionName}
+                        onChange={handleChange}
+                        disabled={loading}
+                        placeholder="e.g., District General Hospital"
+                        className="block w-full rounded-md border-0 py-1.5 text-slate-900 dark:text-white shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-blue-600 dark:focus:ring-blue-500 bg-white dark:bg-slate-800 sm:text-sm sm:leading-6 disabled:opacity-50 transition-colors duration-200"
+                      />
+                      {errors.institutionName && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.institutionName}</p>}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Document Upload - for professionals only */}
+              {isProfessional && (
+                <div>
+                  <label htmlFor="licenseDocument" className="block text-sm font-medium leading-6 text-slate-900 dark:text-white">
+                    Upload Professional License/Certificate
+                  </label>
+                  <div className="mt-2 flex justify-center rounded-lg border-2 border-dashed border-slate-300 dark:border-slate-600 px-6 py-10 bg-white dark:bg-slate-800 transition-colors duration-200">
+                    <div className="text-center">
+                      <Upload className="mx-auto h-12 w-12 text-slate-400 dark:text-slate-500" />
+                      <div className="mt-4 flex items-center justify-center">
+                        <label
+                          htmlFor="licenseDocument"
+                          className="relative cursor-pointer rounded-md font-semibold text-blue-600 dark:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-blue-600 dark:focus-within:ring-blue-500 focus-within:ring-offset-2 dark:focus-within:ring-offset-slate-800 hover:text-blue-500 dark:hover:text-blue-400 transition-colors duration-200"
+                        >
+                          <span>Click to upload</span>
+                          <input
+                            id="licenseDocument"
+                            name="licenseDocument"
+                            type="file"
+                            accept=".pdf,.jpg,.jpeg,.png"
+                            onChange={handleFileChange}
+                            disabled={loading}
+                            className="sr-only"
+                          />
+                        </label>
+                        <span className="pl-1 text-slate-600 dark:text-slate-400">or drag and drop</span>
+                      </div>
+                      <p className="text-xs leading-5 text-slate-600 dark:text-slate-400 mt-2">
+                        PDF, JPG or PNG up to 5MB
+                      </p>
+                      {formData.licenseDocument && (
+                        <p className="mt-2 text-xs text-green-600 dark:text-green-500 font-medium">
+                          ✓ {formData.licenseDocument.name} selected
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  {errors.licenseDocument && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.licenseDocument}</p>}
+                </div>
+              )}
+
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium leading-6 text-slate-900 dark:text-white">
+                  Password
+                </label>
+                <div className="mt-2">
+                  <input
+                    id="password"
+                    name="password"
+                    type="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    autoComplete="new-password"
+                    required
+                    disabled={loading}
+                    className="block w-full rounded-md border-0 py-1.5 text-slate-900 dark:text-white shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-blue-600 dark:focus:ring-blue-500 bg-white dark:bg-slate-800 sm:text-sm sm:leading-6 disabled:opacity-50 transition-colors duration-200"
+                  />
+                  {errors.password && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.password}</p>}
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="confirmPassword" className="block text-sm font-medium leading-6 text-slate-900 dark:text-white">
+                  Confirm Password
+                </label>
+                <div className="mt-2">
+                  <input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type="password"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    autoComplete="new-password"
+                    required
+                    disabled={loading}
+                    className="block w-full rounded-md border-0 py-1.5 text-slate-900 dark:text-white shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-blue-600 dark:focus:ring-blue-500 bg-white dark:bg-slate-800 sm:text-sm sm:leading-6 disabled:opacity-50 transition-colors duration-200"
+                  />
+                  {errors.confirmPassword && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.confirmPassword}</p>}
+                </div>
+              </div>
+
+              <div>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="flex w-full justify-center rounded-md bg-blue-600 dark:bg-blue-700 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-blue-500 dark:hover:bg-blue-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:focus-visible:outline-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                >
+                  {loading ? (isProfessional ? 'Submitting for Verification...' : 'Creating account...') : 'Sign up'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
