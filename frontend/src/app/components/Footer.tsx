@@ -99,8 +99,8 @@ export function Footer() {
           <div className="mt-20 pt-8 border-t border-gray-800 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center text-xs text-gray-600 dark:text-gray-500">
             <p>&copy; 2026 I-CAMS. All rights reserved.</p>
             <div className="flex gap-6 mt-4 md:mt-0">
-              <Link to="#" className="hover:text-gray-400 dark:hover:text-gray-400 transition-colors">Privacy Policy</Link>
-              <Link to="#" className="hover:text-gray-400 dark:hover:text-gray-400 transition-colors">Terms of Service</Link>
+              <Link to="/privacy" className="hover:text-gray-400 dark:hover:text-gray-400 transition-colors">Privacy Policy</Link>
+              <Link to="/terms" className="hover:text-gray-400 dark:hover:text-gray-400 transition-colors">Terms of Service</Link>
             </div>
           </div>
         </div>

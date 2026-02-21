@@ -1,8 +1,10 @@
-import { createBrowserRouter, Outlet } from "react-router";
+import { createBrowserRouter, Outlet, useLocation } from "react-router";
 import { Landing } from "./pages/Home";
 import { About } from "./pages/About";
 import { Features } from "./pages/Features";
 import { Contact } from "./pages/Contact";
+import { PrivacyPolicy } from "./pages/PrivacyPolicy";
+import { TermsOfService } from "./pages/TermsOfService";
 import { Register } from "./pages/Register";
 import { Login } from "./pages/Login";
 import { LoginForm } from "./pages/LoginForm";
@@ -12,10 +14,16 @@ import { HealthLog } from "./pages/patient/HealthLog";
 import { ProfessionalDashboard } from "./pages/professional/Dashboard";
 import { PatientDetail } from "./pages/professional/PatientDetail";
 import { NotFound } from "./pages/NotFound";
+import { ScrollToTopOnNavigate } from "./components/ScrollToTopOnNavigate";
 import { CURRENT_USER_PATIENT, CURRENT_USER_DOCTOR } from "./lib/mockData";
 
 function RootLayout() {
-  return <Outlet />;
+  return (
+    <>
+      <ScrollToTopOnNavigate />
+      <Outlet />
+    </>
+  );
 }
 
 export const router = createBrowserRouter([
@@ -39,6 +47,14 @@ export const router = createBrowserRouter([
       {
         path: "contact",
         Component: Contact,
+      },
+      {
+        path: "privacy",
+        Component: PrivacyPolicy,
+      },
+      {
+        path: "terms",
+        Component: TermsOfService,
       },
       {
         path: "register",

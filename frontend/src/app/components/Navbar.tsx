@@ -15,6 +15,7 @@ export function Navbar() {
     { name: 'About', href: '/about' },
     { name: 'Features', href: '/features' },
     { name: 'Contact', href: '/contact' },
+    { name: 'Dashboard', href: '/login', isSpecial: true },
   ];
 
   return (
@@ -29,7 +30,7 @@ export function Navbar() {
           </div>
 
           <div className="hidden sm:ml-6 sm:flex sm:items-center sm:space-x-8">
-            {links.map((link) => (
+            {links.filter(link => !link.isSpecial).map((link) => (
               <Link
                 key={link.name}
                 to={link.href}
@@ -43,6 +44,12 @@ export function Navbar() {
                 {link.name}
               </Link>
             ))}
+            <Link
+              to="/login"
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 dark:from-blue-700 dark:to-cyan-700 dark:hover:from-blue-600 dark:hover:to-cyan-600 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-900 focus:ring-cyan-500 shadow-lg shadow-blue-500/50 dark:shadow-cyan-500/50 hover:shadow-xl hover:shadow-blue-500/60 dark:hover:shadow-cyan-500/60 transition-all duration-200"
+            >
+              Dashboard
+            </Link>
           </div>
 
           <div className="hidden sm:ml-6 sm:flex sm:items-center gap-3">
@@ -77,7 +84,7 @@ export function Navbar() {
       {isOpen && (
         <div className="sm:hidden bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 shadow-lg absolute w-full">
           <div className="pt-2 pb-3 space-y-1">
-            {links.map((link) => (
+            {links.filter(link => !link.isSpecial).map((link) => (
               <Link
                 key={link.name}
                 to={link.href}
@@ -92,6 +99,13 @@ export function Navbar() {
                 {link.name}
               </Link>
             ))}
+            <Link
+              to="/role-login"
+              className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-white bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 mx-3 my-2 rounded transition-all duration-200 shadow-lg shadow-blue-500/50 hover:shadow-xl hover:shadow-blue-500/60"
+              onClick={() => setIsOpen(false)}
+            >
+              Dashboard
+            </Link>
             <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-800 pb-4">
               <div className="space-y-2 px-4">
                 <Link to="/login" className="block w-full text-center px-4 py-2 border border-transparent text-base font-medium rounded-md text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors duration-200">
