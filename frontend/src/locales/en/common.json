@@ -1,0 +1,38 @@
+{
+  "common": {
+    "appName": "I-CAMS",
+    "getStarted": "Get Started",
+    "learnMore": "Learn More",
+    "language": "Language",
+    "english": "English",
+    "sinhala": "Sinhala",
+    "tamil": "Tamil"
+  },
+  "hero": {
+    "title": "Bridging the Gap in Continuous Care",
+    "titleHighlight": "Continuous Care",
+    "description": "I-CAMS connects patients, nurses, and doctors in a unified platform for reliable, innovative, and accessible healthcare management. Real-time monitoring, seamless communication, and proactive care for chronic conditions."
+  },
+  "overview": {
+    "heading": "What is I-CAMS?",
+    "content": "The Integrated Care Assessment and Monitoring System (I-CAMS) is a comprehensive digital health platform designed to revolutionize how patients, nurses, and doctors collaborate in delivering continuous care. By connecting all stakeholders in a unified ecosystem, I-CAMS enables real-time health monitoring, seamless communication, and data-driven clinical decision-making. Our mission is to bridge the gap in continuous care by providing reliable, innovative, and accessible tools that empower patients to take control of their health while enabling healthcare professionals to deliver more effective, coordinated care for chronic conditions."
+  },
+  "features": {
+    "sectionLabel": "Features",
+    "heading": "A better way to manage health",
+    "description": "I-CAMS provides comprehensive tools for healthcare management"
+  },
+  "navigation": {
+    "home": "Home",
+    "about": "About",
+    "features": "Features",
+    "contact": "Contact",
+    "login": "Login",
+    "register": "Register"
+  },
+  "footer": {
+    "copyright": "© 2024 I-CAMS. All rights reserved.",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service"
+  }
+}
