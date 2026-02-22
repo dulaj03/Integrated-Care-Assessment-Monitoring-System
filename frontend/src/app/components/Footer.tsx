@@ -1,5 +1,12 @@
 import { Link } from 'react-router';
-import { ArrowRight, ArrowUpRight, Instagram, Linkedin, Globe, Twitter, Dribbble } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, Instagram, Linkedin, Facebook } from 'lucide-react';
+
+// Custom X (Twitter) Icon Component
+const XIcon = () => (
+  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24h-6.514l-5.106-6.693-5.829 6.693h-3.308l7.699-8.876-8.156-10.624h6.508l4.632 6.124 5.288-6.124zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+  </svg>
+);
 
 export function Footer() {
   return (
@@ -88,8 +95,8 @@ export function Footer() {
             <div>
               <h4 className="text-white text-xs font-semibold tracking-wider uppercase mb-6">Follow Us</h4>
               <div className="flex gap-6">
-                <a href="#" className="hover:text-[#0040ff] dark:hover:text-blue-500 transition-colors"><Globe className="w-5 h-5" /></a>
-                <a href="#" className="hover:text-[#0040ff] dark:hover:text-blue-500 transition-colors"><Twitter className="w-5 h-5" /></a>
+                <a href="#" className="hover:text-[#0040ff] dark:hover:text-blue-500 transition-colors"><Facebook className="w-5 h-5" /></a>
+                <a href="#" className="hover:text-[#0040ff] dark:hover:text-blue-500 transition-colors"><XIcon /></a>
                 <a href="#" className="hover:text-[#0040ff] dark:hover:text-blue-500 transition-colors"><Instagram className="w-5 h-5" /></a>
                 <a href="#" className="hover:text-[#0040ff] dark:hover:text-blue-500 transition-colors"><Linkedin className="w-5 h-5" /></a>
               </div>

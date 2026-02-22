@@ -54,7 +54,7 @@ export function HealthLog() {
             <h4 className="text-sm font-medium text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700 pb-2 mb-4">Vitals</h4>
             <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
               <div>
-                <label htmlFor="bp" className="block text-sm font-medium text-slate-700 dark:text-slate-300">Blood Pressure (mmHg)</label>
+                <label htmlFor="systolic" className="block text-sm font-medium text-slate-700 dark:text-slate-300">Blood Pressure (mmHg)</label>
                 <div className="mt-1 flex rounded-md shadow-sm">
                   <input
                     type="number"
@@ -140,8 +140,8 @@ export function HealthLog() {
                   type="button"
                   onClick={() => setFormData({ ...formData, mood })}
                   className={`px-3 py-2 rounded-md text-sm font-medium capitalize transition-colors duration-200 ${formData.mood === mood
-                      ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300 ring-2 ring-blue-500'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                    ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300 ring-2 ring-blue-500'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
                     }`}
                 >
                   {mood}
@@ -157,8 +157,8 @@ export function HealthLog() {
                   type="button"
                   onClick={() => handleSymptomToggle(symptom)}
                   className={`flex items-center justify-center px-3 py-2 border text-sm font-medium rounded-md transition-colors duration-200 ${formData.symptoms.includes(symptom)
-                      ? 'bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800 text-red-700 dark:text-red-400'
-                      : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
+                    ? 'bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800 text-red-700 dark:text-red-400'
+                    : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
                     }`}
                 >
                   {symptom}

@@ -10,12 +10,16 @@ import {
   X,
   Activity,
   Calendar,
-  Users
+  Users,
+  MessageCircle
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { clsx } from 'clsx';
-import { UserRole } from '../lib/mockData';
+import { UserRole, MOCK_PATIENTS } from '../lib/mockData';
 import { ThemeSwitcher } from './ThemeSwitcher';
+import { NotificationBell } from './NotificationBell';
+import { mockNotifications, Notification } from '../lib/mockNotifications';
+import { checkAllPatientAlerts } from '../lib/alertGenerator';
 
 interface DashboardLayoutProps {
   role: UserRole;
@@ -24,18 +28,80 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ role, userName }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const location = useLocation();
+
+  // Initialize notifications from localStorage or mock data
+  useEffect(() => {
+    const savedNotifications = localStorage.getItem('notifications');
+    if (savedNotifications) {
+      try {
+        const parsed = JSON.parse(savedNotifications);
+        const loaded = parsed.map((n: any) => ({
+          ...n,
+          timestamp: new Date(n.timestamp)
+        }));
+        // Check for health log alerts and merge them
+        const withHealthAlerts = checkAllPatientAlerts(MOCK_PATIENTS, loaded);
+        setNotifications(withHealthAlerts);
+      } catch {
+        // Fall back to mock data if parsing fails
+        const initialNotifications = checkAllPatientAlerts(MOCK_PATIENTS, mockNotifications);
+        setNotifications(initialNotifications);
+      }
+    } else {
+      // Generate initial alerts from health logs with mock notifications
+      const initialNotifications = checkAllPatientAlerts(MOCK_PATIENTS, mockNotifications);
+      setNotifications(initialNotifications);
+    }
+  }, []);
+
+  // Simulate automatic alert generation from health logs (every 30 seconds in this demo)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setNotifications((prev) => {
+        // Check for new alerts from health logs
+        return checkAllPatientAlerts(MOCK_PATIENTS, prev);
+      });
+    }, 30000); // Check every 30 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Save notifications to localStorage whenever they change
+  useEffect(() => {
+    if (notifications.length > 0) {
+      localStorage.setItem('notifications', JSON.stringify(notifications));
+    }
+  }, [notifications]);
+
+  // Handle marking notification as read
+  const handleMarkAsRead = (notificationId: string) => {
+    setNotifications((prev) =>
+      prev.map((notif) =>
+        notif.id === notificationId ? { ...notif, isRead: true } : notif
+      )
+    );
+  };
+
+  // Handle notification click
+  const handleNotificationClick = (notification: Notification) => {
+    console.log('Notification clicked:', notification);
+    // You can add navigation or other actions here based on notification type
+  };
 
   const patientLinks = [
     { name: 'Dashboard', href: '/patient/dashboard', icon: LayoutDashboard },
     { name: 'Health Log', href: '/patient/log', icon: FileText },
     { name: 'Appointments', href: '/patient/appointments', icon: Calendar },
+    { name: 'Messages', href: '/patient/messages', icon: MessageCircle },
     { name: 'Profile', href: '/patient/profile', icon: User },
   ];
 
   const doctorLinks = [
     { name: 'Dashboard', href: '/doctor/dashboard', icon: LayoutDashboard },
     { name: 'My Patients', href: '/doctor/patients', icon: Users },
+    { name: 'Messages', href: '/doctor/messages', icon: MessageCircle },
     { name: 'Schedule', href: '/doctor/schedule', icon: Calendar },
     { name: 'Reports', href: '/doctor/reports', icon: FileText },
   ];
@@ -43,6 +109,7 @@ export function DashboardLayout({ role, userName }: DashboardLayoutProps) {
   const nurseLinks = [
     { name: 'Dashboard', href: '/nurse/dashboard', icon: LayoutDashboard },
     { name: 'Patients', href: '/nurse/patients', icon: Users },
+    { name: 'Messages', href: '/nurse/messages', icon: MessageCircle },
     { name: 'Rounds', href: '/nurse/rounds', icon: Activity },
   ];
 
@@ -60,7 +127,7 @@ export function DashboardLayout({ role, userName }: DashboardLayoutProps) {
 
       {/* Sidebar */}
       <div className={clsx(
-        "fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transform transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:inset-0",
+        "fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transform transition-transform duration-300 ease-in-out md:translate-x-0 md:sticky md:top-0 md:h-screen md:inset-auto",
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         <div className="flex items-center justify-center h-16 border-b border-slate-200 dark:border-slate-800">
@@ -78,6 +145,7 @@ export function DashboardLayout({ role, userName }: DashboardLayoutProps) {
                 <Link
                   key={item.name}
                   to={item.href}
+                  onClick={() => setSidebarOpen(false)}
                   className={clsx(
                     isActive
                       ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-r-4 border-blue-600'
@@ -123,17 +191,29 @@ export function DashboardLayout({ role, userName }: DashboardLayoutProps) {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Top Header (Mobile mainly) */}
-        <div className="md:hidden flex items-center justify-between bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 py-2">
+        {/* Top Header */}
+        <div className="flex items-center justify-between bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 py-3 h-16">
+          {/* Left side - Mobile menu toggle */}
           <button
             onClick={() => setSidebarOpen(true)}
-            className="-ml-0.5 -mt-0.5 h-12 w-12 inline-flex items-center justify-center rounded-md text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-300 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 transition-colors duration-200"
+            className="md:hidden -ml-0.5 h-10 w-10 inline-flex items-center justify-center rounded-md text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-300 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 transition-colors duration-200"
           >
             <span className="sr-only">Open sidebar</span>
             <Menu className="h-6 w-6" />
           </button>
-          <div className="font-semibold text-slate-900 dark:text-white">Dashboard</div>
-          <ThemeSwitcher />
+
+          {/* Center - Page title (mobile) */}
+          <div className="md:hidden font-semibold text-slate-900 dark:text-white text-sm">Dashboard</div>
+
+          {/* Right side - Notifications, Theme, etc */}
+          <div className="flex items-center gap-2 ml-auto md:ml-0">
+            <NotificationBell
+              notifications={notifications}
+              onMarkAsRead={handleMarkAsRead}
+              onNotificationClick={handleNotificationClick}
+            />
+            <ThemeSwitcher />
+          </div>
         </div>
 
         {/* Page Content */}

@@ -1,8 +1,10 @@
 import { useParams, Link } from 'react-router';
 import { MOCK_PATIENTS } from '../../lib/mockData';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { ArrowLeft, Send, AlertTriangle, Calendar, FileText } from 'lucide-react';
+import { ArrowLeft, Send, Calendar, FileText } from 'lucide-react';
 import { useState } from 'react';
+import { StatusBadge } from '../../components/StatusBadge';
+import { HealthTrendChart } from '../../components/HealthTrendChart';
+import { calculateHealthSeverity, getHealthStatusDescription } from '../../lib/healthUtils';
 
 export function PatientDetail() {
   const { id } = useParams<{ id: string }>();
@@ -12,14 +14,6 @@ export function PatientDetail() {
   if (!patient) {
     return <div className="p-8 text-center text-slate-500 dark:text-slate-400">Patient not found</div>;
   }
-
-  const chartData = [...patient.logs].reverse().map(log => ({
-    date: new Date(log.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-    systolic: log.vitals.bloodPressure ? parseInt(log.vitals.bloodPressure.split('/')[0]) : 0,
-    diastolic: log.vitals.bloodPressure ? parseInt(log.vitals.bloodPressure.split('/')[1]) : 0,
-    heartRate: log.vitals.heartRate,
-    oxygen: log.vitals.oxygenLevel,
-  }));
 
   const handleSendNote = () => {
     if (!note.trim()) return;
@@ -49,25 +43,8 @@ export function PatientDetail() {
 
         {/* Main Chart Area */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow dark:shadow-xl">
-            <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-4">Vitals History</h3>
-            <div className="h-80 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#4b5563" />
-                  <XAxis dataKey="date" stroke="#8a92a1" />
-                  <YAxis yAxisId="left" stroke="#8a92a1" />
-                  <YAxis yAxisId="right" orientation="right" domain={[60, 110]} stroke="#8a92a1" />
-                  <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569', borderRadius: '0.5rem', color: '#e2e8f0' }} />
-                  <Legend />
-                  <Line yAxisId="left" type="monotone" dataKey="systolic" stroke="#3B82F6" name="Systolic BP" strokeWidth={2} dot={{ r: 4 }} />
-                  <Line yAxisId="left" type="monotone" dataKey="diastolic" stroke="#93C5FD" name="Diastolic BP" strokeWidth={2} />
-                  <Line yAxisId="right" type="monotone" dataKey="heartRate" stroke="#EF4444" name="Heart Rate" strokeWidth={2} dot={{ r: 4 }} />
-                  <Line yAxisId="right" type="monotone" dataKey="oxygen" stroke="#10B981" name="SpO2 %" strokeWidth={2} strokeDasharray="5 5" />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
+          {/* Health Trend Chart with Filtering */}
+          <HealthTrendChart logs={patient.logs} title="Health Trends" height={320} />
 
           {/* Recent Logs List */}
           <div className="bg-white dark:bg-slate-900 rounded-lg shadow dark:shadow-xl overflow-hidden">
@@ -75,30 +52,50 @@ export function PatientDetail() {
               <h3 className="text-lg font-medium text-slate-900 dark:text-white">Recent Logs</h3>
             </div>
             <ul className="divide-y divide-slate-200 dark:divide-slate-800 max-h-96 overflow-y-auto">
-              {patient.logs.map((log) => (
-                <li key={log.id} className="p-4 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors duration-200">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="text-sm font-medium text-slate-900 dark:text-white">{new Date(log.date).toLocaleString()}</p>
-                      <div className="mt-1 flex flex-wrap gap-2">
-                        {log.symptoms.length > 0 ? log.symptoms.map(s => (
-                          <span key={s} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400">
-                            {s}
-                          </span>
-                        )) : <span className="text-xs text-slate-500 dark:text-slate-400">No symptoms reported</span>}
+              {patient.logs.map((log) => {
+                const severity = calculateHealthSeverity(log);
+                const statusDescription = getHealthStatusDescription(log);
+
+                return (
+                  <li
+                    key={log.id}
+                    className="p-4 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors duration-300 animate-fade-in"
+                    title={statusDescription}
+                  >
+                    <div className="flex justify-between items-start gap-4">
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-slate-900 dark:text-white">{new Date(log.date).toLocaleString()}</p>
+                        <div className="mt-1 flex flex-wrap gap-2">
+                          {log.symptoms.length > 0 ? log.symptoms.map(s => (
+                            <span key={s} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400 transition-opacity duration-200">
+                              {s}
+                            </span>
+                          )) : <span className="text-xs text-slate-500 dark:text-slate-400">No symptoms reported</span>}
+                        </div>
+                        {log.notes && <p className="mt-2 text-sm text-slate-600 dark:text-slate-400 italic">"{log.notes}"</p>}
                       </div>
-                      {log.notes && <p className="mt-2 text-sm text-slate-600 dark:text-slate-400 italic">"{log.notes}"</p>}
-                    </div>
-                    <div className="text-right text-sm text-slate-500 dark:text-slate-400">
-                      <div>BP: {log.vitals.bloodPressure}</div>
-                      <div>HR: {log.vitals.heartRate}</div>
-                      <div className={log.vitals.oxygenLevel && log.vitals.oxygenLevel < 95 ? 'text-red-600 dark:text-red-500 font-bold' : ''}>
-                        SpO2: {log.vitals.oxygenLevel}%
+                      <div className="flex flex-col items-end gap-3 min-w-fit">
+                        {/* Status Badge */}
+                        <div className="transform transition-transform duration-200 hover:scale-105">
+                          <StatusBadge
+                            severity={severity}
+                            size="sm"
+                            showIcon={true}
+                          />
+                        </div>
+                        {/* Vital Signs */}
+                        <div className="text-right text-sm text-slate-500 dark:text-slate-400">
+                          <div>BP: {log.vitals.bloodPressure}</div>
+                          <div>HR: {log.vitals.heartRate}</div>
+                          <div className={log.vitals.oxygenLevel && log.vitals.oxygenLevel < 95 ? 'text-red-600 dark:text-red-500 font-bold' : ''}>
+                            SpO2: {log.vitals.oxygenLevel}%
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </li>
-              ))}
+                  </li>
+                );
+              })}
             </ul>
           </div>
         </div>

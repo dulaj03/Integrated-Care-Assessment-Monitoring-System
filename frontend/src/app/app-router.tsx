@@ -11,8 +11,16 @@ import { LoginForm } from "./pages/LoginForm";
 import { DashboardLayout } from "./components/DashboardLayout";
 import { PatientDashboard } from "./pages/patient/Dashboard";
 import { HealthLog } from "./pages/patient/HealthLog";
+import { Appointments } from "./pages/patient/Appointments";
+import { Profile } from "./pages/patient/Profile";
+import { Messages } from "./pages/Messages";
 import { ProfessionalDashboard } from "./pages/professional/Dashboard";
 import { PatientDetail } from "./pages/professional/PatientDetail";
+import { DoctorPatients } from "./pages/professional/DoctorPatients";
+import { DoctorSchedule } from "./pages/professional/DoctorSchedule";
+import { DoctorReports } from "./pages/professional/DoctorReports";
+import { NursePatients } from "./pages/professional/NursePatients";
+import { NurseRounds } from "./pages/professional/NurseRounds";
 import { NotFound } from "./pages/NotFound";
 import { ScrollToTopOnNavigate } from "./components/ScrollToTopOnNavigate";
 import { CURRENT_USER_PATIENT, CURRENT_USER_DOCTOR } from "./lib/mockData";
@@ -74,6 +82,9 @@ export const router = createBrowserRouter([
         children: [
           { path: "dashboard", Component: PatientDashboard },
           { path: "log", Component: HealthLog },
+          { path: "appointments", Component: Appointments },
+          { path: "profile", Component: Profile },
+          { path: "messages", element: <Messages userRole="patient" userId="p1" /> },
           { index: true, Component: PatientDashboard },
         ],
       },
@@ -82,7 +93,11 @@ export const router = createBrowserRouter([
         element: <DashboardLayout role="doctor" userName={CURRENT_USER_DOCTOR.name} />,
         children: [
           { path: "dashboard", Component: ProfessionalDashboard },
+          { path: "patients", Component: DoctorPatients },
+          { path: "schedule", Component: DoctorSchedule },
+          { path: "reports", Component: DoctorReports },
           { path: "patient/:id", Component: PatientDetail },
+          { path: "messages", element: <Messages userRole="professional" userId="d1" /> },
           { index: true, Component: ProfessionalDashboard },
         ],
       },
@@ -91,7 +106,10 @@ export const router = createBrowserRouter([
         element: <DashboardLayout role="nurse" userName="Nurse Anjali" />,
         children: [
           { path: "dashboard", Component: ProfessionalDashboard },
+          { path: "patients", Component: NursePatients },
+          { path: "rounds", Component: NurseRounds },
           { path: "patient/:id", Component: PatientDetail },
+          { path: "messages", element: <Messages userRole="professional" userId="n1" /> },
           { index: true, Component: ProfessionalDashboard },
         ],
       },

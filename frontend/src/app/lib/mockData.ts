@@ -15,6 +15,7 @@ export interface HealthLog {
   date: string;
   symptoms: string[];
   notes: string;
+  painLevel?: number; // 0-10 scale
   vitals: {
     bloodPressure?: string;
     heartRate?: number;
@@ -32,8 +33,8 @@ export interface Patient extends User {
   status: 'stable' | 'monitoring' | 'critical' | 'recovered';
   assignedDoctorId: string;
   lastUpdate: string;
-  upcomingAppointments:Array<{id: string, date: string, title: string, location: string}>;
-  medications: Array<{name: string, dosage: string, frequency: string}>;
+  upcomingAppointments: Array<{ id: string, date: string, title: string, location: string }>;
+  medications: Array<{ name: string, dosage: string, frequency: string }>;
   logs: HealthLog[];
 }
 
@@ -52,9 +53,11 @@ export const MOCK_NURSES: User[] = [
 const generateLogs = (count: number): HealthLog[] => {
   return Array.from({ length: count }).map((_, i) => {
     const date = subDays(new Date(), i);
+    const painLevel = Math.floor(Math.random() * 11); // 0-10 scale
     return {
       id: `log-${i}`,
       date: date.toISOString(),
+      painLevel,
       symptoms: i % 3 === 0 ? ['Fatigue', 'Mild Headache'] : [],
       notes: i % 5 === 0 ? 'Felt a bit dizzy after lunch.' : 'Feeling okay.',
       vitals: {
@@ -123,22 +126,23 @@ export const MOCK_PATIENTS: Patient[] = [
     lastUpdate: subDays(new Date(), 0).toISOString(), // Updated today
     avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=100&h=100',
     upcomingAppointments: [
-       { id: 'a2', date: addDays(new Date(), 1).toISOString(), title: 'Urgent Assessment', location: 'Nawaloka Hospital' },
+      { id: 'a2', date: addDays(new Date(), 1).toISOString(), title: 'Urgent Assessment', location: 'Nawaloka Hospital' },
     ],
     medications: [
       { name: 'Salbutamol Inhaler', dosage: '100mcg', frequency: 'As needed' },
     ],
     logs: generateLogs(30).map((log, i) => {
-        // Make this patient look critical
-        if (i < 3) {
-            return {
-                ...log,
-                vitals: { ...log.vitals, oxygenLevel: 88 + i, heartRate: 110 - i },
-                symptoms: ['Shortness of breath', 'Chest tightness'],
-                mood: 'bad'
-            }
+      // Make this patient look critical
+      if (i < 3) {
+        return {
+          ...log,
+          painLevel: 8 + Math.floor(Math.random() * 3), // 8-10 (High Risk)
+          vitals: { ...log.vitals, oxygenLevel: 88 + i, heartRate: 110 - i },
+          symptoms: ['Shortness of breath', 'Chest tightness'],
+          mood: 'bad'
         }
-        return log;
+      }
+      return log;
     }),
   }
 ];
