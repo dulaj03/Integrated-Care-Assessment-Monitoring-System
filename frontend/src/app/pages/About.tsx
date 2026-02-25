@@ -3,8 +3,10 @@ import { ArrowLeft, Activity, ShieldCheck, HeartPulse, Microscope } from "lucide
 import { Navbar } from "../components/Navbar";
 import { Footer } from '../components/footer';
 import { motion } from "motion/react";
+import { useTranslation } from "react-i18next";
 
 export function About() {
+  const { t } = useTranslation();
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
       <Navbar />
@@ -30,7 +32,7 @@ export function About() {
               transition={{ duration: 0.5 }}
               className="text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-6xl mb-6"
             >
-              Precision Care, <span className="text-blue-600 dark:text-blue-400">Integrated.</span>
+              {t('about.title')} <span className="text-blue-600 dark:text-blue-400">{t('about.titleHighlight')}</span>
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 20 }}
@@ -38,7 +40,7 @@ export function About() {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="text-xl text-slate-600 dark:text-slate-400 leading-relaxed font-light"
             >
-              Bridging the clinical gap through advanced digital monitoring and compassionate technology.
+              {t('about.description')}
             </motion.p>
           </div>
         </main>
@@ -56,15 +58,15 @@ export function About() {
         >
           <div className="order-2 md:order-1">
             <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 mb-4">
-              The Challenge
+              {t('about.challenge')}
             </div>
-            <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-6">The Technology Gap</h2>
+            <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-6">{t('about.challengeHeading')}</h2>
             <div className="space-y-4 text-slate-600 dark:text-slate-400 text-lg leading-relaxed">
               <p>
-                The current healthcare landscape in Sri Lanka remains heavily reliant on manual documentation and sporadic, analog follow-ups. This reliance creates a significant <strong>'Technology Gap'</strong>—a critical disconnect between the intensive clinical care provided within hospital walls and the patient's lived experience at home.
+                {t('about.challengeContent1')}
               </p>
               <p>
-                Manual systems are inherently prone to inefficiency, leading to delayed interventions, fragmented communication, and a profound lack of standardized, longitudinal health data. For those managing chronic conditions, this gap represents more than just a logistical hurdle; it is a direct barrier to optimal health outcomes.
+                {t('about.challengeContent2')}
               </p>
             </div>
           </div>
@@ -86,15 +88,15 @@ export function About() {
           </div>
           <div>
             <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 mb-4">
-              Integrated Framework
+              {t('about.framework')}
             </div>
-            <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-6">The I-CAMS Solution</h2>
+            <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-6">{t('about.solutionHeading')}</h2>
             <div className="space-y-4 text-slate-600 dark:text-slate-400 text-lg leading-relaxed">
               <p>
-                I-CAMS bridges this divide through a meticulously engineered, integrated digital framework. Our platform translates the complexities of healthcare monitoring into a seamless, role-based ecosystem.
+                {t('about.solutionContent1')}
               </p>
               <p>
-                By centralizing real-time health logs, diagnostic trends, and secure communication channels, we empower patients, nurses, and doctors with actionable data. This is more than a logging tool; it is a clinical-grade monitoring system designed for precise, data-driven decision-making across the entire continuum of care.
+                {t('about.solutionContent2')}
               </p>
             </div>
           </div>
@@ -163,7 +165,7 @@ export function About() {
         <div className="text-center">
           <Link to="/" className="inline-flex items-center px-6 py-3 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700 font-medium transition-all duration-200 shadow-sm">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Return to Overview
+            {t('navigation.returnHome')}
           </Link>
         </div>
       </main>

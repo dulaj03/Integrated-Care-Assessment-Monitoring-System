@@ -28,11 +28,179 @@
     "features": "ලක්ෂණ",
     "contact": "සම්බන්ධතා",
     "login": "ඇතුල් වන්න",
-    "register": "ලියාපදිංචි කරන්න"
+    "register": "ලියාපදිංචි කරන්න",
+    "returnHome": "ගොඩ පිටුවට ආපසු යන්න"
   },
   "footer": {
     "copyright": "© 2024 I-CAMS. සියලු අයිතිවාසිකම් වෙනුවූ ගබඩා.",
     "privacyPolicy": "රහස්‍යතා ප්‍රතිපත්තිය",
     "termsOfService": "සේවා කොන්දේසිය"
+  },
+  "about": {
+    "title": "නිරවද්‍ය සේවාව, ඒකීකසත.",
+    "titleHighlight": "ඒකීකසත.",
+    "description": "උසස් ඩිජිටල් නිරීක්ෂණ සහ ශරණාගතවූ තාක්ෂණය හරහා.",
+    "challenge": "අභිභවනය",
+    "challengeHeading": "තාක්ෂණ පරතරය",
+    "challengeContent1": "ශ්‍රී ලංකාවේ සෞඛ්‍ය පද්ධතිය පිටපතු ලිපිනිර්දේශ සහ විසිකරණ පිටිපෝ දිගටම්.",
+    "challengeContent2": "පිටපතු පද්ධතිවල අකුසල වීම සහ ප්‍රතිපත්තිමත් සෞඛ්‍ය තොරතුරු බිම්පතු අයිතිවාසිකම්.",
+    "framework": "ඒකීකසත ඔබ්බිම",
+    "solutionHeading": "I-CAMS විසඳුම",
+    "solutionContent1": "I-CAMS එයින් පුරණු ඒකීකසත ඩිජිටල් ඔබ්බිම හරහා.",
+    "solutionContent2": "සිටින කාලීන සෞඛ්‍ය ගිණුම්පත සහ ආරක්ෂිත සන්නිවේදනය හරහා සියලු උපකරණ ක්ෂම කරයි."
+  },
+  "features_page": {
+    "title": "ක්ලිනිකල් සමර්ථතා",
+    "titleHighlight": "සමර්ථතා",
+    "description": "ඩිජිටල් සෙවිකා පද්ධතිය.",
+    "symptomTracking": "සිටින කාලීන ක්ෂණ පිටිපෝ",
+    "symptomBenefit": "සිටින කාලීන රෝගීන් තොරතුරු හරහා අඩුවීमේ පෙර හඩුවුකරණ.",
+    "roleAccess": "නිකෝධිකරණ ගිණුම්කරණ ශ්‍රේණි",
+    "roleBenefit": "මධ්‍යස්ථාන නිරතුරු අඩුවීම ගිණුම්කරණ හරහා.",
+    "notifications": "ස්වයංක්‍රිය දැනුම් සහ අවවාද",
+    "notificationBenefit": "අවිරුද්ධ ක්ෂණ පෙර නිරතුරු ගිණුම්කරණ ප්‍රතිරෝධක.",
+    "dashboards": "ඩිනිෂ ඉතිකරණ ඉතිරුම්",
+    "dashboardBenefit": "ස්ථිර රෝගීන් මතුපිට හඩුවුවි.",
+    "communication": "ආරක්ෂිත විවිධ බිම්පතු සන්නිවේදනය",
+    "communicationBenefit": "අවිරුද්ධ තොරතුරු බිම්පතු ශ්‍රේණි ඇතුල්වීම."
+  },
+  "contact": {
+    "title": "සම්බන්ධතා සහ සහාය",
+    "titleHelp": "සහාය",
+    "description": "අපි ඔබගේ සෞඛ්‍ය පිටිපෝ වඩා හොඳ နිරතුරු සේවාව සඳහා ඔබගේ බිම්පතු සහාය දිමට සිටිඉවහේ.",
+    "sendMessage": "පණිවිඩ යැවීම",
+    "messageDescription": "I-CAMS ගිණුම්පත ඉතිකට්ට ඉතිරිකරණ? අපගේ කණ්ඩායම 24 ගෑස් තුළ පිළිතුරු දැක්වීමි.",
+    "fullName": "ඔබගේ සම්පූර්ණ නම",
+    "email": "ඉ-තැපැල් ලිපිනය",
+    "messageContent": "පණිවිඩ අන්තර්ගතය",
+    "messagePlaceholder": "අපි ඔබට බිම්පතු කිරීම කි?",
+    "send": "පණිවිඩ යැවීම"
+  },
+  "login": {
+    "signIn": "I-CAMS වලට පිවිසින්න",
+    "selectRole": "ඔබගේ සිරුරු වෙත ගිණුම්පත දිගටම් කරන්න",
+    "patient": "රෝගී",
+    "patientDesc": "ඔබගේ සෞඛ්‍ය ඉතිරිකරණ ප්‍රවේශ",
+    "nurse": "සේවිකා",
+    "nurseDesc": "වැඩ කර ඉතිරිකරණ නිරීක්ෂණ",
+    "doctor": "වෛద්‍යවරුන්",
+    "doctorDesc": "රෝගීන්ගේ නඩුවලු නිරීක්ෂණ",
+    "goBack": "හෝ ගෑ පිටුවට ආපසු",
+    "returnHome": "ගෑ පිටුවට ආපසු යන්න"
+  },
+  "patient_dashboard": {
+    "greeting": "සුස්වාගතයි",
+    "healthOverview": "ඉතා සෞඛ්‍ය දෑ ඔබගේ ස්වාස්ථ්‍ය නිරීක්ෂණ ඉතිකර පිටුවයි.",
+    "logHealth": "සෞඛ්‍ය ලොග් කරන්න",
+    "attentionNeeded": "අවධානයට අවශ්‍ය",
+    "statusWarning": "ඔබගේ වර්තමාන තත්ත්‍වය ලකුණු කර ඇත",
+    "pleaseEnsure": "කරුණාකර ඔබ සෙවිනි ස්වාස්ථ්‍ය ඉතිකර දිනි සහ වෛද්‍යවරුන්ගේ ඉඟි අනුගමනය කරන්න.",
+    "bloodPressure": "අධිරුක්තය පීඩනය",
+    "heartRate": "හෘද නොඩ",
+    "temperature": "උෂ්ණත්වය",
+    "bloodOxygen": "ඔක්සිජන් පරිසිරයුම්",
+    "recentActivity": "ඉතා ක්‍රියාකාරීතාවය",
+    "viewAll": "සියලු බලන්න",
+    "noLogs": "කිසිදු සෞඛ්‍ය ලොග් සටහන් සටහන් නොකර ඇති",
+    "startLogging": "ඔබගේ ස්වාස්ථ්‍ය සෙවිනි ඉතිකර ඉතිකර ඇරඹීම"
+  },
+  "patient_appointments": {
+    "title": "කැඳවීම්",
+    "upcoming": "ඉතා පසු",
+    "past": "අතීතය",
+    "completed": "සම්පූර්ණ වූ",
+    "upcomingAppointments": "ඉතා පසු කැඳවීම්",
+    "pastAppointments": "අතීත කැඳවීම්",
+    "with": "සමඟ",
+    "location": "ස්ථානය",
+    "time": "කාලය",
+    "date": "දිනය",
+    "notes": "සටහන්",
+    "noAppointments": "කිසිදු කැඳවීම් නිර්ධාරිත නැත",
+    "scheduleAppointment": "කැඳවීම අනුසිටුවන්න"
+  },
+  "patient_healthlog": {
+    "title": "සෞඛ්‍ය ලොග්",
+    "addEntry": "ප්‍රවේශයෝ එක් කරන්න",
+    "recentEntries": "ඉතා ප්‍රවේශයෝ",
+    "logDate": "ලොග් දිනය",
+    "symptoms": "ලක්ෂණ",
+    "vitals": "ස්වාස්ථ්‍ය",
+    "notes": "සටහන්",
+    "noEntries": "කිසිදු සෞඛ්‍ය ලොග් සටහන් නොකර ඇති"
+  },
+  "patient_profile": {
+    "title": "මගේ පිටුව",
+    "personalInfo": "පෞද්ගලික තොරතුරු",
+    "medicalHistory": "වෛද්‍ය ඉතිහාසය",
+    "currentMedications": "වර්තමාන ඖෂධ",
+    "allergies": "ඔසඹුලුවීම්",
+    "emergencyContact": "জরুরි සම්බන්ධතා",
+    "assignedDoctor": "පත්‍ර කරණ ලද වෛද්‍යවරుන්",
+    "conditions": "ප්‍රිකරණ තත්ත්‍වය"
+  },
+  "professional_dashboard": {
+    "patientOverview": "රෝගී නිරීක්ෂණ",
+    "addNewPatient": "නව රෝගී එක් කරන්න",
+    "totalPatients": "සම්පූර්ණ රෝගීන්",
+    "criticalAlerts": "ඉතා තීක්ෂ්ණ නිවේදනයි",
+    "underMonitoring": "නිරීක්ෂණ සඳහා",
+    "stable": "ස්ථිරයි",
+    "search": "රෝගීන් සොයන්න...",
+    "filter": "තත්ත්‍වය අනුව ගලිසි කරන්න",
+    "allStatus": "සියලු",
+    "criticalStatus": "ඉතා තීක්ෂ්ණ",
+    "monitoringStatus": "නිරීක්ෂණ",
+    "stableStatus": "ස්ථිරයි"
+  },
+  "doctor_patients": {
+    "title": "මගේ රෝගීන්",
+    "patientList": "රෝගී ලැයිස්තුව",
+    "status": "තත්ත්‍වය",
+    "condition": "තත්ත්‍වය",
+    "lastUpdate": "අවසාන යාවත්කාල කිරීම",
+    "viewDetails": "විස්තර බලන්න",
+    "scheduleFollow": "පෙනුම් අනුසිටුවන්න"
+  },
+  "doctor_reports": {
+    "title": "ප්‍රකාශන",
+    "generateReport": "ප්‍රකාශන තෙවීම",
+    "reportType": "ප්‍රකාශන වර්ගය",
+    "dateRange": "දින පරිධිය",
+    "selectPatient": "රෝගී තෝරාගන්න",
+    "viewReport": "ප්‍රකාශන බලන්න",
+    "downloadPDF": "PDF බාගන්න"
+  },
+  "doctor_schedule": {
+    "title": "කාල ගිණුම්",
+    "todaySchedule": "අද කාල ගිණුම්",
+    "addAppointment": "කැඳවීම එක් කරන්න",
+    "upcomingAppointments": "ඉතා පසු කැඳවීම්",
+    "completedAppointments": "සම්පූර්ණ වූ කැඳවීම්"
+  },
+  "nurse_patients": {
+    "title": "වර්ඩ් රෝගීන්",
+    "patientList": "රෝගී ලැයිස්තුව",
+    "viewChart": "සටහන බලන්න",
+    "recordVitals": "ස්වාස්ථ්‍ය සටහන කරන්න",
+    "status": "තත්ත්‍වය"
+  },
+  "nurse_rounds": {
+    "title": "ස් していDM",
+    "startRound": "ස්තර ඇරඹන්න",
+    "completeRound": "ස්තර සම්පූර්ණ කරන්න",
+    "patientList": "රෝගී ලැයිස්තුව",
+    "recordedNotes": "සටහන් කරන ලද සටහන්"
+  },
+  "common_buttons": {
+    "save": "සුරකින්න",
+    "cancel": "අවලංගු කරන්න",
+    "delete": "මකා දමන්න",
+    "edit": "සංස්කරණ කරන්න",
+    "back": "ආපසු",
+    "next": "ඉදිරි",
+    "previous": "පෙර",
+    "submit": "ඉදිරිපත් කරන්න",
+    "close": "සවි කරන්න"
   }
 }

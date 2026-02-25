@@ -8,6 +8,15 @@
     "sinhala": "Sinhala",
     "tamil": "Tamil"
   },
+  "navigation": {
+    "home": "Home",
+    "about": "About",
+    "features": "Features",
+    "contact": "Contact",
+    "login": "Login",
+    "register": "Register",
+    "returnHome": "Return to Landing Page"
+  },
   "hero": {
     "title": "Bridging the Gap in Continuous Care",
     "titleHighlight": "Continuous Care",
@@ -22,17 +31,178 @@
     "heading": "A better way to manage health",
     "description": "I-CAMS provides comprehensive tools for healthcare management"
   },
-  "navigation": {
-    "home": "Home",
-    "about": "About",
-    "features": "Features",
-    "contact": "Contact",
-    "login": "Login",
-    "register": "Register"
-  },
   "footer": {
     "copyright": "© 2024 I-CAMS. All rights reserved.",
     "privacyPolicy": "Privacy Policy",
-    "termsOfService": "Terms of Service"
+    "termsOfService": "Terms of Service",
+    "clinicalTagline": "Bridging the clinical gap through technology, one log at a time.",
+    "location": "I-CAMS Sri Lanka • Assessment & Monitoring"
+  },
+  "about": {
+    "title": "Precision Care, Integrated.",
+    "titleHighlight": "Integrated.",
+    "description": "Bridging the clinical gap through advanced digital monitoring and compassionate technology.",
+    "challenge": "The Challenge",
+    "challengeHeading": "The Technology Gap",
+    "challengeContent1": "The current healthcare landscape in Sri Lanka remains heavily reliant on manual documentation and sporadic follow-ups. This creates a significant 'Technology Gap' between hospital care and patient experiences at home.",
+    "challengeContent2": "Manual systems lead to delayed interventions, fragmented communication, and lack of standardized health data. For chronic condition management, this represents a critical barrier to optimal health outcomes.",
+    "framework": "Integrated Framework",
+    "solutionHeading": "The I-CAMS Solution",
+    "solutionContent1": "I-CAMS bridges this gap through an integrated digital framework that simplifies healthcare monitoring into a seamless, role-based ecosystem.",
+    "solutionContent2": "By centralizing real-time health logs, diagnostic trends, and secure communication, we empower all stakeholders with actionable data for precise, data-driven decision-making."
+  },
+  "features_page": {
+    "title": "Clinical Capabilities",
+    "titleHighlight": "Capabilities",
+    "description": "A streamlined digital ecosystem designed to optimize healthcare delivery and improve patient outcomes.",
+    "symptomTracking": "Real-time Symptom Tracking",
+    "symptomBenefit": "Enables early detection of deterioration through continuous patient data.",
+    "roleAccess": "Role-based Professional Access",
+    "roleBenefit": "Streamlines triage and reduces hospital overcrowding.",
+    "notifications": "Automated Notifications & Alerts",
+    "notificationBenefit": "Triggers immediate medical responses to critical symptoms.",
+    "dashboards": "Data Visualization Dashboards",
+    "dashboardBenefit": "Supports safe home monitoring with trend identification.",
+    "communication": "Secure Multi-stakeholder Communication",
+    "communicationBenefit": "Enables seamless information exchange for proactive care."
+  },
+  "contact": {
+    "title": "Contact & Support",
+    "titleHelp": "Support",
+    "description": "We are here to support your journey towards better continuous care.",
+    "sendMessage": "Send a Message",
+    "messageDescription": "Have questions about I-CAMS? Our team responds within 24 hours.",
+    "fullName": "Your Full Name",
+    "email": "Email Address",
+    "messageContent": "Message Content",
+    "messagePlaceholder": "How can we help you today?",
+    "send": "Send Message"
+  },
+  "login": {
+    "signIn": "Sign in to I-CAMS",
+    "selectRole": "Select your role to continue",
+    "patient": "Patient",
+    "patientDesc": "Access your health records",
+    "nurse": "Nurse",
+    "nurseDesc": "Monitor ward patients",
+    "doctor": "Doctor",
+    "doctorDesc": "Review patient cases",
+    "goBack": "Or go back home",
+    "returnHome": "Return to Landing Page"
+  },
+  "patient_dashboard": {
+    "greeting": "Hello",
+    "healthOverview": "Here is your health overview for today.",
+    "logHealth": "Log Health",
+    "attentionNeeded": "Attention Needed",
+    "statusWarning": "Your current status is marked as",
+    "pleaseEnsure": "Please ensure you are logging your vitals daily and following your doctor's advice.",
+    "bloodPressure": "Blood Pressure",
+    "heartRate": "Heart Rate",
+    "temperature": "Temperature",
+    "bloodOxygen": "Blood Oxygen",
+    "recentActivity": "Recent Activity",
+    "viewAll": "View All",
+    "noLogs": "No health logs recorded yet",
+    "startLogging": "Start logging your vitals to track your health"
+  },
+  "patient_appointments": {
+    "title": "Appointments",
+    "upcoming": "Upcoming",
+    "past": "Past",
+    "completed": "Completed",
+    "upcomingAppointments": "Upcoming Appointments",
+    "pastAppointments": "Past Appointments",
+    "with": "with",
+    "location": "Location",
+    "time": "Time",
+    "date": "Date",
+    "notes": "Notes",
+    "noAppointments": "No appointments scheduled",
+    "scheduleAppointment": "Schedule Appointment"
+  },
+  "patient_healthlog": {
+    "title": "Health Log",
+    "addEntry": "Add Entry",
+    "recentEntries": "Recent Entries",
+    "logDate": "Log Date",
+    "symptoms": "Symptoms",
+    "vitals": "Vitals",
+    "notes": "Notes",
+    "noEntries": "No health log entries yet"
+  },
+  "patient_profile": {
+    "title": "My Profile",
+    "personalInfo": "Personal Information",
+    "medicalHistory": "Medical History",
+    "currentMedications": "Current Medications",
+    "allergies": "Allergies",
+    "emergencyContact": "Emergency Contact",
+    "assignedDoctor": "Assigned Doctor",
+    "conditions": "Chronic Conditions"
+  },
+  "professional_dashboard": {
+    "patientOverview": "Patient Overview",
+    "addNewPatient": "Add New Patient",
+    "totalPatients": "Total Patients",
+    "criticalAlerts": "Critical Alerts",
+    "underMonitoring": "Under Monitoring",
+    "stable": "Stable",
+    "search": "Search patients...",
+    "filter": "Filter by status",
+    "allStatus": "All",
+    "criticalStatus": "Critical",
+    "monitoringStatus": "Monitoring",
+    "stableStatus": "Stable"
+  },
+  "doctor_patients": {
+    "title": "My Patients",
+    "patientList": "Patient List",
+    "status": "Status",
+    "condition": "Condition",
+    "lastUpdate": "Last Update",
+    "viewDetails": "View Details",
+    "scheduleFollow": "Schedule Follow-up"
+  },
+  "doctor_reports": {
+    "title": "Reports",
+    "generateReport": "Generate Report",
+    "reportType": "Report Type",
+    "dateRange": "Date Range",
+    "selectPatient": "Select Patient",
+    "viewReport": "View Report",
+    "downloadPDF": "Download PDF"
+  },
+  "doctor_schedule": {
+    "title": "Schedule",
+    "todaySchedule": "Today's Schedule",
+    "addAppointment": "Add Appointment",
+    "upcomingAppointments": "Upcoming Appointments",
+    "completedAppointments": "Completed Appointments"
+  },
+  "nurse_patients": {
+    "title": "Ward Patients",
+    "patientList": "Patient List",
+    "viewChart": "View Chart",
+    "recordVitals": "Record Vitals",
+    "status": "Status"
+  },
+  "nurse_rounds": {
+    "title": "Rounds",
+    "startRound": "Start Round",
+    "completeRound": "Complete Round",
+    "patientList": "Patient List",
+    "recordedNotes": "Recorded Notes"
+  },
+  "common_buttons": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "submit": "Submit",
+    "close": "Close"
   }
 }

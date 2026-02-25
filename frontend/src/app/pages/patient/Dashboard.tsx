@@ -2,8 +2,10 @@ import { Activity, Calendar, Droplet, Heart, Thermometer, TrendingUp, AlertCircl
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { CURRENT_USER_PATIENT } from '../../lib/mockData';
 import { Link } from 'react-router';
+import { useTranslation } from 'react-i18next';
 
 export function PatientDashboard() {
+  const { t } = useTranslation();
   const patient = CURRENT_USER_PATIENT;
   const recentLogs = patient.logs.slice(0, 7).reverse(); // Last 7 entries for chart
 
@@ -23,10 +25,10 @@ export function PatientDashboard() {
       <div className="md:flex md:items-center md:justify-between">
         <div className="flex-1 min-w-0">
           <h2 className="text-2xl font-bold leading-7 text-slate-900 dark:text-white sm:text-3xl sm:truncate">
-            Hello, {patient.name.split(' ')[0]}!
+            {t('patient_dashboard.greeting')}, {patient.name.split(' ')[0]}!
           </h2>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Here is your health overview for today.
+            {t('patient_dashboard.healthOverview')}
           </p>
         </div>
         <div className="mt-4 flex md:mt-0 md:ml-4">
@@ -35,7 +37,7 @@ export function PatientDashboard() {
             className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-900 focus:ring-blue-500 transition-colors duration-200"
           >
             <Plus className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
-            Log Health
+            {t('patient_dashboard.logHealth')}
           </Link>
         </div>
       </div>
@@ -48,10 +50,10 @@ export function PatientDashboard() {
               <AlertCircle className="h-5 w-5 text-yellow-400" aria-hidden="true" />
             </div>
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-yellow-800 dark:text-yellow-300">Attention Needed</h3>
+              <h3 className="text-sm font-medium text-yellow-800 dark:text-yellow-300">{t('patient_dashboard.attentionNeeded')}</h3>
               <div className="mt-2 text-sm text-yellow-700 dark:text-yellow-400">
                 <p>
-                  Your current status is marked as <strong>{patient.status}</strong>. Please ensure you are logging your vitals daily and following your doctor's advice.
+                  {t('patient_dashboard.statusWarning')} <strong>{patient.status}</strong>. {t('patient_dashboard.pleaseEnsure')}
                 </p>
               </div>
             </div>
@@ -70,7 +72,7 @@ export function PatientDashboard() {
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
-                  <dt className="text-sm font-medium text-slate-500 dark:text-slate-400 truncate">Blood Pressure</dt>
+                  <dt className="text-sm font-medium text-slate-500 dark:text-slate-400 truncate">{t('patient_dashboard.bloodPressure')}</dt>
                   <dd>
                     <div className="text-lg font-medium text-slate-900 dark:text-white">{latestLog?.vitals.bloodPressure || 'N/A'}</div>
                   </dd>
@@ -94,7 +96,7 @@ export function PatientDashboard() {
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
-                  <dt className="text-sm font-medium text-slate-500 dark:text-slate-400 truncate">Heart Rate</dt>
+                  <dt className="text-sm font-medium text-slate-500 dark:text-slate-400 truncate">{t('patient_dashboard.heartRate')}</dt>
                   <dd>
                     <div className="text-lg font-medium text-slate-900 dark:text-white">{latestLog?.vitals.heartRate || 'N/A'} bpm</div>
                   </dd>
@@ -118,7 +120,7 @@ export function PatientDashboard() {
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
-                  <dt className="text-sm font-medium text-slate-500 dark:text-slate-400 truncate">Temperature</dt>
+                  <dt className="text-sm font-medium text-slate-500 dark:text-slate-400 truncate">{t('patient_dashboard.temperature')}</dt>
                   <dd>
                     <div className="text-lg font-medium text-slate-900 dark:text-white">{latestLog?.vitals.temperature || 'N/A'} °C</div>
                   </dd>
@@ -142,7 +144,7 @@ export function PatientDashboard() {
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
-                  <dt className="text-sm font-medium text-slate-500 dark:text-slate-400 truncate">Oxygen Level</dt>
+                  <dt className="text-sm font-medium text-slate-500 dark:text-slate-400 truncate">{t('patient_dashboard.bloodOxygen')}</dt>
                   <dd>
                     <div className="text-lg font-medium text-slate-900 dark:text-white">{latestLog?.vitals.oxygenLevel || 'N/A'}%</div>
                   </dd>

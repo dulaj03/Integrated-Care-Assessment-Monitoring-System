@@ -2,8 +2,10 @@ import { Mail, Phone, Calendar, Heart, Pill, AlertCircle, Edit, Shield, MapPin, 
 import { useState } from 'react';
 import { CURRENT_USER_PATIENT, MOCK_DOCTORS } from '../../lib/mockData';
 import { format } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 
 export function Profile() {
+  const { t } = useTranslation();
   const patient = CURRENT_USER_PATIENT;
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -47,7 +49,7 @@ export function Profile() {
       <div className="md:flex md:items-center md:justify-between">
         <div className="flex-1 min-w-0">
           <h2 className="text-2xl font-bold leading-7 text-slate-900 dark:text-white sm:text-3xl sm:truncate">
-            My Profile
+            {t('patient_profile.title')}
           </h2>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Manage your personal and medical information
@@ -79,10 +81,10 @@ export function Profile() {
               {patient.name}
             </h3>
             <p className={`inline-flex items-center gap-1 text-xs font-medium mt-1 px-2 py-1 rounded-full ${patient.status === 'stable'
-                ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-                : patient.status === 'monitoring'
-                  ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'
-                  : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+              ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+              : patient.status === 'monitoring'
+                ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'
+                : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
               }`}>
               <Heart className="h-3 w-3" />
               {patient.status.charAt(0).toUpperCase() + patient.status.slice(1)}

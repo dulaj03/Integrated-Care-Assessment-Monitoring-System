@@ -14,8 +14,10 @@ import {
 import { Navbar } from "../components/Navbar";
 import { Footer } from '../components/footer';
 import { motion } from "motion/react";
+import { useTranslation } from "react-i18next";
 
 export function Contact() {
+  const { t } = useTranslation();
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
       <Navbar />
@@ -29,7 +31,7 @@ export function Contact() {
             transition={{ duration: 0.5 }}
             className="text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-6xl mb-6"
           >
-            Contact & <span className="text-blue-600 dark:text-blue-400">Support</span>
+            {t('contact.title')} <span className="text-blue-600 dark:text-blue-400">{t('contact.titleHelp')}</span>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -37,7 +39,7 @@ export function Contact() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto font-light leading-relaxed"
           >
-            Whether you are a healthcare professional, a hospital administrator, or a patient, we are here to support your journey towards better continuous care.
+            {t('contact.description')}
           </motion.p>
         </div>
       </section>
@@ -59,28 +61,28 @@ export function Contact() {
               <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center text-blue-600 dark:text-blue-400">
                 <Send className="w-6 h-6" />
               </div>
-              <h2 className="text-2xl font-bold dark:text-white">Send a Message</h2>
+              <h2 className="text-2xl font-bold dark:text-white">{t('contact.sendMessage')}</h2>
             </div>
             <p className="text-slate-500 dark:text-slate-400 mb-8">
-              Have a general inquiry about I-CAMS? Our team typically responds within 24 hours.
+              {t('contact.messageDescription')}
             </p>
             <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Your Full Name</label>
-                  <input type="text" className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl p-4 focus:ring-2 focus:ring-blue-500 dark:text-white" placeholder="John Doe" />
+                  <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t('contact.fullName')}</label>
+                  <input type="text" className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl p-4 focus:ring-2 focus:ring-blue-500 dark:text-white" placeholder={t('contact.fullName')} />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Email Address</label>
-                  <input type="email" className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl p-4 focus:ring-2 focus:ring-blue-500 dark:text-white" placeholder="john@example.com" />
+                  <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t('contact.email')}</label>
+                  <input type="email" className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl p-4 focus:ring-2 focus:ring-blue-500 dark:text-white" placeholder={t('contact.email')} />
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Message Content</label>
-                <textarea rows={5} className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl p-4 focus:ring-2 focus:ring-blue-500 dark:text-white" placeholder="How can we help you today?"></textarea>
+                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t('contact.messageContent')}</label>
+                <textarea rows={5} className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl p-4 focus:ring-2 focus:ring-blue-500 dark:text-white" placeholder={t('contact.messagePlaceholder')}></textarea>
               </div>
               <button type="submit" className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-12 rounded-xl transition-all shadow-lg shadow-blue-500/20 active:scale-95">
-                Send Message
+                {t('contact.send')}
               </button>
             </form>
           </motion.div>
@@ -230,7 +232,7 @@ export function Contact() {
         <div className="text-center">
           <Link to="/" className="inline-flex items-center px-8 py-4 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700 font-bold transition-all shadow-sm">
             <ArrowLeft className="w-5 h-5 mr-3" />
-            Return to Homepage
+            {t('navigation.returnHome')}
           </Link>
         </div>
       </main>

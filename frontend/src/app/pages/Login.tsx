@@ -1,7 +1,9 @@
 import { Link, useNavigate } from 'react-router';
 import { User, Stethoscope, Activity, Lock } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export function Login() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const handleLogin = (role: 'patient' | 'doctor' | 'nurse') => {
@@ -18,10 +20,10 @@ export function Login() {
           </div>
         </div>
         <h2 className="mt-6 text-center text-3xl font-extrabold text-slate-900 dark:text-white">
-          Sign in to I-CAMS
+          {t('login.signIn')}
         </h2>
         <p className="mt-2 text-center text-sm text-slate-600 dark:text-slate-400">
-          Select your role to continue to the dashboard
+          {t('login.selectRole')}
         </p>
       </div>
 
@@ -37,8 +39,8 @@ export function Login() {
                 <User className="h-6 w-6 text-blue-600 dark:text-blue-400" />
               </div>
               <div className="text-left">
-                <p className="text-lg font-semibold text-slate-900 dark:text-white">Patient</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">Access your health records</p>
+                <p className="text-lg font-semibold text-slate-900 dark:text-white">{t('login.patient')}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">{t('login.patientDesc')}</p>
               </div>
             </div>
             <Lock className="h-4 w-4 text-slate-400 dark:text-slate-500" />
@@ -53,8 +55,8 @@ export function Login() {
                 <Activity className="h-6 w-6 text-green-600 dark:text-green-400" />
               </div>
               <div className="text-left">
-                <p className="text-lg font-semibold text-slate-900 dark:text-white">Nurse</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">Monitor ward patients</p>
+                <p className="text-lg font-semibold text-slate-900 dark:text-white">{t('login.nurse')}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">{t('login.nurseDesc')}</p>
               </div>
             </div>
             <Lock className="h-4 w-4 text-slate-400 dark:text-slate-500" />
@@ -69,8 +71,8 @@ export function Login() {
                 <Stethoscope className="h-6 w-6 text-purple-600 dark:text-purple-400" />
               </div>
               <div className="text-left">
-                <p className="text-lg font-semibold text-slate-900 dark:text-white">Doctor</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">Review patient cases</p>
+                <p className="text-lg font-semibold text-slate-900 dark:text-white">{t('login.doctor')}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">{t('login.doctorDesc')}</p>
               </div>
             </div>
             <Lock className="h-4 w-4 text-slate-400 dark:text-slate-500" />
@@ -83,13 +85,13 @@ export function Login() {
               </div>
               <div className="relative flex justify-center text-sm">
                 <span className="px-2 bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400">
-                  Or go back home
+                  {t('login.goBack')}
                 </span>
               </div>
             </div>
             <div className="mt-6 text-center">
               <Link to="/" className="font-medium text-blue-600 dark:text-blue-500 hover:text-blue-500 dark:hover:text-blue-400 transition-colors duration-200">
-                Return to Landing Page
+                {t('login.returnHome')}
               </Link>
             </div>
           </div>

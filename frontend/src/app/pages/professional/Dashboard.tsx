@@ -3,8 +3,10 @@ import { Link, useNavigate } from 'react-router';
 import { Search, Filter, AlertCircle, CheckCircle, Clock, ChevronRight, User } from 'lucide-react';
 import { MOCK_PATIENTS, Patient } from '../../lib/mockData';
 import { clsx } from 'clsx';
+import { useTranslation } from 'react-i18next';
 
 export function ProfessionalDashboard() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [filter, setFilter] = useState<'all' | 'critical' | 'monitoring' | 'stable'>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -28,10 +30,10 @@ export function ProfessionalDashboard() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Patient Overview</h1>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{t('professional_dashboard.patientOverview')}</h1>
         <div className="mt-4 sm:mt-0">
           <button className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-900 focus:ring-blue-500 transition-colors duration-200">
-            Add New Patient
+            {t('professional_dashboard.addNewPatient')}
           </button>
         </div>
       </div>
@@ -46,7 +48,7 @@ export function ProfessionalDashboard() {
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
-                  <dt className="text-sm font-medium text-slate-500 dark:text-slate-400 truncate">Total Patients</dt>
+                  <dt className="text-sm font-medium text-slate-500 dark:text-slate-400 truncate">{t('professional_dashboard.totalPatients')}</dt>
                   <dd>
                     <div className="text-lg font-medium text-slate-900 dark:text-white">{MOCK_PATIENTS.length}</div>
                   </dd>
@@ -64,7 +66,7 @@ export function ProfessionalDashboard() {
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
-                  <dt className="text-sm font-medium text-slate-500 dark:text-slate-400 truncate">Critical Alerts</dt>
+                  <dt className="text-sm font-medium text-slate-500 dark:text-slate-400 truncate">{t('professional_dashboard.criticalAlerts')}</dt>
                   <dd>
                     <div className="text-lg font-medium text-slate-900 dark:text-white">
                       {MOCK_PATIENTS.filter(p => p.status === 'critical').length}

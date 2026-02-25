@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Save, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export function HealthLog() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     systolic: '',
@@ -41,9 +43,9 @@ export function HealthLog() {
     <div className="max-w-2xl mx-auto py-8">
       <div className="bg-white dark:bg-slate-900 shadow dark:shadow-xl rounded-lg overflow-hidden">
         <div className="px-4 py-5 sm:px-6 bg-blue-600 dark:bg-blue-700">
-          <h3 className="text-lg leading-6 font-medium text-white">Daily Health Log</h3>
+          <h3 className="text-lg leading-6 font-medium text-white">{t('patient_healthlog.title')}</h3>
           <p className="mt-1 max-w-2xl text-sm text-blue-100">
-            Please fill in your vitals and any symptoms you are experiencing today.
+            {t('patient_healthlog.addEntry')}
           </p>
         </div>
 

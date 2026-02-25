@@ -10,36 +10,38 @@ import {
 import { Navbar } from "../components/Navbar";
 import { Footer } from '../components/footer';
 import { motion } from "motion/react";
+import { useTranslation } from "react-i18next";
 
 export function Features() {
+  const { t } = useTranslation();
   const features = [
     {
-      name: 'Real-time Symptom Tracking',
-      benefit: 'Enables early detection of deterioration through continuous patient data, allowing for timely clinical intervention.',
+      name: t('features_page.symptomTracking'),
+      benefit: t('features_page.symptomBenefit'),
       icon: Activity,
       color: 'blue'
     },
     {
-      name: 'Role-based Professional Access',
-      benefit: 'Reduces hospital overcrowding by streamlining triage and ensuring only necessary cases are escalated to specialized care.',
+      name: t('features_page.roleAccess'),
+      benefit: t('features_page.roleBenefit'),
       icon: UserSquare2,
       color: 'emerald'
     },
     {
-      name: 'Automated Notifications & Alerts',
-      benefit: 'Facilitates early detection of critical symptoms, triggering immediate medical responses before conditions worsen.',
+      name: t('features_page.notifications'),
+      benefit: t('features_page.notificationBenefit'),
       icon: BellRing,
       color: 'red'
     },
     {
-      name: 'Data Visualization Dashboards',
-      benefit: 'Aids in reducing overcrowding by identifying stable patient trends, supporting safe and informed home monitoring.',
+      name: t('features_page.dashboards'),
+      benefit: t('features_page.dashboardBenefit'),
       icon: BarChart3,
       color: 'indigo'
     },
     {
-      name: 'Secure Multi-stakeholder Communication',
-      benefit: 'Supports early detection through seamless information exchange between patients, nurses, and doctors for proactive care.',
+      name: t('features_page.communication'),
+      benefit: t('features_page.communicationBenefit'),
       icon: MessageSquareShare,
       color: 'cyan'
     },
@@ -58,7 +60,7 @@ export function Features() {
             transition={{ duration: 0.5 }}
             className="text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-6xl mb-6"
           >
-            Clinical <span className="text-blue-600 dark:text-blue-400">Capabilities</span>
+            {t('features_page.title')} <span className="text-blue-600 dark:text-blue-400">{t('features_page.titleHighlight')}</span>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -66,8 +68,7 @@ export function Features() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="text-xl text-slate-600 dark:text-slate-400 max-w-3xl mx-auto font-light leading-relaxed"
           >
-            A streamlined digital ecosystem designed to optimize healthcare delivery,
-            prioritize patient outcomes, and alleviate the burden on our clinical infrastructure.
+            {t('features_page.description')}
           </motion.p>
         </div>
       </section>
@@ -124,7 +125,7 @@ export function Features() {
         <div className="mt-20 text-center">
           <Link to="/" className="inline-flex items-center px-6 py-3 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700 font-medium transition-all duration-200 shadow-sm">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Return to Homepage
+            {t('navigation.returnHome')}
           </Link>
         </div>
       </main>

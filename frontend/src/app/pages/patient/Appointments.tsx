@@ -2,6 +2,7 @@ import { Calendar, Clock, MapPin, Phone, User, Plus, CheckCircle, AlertCircle, X
 import { useState } from 'react';
 import { CURRENT_USER_PATIENT, MOCK_DOCTORS } from '../../lib/mockData';
 import { format, isPast } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 
 interface Appointment {
   id: string;
@@ -14,6 +15,7 @@ interface Appointment {
 }
 
 export function Appointments() {
+  const { t } = useTranslation();
   const patient = CURRENT_USER_PATIENT;
   const [appointments, setAppointments] = useState<Appointment[]>([
     ...patient.upcomingAppointments.map(apt => ({
@@ -65,19 +67,19 @@ export function Appointments() {
               {appointment.title}
             </h3>
             <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-              with {getDoctorName(appointment.doctorId)}
+              {t('patient_appointments.with')} {getDoctorName(appointment.doctorId)}
             </p>
           </div>
           <div className="flex items-center gap-2">
             {appointment.status === 'completed' ? (
               <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300">
                 <CheckCircle className="w-4 h-4" />
-                <span className="text-xs font-medium">Completed</span>
+                <span className="text-xs font-medium">{t('patient_appointments.completed')}</span>
               </div>
             ) : (
               <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
                 <AlertCircle className="w-4 h-4" />
-                <span className="text-xs font-medium">Upcoming</span>
+                <span className="text-xs font-medium">{t('patient_appointments.upcoming')}</span>
               </div>
             )}
           </div>
@@ -102,7 +104,7 @@ export function Appointments() {
           {appointment.notes && (
             <div className="mt-4 pt-4 border-t border-slate-300 dark:border-slate-600">
               <p className="text-sm text-slate-600 dark:text-slate-400">
-                <strong className="text-slate-900 dark:text-white">Notes:</strong>
+                <strong className="text-slate-900 dark:text-white">{t('patient_appointments.notes')}:</strong>
               </p>
               <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">
                 {appointment.notes}
@@ -131,16 +133,16 @@ export function Appointments() {
       <div className="md:flex md:items-center md:justify-between">
         <div className="flex-1 min-w-0">
           <h2 className="text-2xl font-bold leading-7 text-slate-900 dark:text-white sm:text-3xl sm:truncate">
-            Appointments
+            {t('patient_appointments.title')}
           </h2>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Manage and view your medical appointments
+            {t('patient_appointments.upcomingAppointments')}
           </p>
         </div>
         <div className="mt-4 flex md:mt-0 md:ml-4">
           <button className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-900 focus:ring-blue-500 transition-colors duration-200">
             <Plus className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
-            Book Appointment
+            {t('patient_appointments.scheduleAppointment')}
           </button>
         </div>
       </div>
@@ -148,7 +150,7 @@ export function Appointments() {
       {/* Upcoming Appointments */}
       <div>
         <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
-          Upcoming Appointments ({upcomingAppointments.length})
+          {t('patient_appointments.upcomingAppointments')} ({upcomingAppointments.length})
         </h3>
         {upcomingAppointments.length > 0 ? (
           <div className="space-y-4">
@@ -160,14 +162,14 @@ export function Appointments() {
           <div className="rounded-lg border-2 border-dashed border-slate-300 dark:border-slate-600 p-12 text-center">
             <Calendar className="mx-auto h-12 w-12 text-slate-400 dark:text-slate-500" />
             <h3 className="mt-2 text-sm font-medium text-slate-900 dark:text-white">
-              No upcoming appointments
+              {t('patient_appointments.noAppointments')}
             </h3>
             <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-              Get started by booking your first appointment with your healthcare provider.
+              {t('patient_appointments.scheduleAppointment')}
             </p>
             <button className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600">
               <Plus className="-ml-1 mr-2 h-5 w-5" />
-              Book Appointment
+              {t('patient_appointments.scheduleAppointment')}
             </button>
           </div>
         )}
@@ -176,7 +178,7 @@ export function Appointments() {
       {/* Past Appointments */}
       <div>
         <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
-          Past Appointments ({pastAppointments.length})
+          {t('patient_appointments.pastAppointments')} ({pastAppointments.length})
         </h3>
         {pastAppointments.length > 0 ? (
           <div className="space-y-4">
@@ -186,7 +188,7 @@ export function Appointments() {
           </div>
         ) : (
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            No past appointments yet.
+            {t('patient_appointments.noAppointments')}
           </p>
         )}
       </div>
