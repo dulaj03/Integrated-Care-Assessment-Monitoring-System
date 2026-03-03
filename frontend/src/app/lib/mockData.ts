@@ -1,6 +1,6 @@
 import { addDays, subDays, format } from 'date-fns';
 
-export type UserRole = 'patient' | 'nurse' | 'doctor';
+export type UserRole = 'patient' | 'nurse' | 'doctor' | 'hospital';
 
 export interface User {
   id: string;

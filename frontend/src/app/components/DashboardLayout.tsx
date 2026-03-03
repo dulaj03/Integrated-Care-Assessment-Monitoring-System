@@ -11,15 +11,21 @@ import {
   Activity,
   Calendar,
   Users,
-  MessageCircle
+  MessageCircle,
+  Building2,
+  FlaskConical,
+  ClipboardList,
+  Stethoscope,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { clsx } from 'clsx';
-import { UserRole, MOCK_PATIENTS } from '../lib/mockData';
+import { MOCK_PATIENTS } from '../lib/mockData';
 import { ThemeSwitcher } from './ThemeSwitcher';
 import { NotificationBell } from './NotificationBell';
 import { mockNotifications, Notification } from '../lib/mockNotifications';
 import { checkAllPatientAlerts } from '../lib/alertGenerator';
+
+export type UserRole = 'patient' | 'nurse' | 'doctor' | 'hospital';
 
 interface DashboardLayoutProps {
   role: UserRole;
@@ -94,6 +100,8 @@ export function DashboardLayout({ role, userName }: DashboardLayoutProps) {
     { name: 'Dashboard', href: '/patient/dashboard', icon: LayoutDashboard },
     { name: 'Health Log', href: '/patient/log', icon: FileText },
     { name: 'Appointments', href: '/patient/appointments', icon: Calendar },
+    { name: 'Find Hospitals', href: '/patient/hospitals', icon: Building2 },
+    { name: 'Lab Results', href: '/patient/lab-results', icon: FlaskConical },
     { name: 'Messages', href: '/patient/messages', icon: MessageCircle },
     { name: 'Profile', href: '/patient/profile', icon: User },
   ];
@@ -109,11 +117,21 @@ export function DashboardLayout({ role, userName }: DashboardLayoutProps) {
   const nurseLinks = [
     { name: 'Dashboard', href: '/nurse/dashboard', icon: LayoutDashboard },
     { name: 'Patients', href: '/nurse/patients', icon: Users },
+    { name: 'Patient Care', href: '/nurse/care', icon: ClipboardList },
     { name: 'Messages', href: '/nurse/messages', icon: MessageCircle },
     { name: 'Rounds', href: '/nurse/rounds', icon: Activity },
   ];
 
-  const links = role === 'patient' ? patientLinks : (role === 'doctor' ? doctorLinks : nurseLinks);
+  const hospitalLinks = [
+    { name: 'Dashboard', href: '/hospital/dashboard', icon: LayoutDashboard },
+    { name: 'Lab Management', href: '/hospital/lab', icon: FlaskConical },
+    { name: 'Messages', href: '/hospital/messages', icon: MessageCircle },
+  ];
+
+  const links = role === 'patient' ? patientLinks
+    : role === 'doctor' ? doctorLinks
+      : role === 'nurse' ? nurseLinks
+        : hospitalLinks;
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex">
