@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import {
   Users, AlertCircle, CheckCircle2, Clock, Heart, Thermometer, Droplet, Activity,
-  Send, ArrowLeft, ClipboardList, MessageSquare, Plus, AlertTriangle, User
+  Send, ArrowLeft, ClipboardList, MessageSquare, Plus, AlertTriangle, User,
+  History as HistoryIcon, FlaskConical, ChevronRight, Save, Trash2
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'motion/react';
@@ -13,9 +14,15 @@ import {
   getPatientLabTests,
   getLabStatusLabel,
   getLabStatusColor,
+  getPatientNurseReports,
+  MOCK_LAB_TESTS,
+  NurseReport,
+  LabTest,
+  LabTestStatus,
+  LAB_STATUS_STEPS,
 } from '../../lib/hospitalData';
 
-type NurseTab = 'patients' | 'log_symptoms' | 'doctor_orders' | 'care_notes';
+type NurseTab = 'patients' | 'log_symptoms' | 'doctor_orders' | 'nurse_report' | 'care_notes' | 'lab_results';
 
 interface SymptomForm {
   blood_pressure: string;
@@ -41,6 +48,25 @@ export function NursePatientCare() {
   const [activeTab, setActiveTab] = useState<NurseTab>('patients');
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
   const [logSubmitted, setLogSubmitted] = useState(false);
+  const [reportSubmitted, setReportSubmitted] = useState(false);
+  const [showOrderModal, setShowOrderModal] = useState(false);
+
+  // New Lab Order State
+  const [newTestName, setNewTestName] = useState('');
+  const [newTestPriority, setNewTestPriority] = useState<'routine' | 'urgent' | 'stat'>('routine');
+  const [newTestType, setNewTestType] = useState<'blood' | 'urine' | 'scan' | 'xray'>('blood');
+
+  // Report Form State
+  const [reportStep, setReportStep] = useState(1);
+  const [reportTitle, setReportTitle] = useState('Daily Care Review');
+  const [reportTasks, setReportTasks] = useState([
+    { title: 'Vitals Monitoring', description: '', completed: false },
+    { title: 'Medication Delivery', description: '', completed: false },
+    { title: 'Patient Meal Assistance', description: '', completed: false },
+    { title: 'Personal Hygiene', description: '', completed: false },
+  ]);
+  const [reportSummary, setReportSummary] = useState('');
+  const [reportRecs, setReportRecs] = useState('');
 
   const [form, setForm] = useState<SymptomForm>({
     blood_pressure: '',
@@ -96,9 +122,246 @@ export function NursePatientCare() {
   const TABS: { key: NurseTab; label: string; icon: any; badge?: number }[] = [
     { key: 'patients', label: 'My Patients', icon: Users },
     { key: 'log_symptoms', label: 'Log Symptoms', icon: ClipboardList },
+    { key: 'lab_results', label: 'Lab Management', icon: FlaskConical },
     { key: 'doctor_orders', label: `Doctor Orders (${doctorOrders.filter(o => o.status === 'active').length})`, icon: Activity },
+    { key: 'nurse_report', label: 'Nurse Report', icon: Send },
     { key: 'care_notes', label: 'Care Notes', icon: MessageSquare },
   ];
+
+  const handleTaskToggle = (index: number) => {
+    setReportTasks(prev => prev.map((t, i) => i === index ? { ...t, completed: !t.completed } : t));
+  };
+
+  const updateTaskDesc = (index: number, desc: string) => {
+    setReportTasks(prev => prev.map((t, i) => i === index ? { ...t, description: desc } : t));
+  };
+
+  const handleSubmitReport = () => {
+    setReportSubmitted(true);
+    setTimeout(() => {
+      setReportSubmitted(false);
+      setReportStep(1);
+      setReportSummary('');
+      setReportRecs('');
+      setReportTasks(prev => prev.map(t => ({ ...t, completed: false, description: '' })));
+    }, 4000);
+  };
+
+  const LabManagementCard = ({ test }: { test: LabTest }) => {
+    const [status, setStatus] = useState<LabTestStatus>(test.status);
+    const [isUpdating, setIsUpdating] = useState(false);
+    const [showResults, setShowResults] = useState(false);
+    const [stepNote, setStepNote] = useState('');
+    const [summary, setSummary] = useState(test.result?.summary || '');
+    const [values, setValues] = useState(test.result?.values || [
+      { name: 'Glucose', value: '', unit: 'mg/dL', normalRange: '70-100' },
+      { name: 'HbA1c', value: '', unit: '%', normalRange: '< 5.7' },
+      { name: 'Cholesterol', value: '', unit: 'mg/dL', normalRange: '125-200' }
+    ]);
+
+    const currentIndex = LAB_STATUS_STEPS.indexOf(status);
+    const nextStatus = LAB_STATUS_STEPS[currentIndex + 1];
+
+    const advanceStatus = () => {
+      if (nextStatus) {
+        setIsUpdating(true);
+        setTimeout(() => {
+          const testIndex = MOCK_LAB_TESTS.findIndex(t => t.id === test.id);
+          if (testIndex !== -1) {
+            const updatedTest = { ...MOCK_LAB_TESTS[testIndex] };
+            updatedTest.status = nextStatus;
+
+            // Add new step to the timeline
+            const newStep = {
+              step: `${getLabStatusLabel(nextStatus)}: Recorded by Nurse`,
+              completedAt: new Date().toISOString(),
+              note: stepNote || undefined
+            };
+            updatedTest.steps = [...updatedTest.steps, newStep];
+
+            MOCK_LAB_TESTS[testIndex] = updatedTest;
+          }
+
+          setStatus(nextStatus);
+          setIsUpdating(false);
+          setStepNote('');
+        }, 1200);
+      }
+    };
+
+    const handleSaveResults = () => {
+      setIsUpdating(true);
+      setTimeout(() => {
+        const testIndex = MOCK_LAB_TESTS.findIndex(t => t.id === test.id);
+        if (testIndex !== -1) {
+          const updatedTest = { ...MOCK_LAB_TESTS[testIndex] };
+          updatedTest.status = 'results_ready';
+          updatedTest.completedDate = new Date().toISOString();
+          updatedTest.result = {
+            summary,
+            values: values.map(v => ({ ...v, flag: 'normal' })) // Simplified flag logic
+          };
+
+          // Add final processing step if not already at results_ready
+          if (updatedTest.status !== 'results_ready') {
+            updatedTest.steps = [...updatedTest.steps, {
+              step: 'Laboratory results finalized and published',
+              completedAt: new Date().toISOString()
+            }];
+          }
+
+          MOCK_LAB_TESTS[testIndex] = updatedTest;
+        }
+
+        setIsUpdating(false);
+        setShowResults(false);
+        setStatus('results_ready');
+      }, 1500);
+    };
+
+    return (
+      <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden shadow-sm transition-all">
+        <div className="p-5">
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <h4 className="font-bold text-slate-900 dark:text-white text-lg">{test.testName}</h4>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Ordered {format(new Date(test.orderedDate), 'MMM d, p')}</p>
+            </div>
+            <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${getLabStatusColor(status)}`}>
+              {getLabStatusLabel(status)}
+            </span>
+          </div>
+
+          {/* Status Progress Bar */}
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs font-semibold text-slate-500 uppercase">Process Status</p>
+              <p className="text-xs font-bold text-blue-600">{Math.round(((currentIndex + 1) / LAB_STATUS_STEPS.length) * 100)}% Complete</p>
+            </div>
+            <div className="h-2 w-full bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden flex gap-0.5">
+              {LAB_STATUS_STEPS.map((s, i) => (
+                <div key={s} className={`h-full flex-1 transition-all duration-500 ${i <= currentIndex ? 'bg-blue-500' : 'bg-slate-200 dark:bg-slate-700/50'}`} />
+              ))}
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {nextStatus && (status !== 'results_ready' && status !== 'reviewed_by_doctor') && (
+              <div className="flex flex-col gap-2 w-full sm:w-auto">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Optional step note..."
+                    value={stepNote}
+                    onChange={(e) => setStepNote(e.target.value)}
+                    className="px-3 py-2 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[200px]"
+                  />
+                  <button
+                    onClick={advanceStatus}
+                    disabled={isUpdating}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-400 text-white rounded-lg text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap"
+                  >
+                    {isUpdating ? <Clock className="h-4 w-4 animate-spin" /> : <ChevronRight className="h-4 w-4" />}
+                    Move to {getLabStatusLabel(nextStatus)}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {(status === 'processing' || status === 'results_ready') && (
+              <button
+                onClick={() => setShowResults(!showResults)}
+                className="px-4 py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-lg text-sm font-bold hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-all flex items-center gap-2"
+              >
+                <FlaskConical className="h-4 w-4" />
+                {status === 'results_ready' ? 'Edit Results' : 'Enter Lab Results'}
+              </button>
+            )}
+
+            <button className="px-3 py-2 text-slate-400 hover:text-red-500 transition-colors ml-auto">
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Results Entry Form */}
+        <AnimatePresence>
+          {showResults && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="border-t border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40"
+            >
+              <div className="p-5 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h5 className="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-tight">Enter Laboratory Findings</h5>
+                  <button onClick={() => setShowResults(false)} className="text-slate-400 hover:text-slate-600"><Plus className="h-5 w-5 rotate-45" /></button>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5 px-0.5">Clinical Summary</label>
+                  <textarea
+                    rows={2}
+                    value={summary}
+                    onChange={(e) => setSummary(e.target.value)}
+                    placeholder="Provide a general assessment of the lab findings..."
+                    className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <label className="block text-xs font-bold text-slate-500 uppercase px-0.5">Specific Values</label>
+                  {values.map((v, i) => (
+                    <div key={i} className="grid grid-cols-12 gap-2 items-end">
+                      <div className="col-span-4">
+                        <label className="text-[10px] text-slate-400 block mb-0.5">Parameter</label>
+                        <input type="text" value={v.name} disabled className="w-full px-2 py-1.5 text-xs bg-slate-100 dark:bg-slate-700/50 rounded-lg text-slate-500" />
+                      </div>
+                      <div className="col-span-3">
+                        <label className="text-[10px] text-slate-400 block mb-0.5">Value</label>
+                        <input
+                          type="text"
+                          value={v.value}
+                          onChange={(e) => {
+                            const newValues = [...values];
+                            newValues[i].value = e.target.value;
+                            setValues(newValues);
+                          }}
+                          placeholder="0.00"
+                          className="w-full px-2 py-1.5 text-xs border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg text-slate-900 dark:text-white"
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="text-[10px] text-slate-400 block mb-0.5">Unit</label>
+                        <input type="text" value={v.unit} disabled className="w-full px-2 py-1.5 text-xs bg-slate-100 dark:bg-slate-700/50 rounded-lg text-slate-500" />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="text-[10px] text-slate-400 block mb-0.5">Range</label>
+                        <input type="text" value={v.normalRange} disabled className="w-full px-2 py-1.5 text-[10px] bg-slate-100 dark:bg-slate-700/50 rounded-lg text-slate-400" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="pt-2 flex justify-end gap-3">
+                  <button onClick={() => setShowResults(false)} className="px-4 py-2 text-sm font-medium text-slate-500">Cancel</button>
+                  <button
+                    onClick={handleSaveResults}
+                    disabled={isUpdating}
+                    className="px-6 py-2 bg-purple-600 text-white rounded-lg text-sm font-bold shadow-lg shadow-purple-500/20 flex items-center gap-2"
+                  >
+                    {isUpdating ? <Clock className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                    Confirm & Publish Results
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -165,8 +428,8 @@ export function NursePatientCare() {
               {TABS.map(tab => (
                 <button key={tab.key} onClick={() => setActiveTab(tab.key)}
                   className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === tab.key
-                      ? 'border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400'
-                      : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                    ? 'border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400'
+                    : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
                     }`}>
                   <tab.icon className="h-4 w-4" />
                   {tab.label}
@@ -228,8 +491,8 @@ export function NursePatientCare() {
                       {(['great', 'good', 'okay', 'poor', 'bad'] as const).map(m => (
                         <button key={m} onClick={() => setForm(prev => ({ ...prev, mood: m }))}
                           className={`flex-1 py-2 text-sm rounded-lg capitalize border transition-all ${form.mood === m
-                              ? 'bg-blue-600 border-blue-600 text-white font-semibold'
-                              : 'border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:border-blue-400'
+                            ? 'bg-blue-600 border-blue-600 text-white font-semibold'
+                            : 'border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:border-blue-400'
                             }`}>
                           {m === 'great' ? '😊' : m === 'good' ? '🙂' : m === 'okay' ? '😐' : m === 'poor' ? '😟' : '😢'} {m}
                         </button>
@@ -244,8 +507,8 @@ export function NursePatientCare() {
                       {COMMON_SYMPTOMS.map(sym => (
                         <button key={sym} onClick={() => toggleSymptom(sym)}
                           className={`px-3 py-1.5 text-xs rounded-full border transition-all ${form.symptoms.includes(sym)
-                              ? 'bg-yellow-500 border-yellow-500 text-white font-semibold'
-                              : 'border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:border-yellow-400'
+                            ? 'bg-yellow-500 border-yellow-500 text-white font-semibold'
+                            : 'border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:border-yellow-400'
                             }`}>
                           {sym}
                         </button>
@@ -334,9 +597,9 @@ export function NursePatientCare() {
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${order.type === 'lab_test' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300' :
-                            order.type === 'medication' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' :
-                              order.type === 'scan' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' :
-                                'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300'
+                          order.type === 'medication' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' :
+                            order.type === 'scan' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' :
+                              'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300'
                           }`}>
                           {order.type.replace('_', ' ').toUpperCase()}
                         </span>
@@ -369,6 +632,251 @@ export function NursePatientCare() {
                     )}
                   </div>
                 ))}
+              </motion.div>
+            )}
+
+            {/* ─── Nurse Report Tab ─── */}
+            {activeTab === 'nurse_report' && (
+              <motion.div key="report" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-6">
+                <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h3 className="text-xl font-bold text-slate-900 dark:text-white">Create Patient Shift Report</h3>
+                      <p className="text-sm text-slate-500 dark:text-slate-400">Step {reportStep} of 3</p>
+                    </div>
+                    {reportSubmitted && (
+                      <span className="flex items-center gap-1 text-green-600 dark:text-green-400 text-sm font-bold animate-bounce">
+                        <CheckCircle2 className="h-4 w-4" /> Report Submitted!
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Progressive Steps */}
+                  <div className="flex gap-2 mb-8">
+                    {[1, 2, 3].map(s => (
+                      <div key={s} className={`h-1.5 flex-1 rounded-full transition-colors ${reportStep >= s ? 'bg-blue-600' : 'bg-slate-200 dark:bg-slate-700'}`} />
+                    ))}
+                  </div>
+
+                  {/* Step 1: Tasks Checklist */}
+                  {reportStep === 1 && (
+                    <div className="space-y-5">
+                      <h4 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                        <ClipboardList className="h-5 w-5 text-blue-500" />
+                        Shift Tasks Completion
+                      </h4>
+                      <div className="space-y-3">
+                        {reportTasks.map((task, idx) => (
+                          <div key={idx} className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50">
+                            <div className="flex items-center gap-3 mb-2">
+                              <input type="checkbox" checked={task.completed} onChange={() => handleTaskToggle(idx)} className="h-5 w-5 rounded text-blue-600" />
+                              <span className={`font-medium ${task.completed ? 'text-slate-900 dark:text-white line-through opacity-50' : 'text-slate-900 dark:text-white'}`}>{task.title}</span>
+                            </div>
+                            <input type="text" value={task.description} onChange={e => updateTaskDesc(idx, e.target.value)}
+                              placeholder="Add notes for this task..."
+                              className="w-full px-3 py-2 text-xs border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                          </div>
+                        ))}
+                      </div>
+                      <button onClick={() => setReportStep(2)} className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-colors">
+                        Next: Summary & Recs
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Step 2: Summary & Recommendations */}
+                  {reportStep === 2 && (
+                    <div className="space-y-5">
+                      <h4 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                        <MessageSquare className="h-5 w-5 text-purple-500" />
+                        Final Summary & Recommendations
+                      </h4>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Shift Overview Summary</label>
+                        <textarea rows={4} value={reportSummary} onChange={e => setReportSummary(e.target.value)}
+                          placeholder="Summarize the patient's status during your shift..."
+                          className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Recommendations for Next Shift / Doctor</label>
+                        <textarea rows={3} value={reportRecs} onChange={e => setReportRecs(e.target.value)}
+                          placeholder="What should the next nurse or doctor watch out for?"
+                          className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
+                      </div>
+                      <div className="flex gap-3">
+                        <button onClick={() => setReportStep(1)} className="flex-1 py-3 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
+                          Back
+                        </button>
+                        <button onClick={() => setReportStep(3)} className="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-colors">
+                          Review & Submit
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Step 3: Review */}
+                  {reportStep === 3 && (
+                    <div className="space-y-6">
+                      <h4 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                        <CheckCircle2 className="h-5 w-5 text-green-500" />
+                        Final Review
+                      </h4>
+                      <div className="p-4 rounded-xl border-2 border-blue-100 dark:border-blue-900 bg-blue-50/30 dark:bg-blue-900/10 space-y-4">
+                        <div>
+                          <p className="text-xs font-bold text-blue-600 uppercase mb-2">Tasks Completed</p>
+                          <ul className="text-sm text-slate-700 dark:text-slate-300 space-y-1">
+                            {reportTasks.filter(t => t.completed).map(t => <li key={t.title}>✓ {t.title}</li>)}
+                          </ul>
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-blue-600 uppercase mb-2">Summary</p>
+                          <p className="text-sm text-slate-700 dark:text-slate-300">{reportSummary || 'No summary provided'}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-blue-600 uppercase mb-2">Recommendations</p>
+                          <p className="text-sm text-slate-700 dark:text-slate-300">{reportRecs || 'No recommendations provided'}</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-3">
+                        <button onClick={() => setReportStep(2)} className="flex-1 py-3 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
+                          Edit
+                        </button>
+                        <button onClick={handleSubmitReport} className="flex-1 py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transition-colors">
+                          Submit Final Report
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* History of Reports */}
+                <div className="space-y-4">
+                  <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <HistoryIcon className="h-5 w-5 text-slate-400" />
+                    Completed Reports history
+                  </h3>
+                  {selectedPatientId && getPatientNurseReports(selectedPatientId).map(report => (
+                    <div key={report.id} className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5">
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="font-bold text-slate-900 dark:text-white">{report.title}</h4>
+                        <span className="text-xs text-slate-500 dark:text-slate-400">{format(new Date(report.date), 'MMM d, yyyy · p')}</span>
+                      </div>
+                      <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2">{report.summary}</p>
+                      <div className="mt-3 flex items-center gap-4 text-xs">
+                        <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400 font-medium">
+                          <CheckCircle2 className="h-3 w-3" /> {report.steps.filter(s => s.completed).length}/{report.steps.length} Steps
+                        </span>
+                        <button className="text-blue-600 font-bold hover:underline">View Full Report</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+
+            {/* ─── Lab Results Tab ─── */}
+            {activeTab === 'lab_results' && (
+              <motion.div key="labs" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <FlaskConical className="h-6 w-6 text-purple-500" />
+                    Laboratory Management
+                  </h3>
+                  <button
+                    onClick={() => setShowOrderModal(true)}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-all flex items-center gap-2"
+                  >
+                    <Plus className="h-4 w-4" /> New Lab Order
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  {labTests.map(test => (
+                    <LabManagementCard key={test.id} test={test} />
+                  ))}
+                </div>
+
+                {/* New Order Modal */}
+                <AnimatePresence>
+                  {showOrderModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+                      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+                        className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-200 dark:border-slate-800">
+                        <div className="p-6 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-blue-600 text-white">
+                          <h3 className="font-bold text-lg">Order New Lab Test</h3>
+                          <button onClick={() => setShowOrderModal(false)}><Plus className="h-6 w-6 rotate-45" /></button>
+                        </div>
+                        <div className="p-6 space-y-4">
+                          <div>
+                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1 px-0.5">Test Name</label>
+                            <input
+                              type="text"
+                              value={newTestName}
+                              onChange={(e) => setNewTestName(e.target.value)}
+                              placeholder="e.g. Full Blood Count, Lipid Profile"
+                              className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                            />
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-xs font-bold text-slate-500 uppercase mb-1 px-0.5">Priority</label>
+                              <select
+                                value={newTestPriority}
+                                onChange={(e) => setNewTestPriority(e.target.value as any)}
+                                className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                              >
+                                <option value="routine">Routine</option>
+                                <option value="urgent">Urgent</option>
+                                <option value="stat">STAT (Critical)</option>
+                              </select>
+                            </div>
+                            <div>
+                              <label className="block text-xs font-bold text-slate-500 uppercase mb-1 px-0.5">Sample Type</label>
+                              <select
+                                value={newTestType}
+                                onChange={(e) => setNewTestType(e.target.value as any)}
+                                className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                              >
+                                <option value="blood">Blood</option>
+                                <option value="urine">Urine</option>
+                                <option value="scan">Scan</option>
+                                <option value="xray">X-Ray</option>
+                              </select>
+                            </div>
+                          </div>
+                          <div className="pt-4 flex gap-3">
+                            <button onClick={() => setShowOrderModal(false)} className="flex-1 py-3 border border-slate-300 dark:border-slate-600 rounded-xl font-bold text-slate-600 dark:text-slate-400">Cancel</button>
+                            <button
+                              onClick={() => {
+                                if (!newTestName.trim()) return;
+                                const newTest: LabTest = {
+                                  id: `lt-new-${Date.now()}`,
+                                  patientId: selectedPatientId!,
+                                  hospitalId: 'h2', // Defualt to current hospital
+                                  orderedByDoctorId: 'hd1',
+                                  testName: newTestName,
+                                  testType: newTestType as any,
+                                  status: 'ordered',
+                                  orderedDate: new Date().toISOString(),
+                                  priority: newTestPriority as any,
+                                  steps: [
+                                    { step: `Test ordered by Nurse`, completedAt: new Date().toISOString() }
+                                  ]
+                                };
+                                MOCK_LAB_TESTS.push(newTest);
+                                setShowOrderModal(false);
+                                setNewTestName('');
+                              }}
+                              className="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-500/20"
+                            >
+                              Confirm Order
+                            </button>
+                          </div>
+                        </div>
+                      </motion.div>
+                    </div>
+                  )}
+                </AnimatePresence>
               </motion.div>
             )}
 

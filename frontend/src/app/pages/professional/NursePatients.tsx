@@ -1,82 +1,21 @@
 import { Users, AlertCircle, Clock, Heart, CheckCircle, Plus, Search, Filter } from 'lucide-react';
 import { useState } from 'react';
-import { MOCK_PATIENTS, MOCK_DOCTORS } from '../../lib/mockData';
+import { MOCK_PATIENTS, Patient } from '../../lib/mockData';
 import { format } from 'date-fns';
 
-interface AssignedPatient {
-  id: string;
-  name: string;
-  age: number;
-  condition: string;
-  status: 'stable' | 'monitoring' | 'critical' | 'recovered';
-  lastCheck: string;
-  room: string;
-  vitalSigns: {
-    bloodPressure?: string;
-    heartRate?: number;
-    temperature?: number;
-  };
-  assignedDoctor: string;
-}
+import { Link } from 'react-router';
 
 export function NursePatients() {
-  const [patients, setPatients] = useState<AssignedPatient[]>([
-    {
-      id: 'p1',
-      name: 'Nimal Jayasinghe',
-      age: 68,
-      condition: 'Hypertension & Type 2 Diabetes',
-      status: 'monitoring',
-      lastCheck: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
-      room: 'Ward A - Room 302',
-      vitalSigns: {
-        bloodPressure: '132/88',
-        heartRate: 78,
-        temperature: 37.1,
-      },
-      assignedDoctor: 'Dr. Sarah Perera',
-    },
-    {
-      id: 'p2',
-      name: 'Kusum Perera',
-      age: 54,
-      condition: 'Post-Surgery Recovery',
-      status: 'stable',
-      lastCheck: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), // 4 hours ago
-      room: 'Ward B - Room 215',
-      vitalSigns: {
-        bloodPressure: '118/76',
-        heartRate: 72,
-        temperature: 36.8,
-      },
-      assignedDoctor: 'Dr. Sarah Perera',
-    },
-    {
-      id: 'p3',
-      name: 'Ravi De Silva',
-      age: 72,
-      condition: 'COPD',
-      status: 'critical',
-      lastCheck: new Date(Date.now() - 30 * 60 * 1000).toISOString(), // 30 minutes ago
-      room: 'ICU - Room 5',
-      vitalSigns: {
-        bloodPressure: '145/92',
-        heartRate: 105,
-        temperature: 37.8,
-      },
-      assignedDoctor: 'Dr. Kamal Silva',
-    },
-  ]);
-
+  const userId = 'n1'; // Mock logged in nurse ID
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
-  const filteredPatients = patients.filter(patient => {
+  const filteredPatients = MOCK_PATIENTS.filter(patient => {
+    const isAssigned = patient.assignedNurseId === userId;
     const matchesSearch = patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      patient.room.toLowerCase().includes(searchTerm.toLowerCase()) ||
       patient.condition.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || patient.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    return isAssigned && matchesSearch && matchesStatus;
   });
 
   const getStatusColor = (status: string) => {
@@ -107,70 +46,73 @@ export function NursePatients() {
     return `${diffDays}d ago`;
   };
 
-  const PatientCard = ({ patient }: { patient: AssignedPatient }) => (
-    <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 hover:shadow-md transition-shadow">
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-1">
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
-              {patient.name}
-            </h3>
-            <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(patient.status)}`}>
-              {patient.status.charAt(0).toUpperCase() + patient.status.slice(1)}
-            </span>
-          </div>
-          <p className="text-sm text-slate-600 dark:text-slate-400">
-            {patient.age} years • {patient.condition}
-          </p>
-        </div>
-        {patient.status === 'critical' && (
-          <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0" />
-        )}
-      </div>
-
-      <div className="space-y-3 mb-4">
-        <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
-          <span className="font-medium">Room:</span>
-          <span>{patient.room}</span>
-        </div>
-
-        <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
-          <Clock className="h-4 w-4" />
-          <span>Last check: {getTimeAgo(patient.lastCheck)}</span>
-        </div>
-
-        <div className="grid grid-cols-3 gap-3 mt-4 p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
-          <div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">BP</p>
-            <p className="text-sm font-semibold text-slate-900 dark:text-white">
-              {patient.vitalSigns.bloodPressure || 'N/A'}
+  const PatientCard = ({ patient }: { patient: Patient }) => {
+    const latestLog = patient.logs?.[0];
+    return (
+      <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 hover:shadow-md transition-shadow">
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
+                {patient.name}
+              </h3>
+              <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(patient.status)}`}>
+                {patient.status.charAt(0).toUpperCase() + patient.status.slice(1)}
+              </span>
+            </div>
+            <p className="text-sm text-slate-600 dark:text-slate-400">
+              {patient.age} years • {patient.condition}
             </p>
           </div>
-          <div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">HR</p>
-            <p className="text-sm font-semibold text-slate-900 dark:text-white">
-              {patient.vitalSigns.heartRate ? `${patient.vitalSigns.heartRate} bpm` : 'N/A'}
-            </p>
+          {patient.status === 'critical' && (
+            <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0" />
+          )}
+        </div>
+
+        <div className="space-y-3 mb-4">
+          <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+            <span className="font-medium">Room:</span>
+            <span>{patient.status === 'critical' ? 'ICU - Room 5' : 'Ward A - Room 302'}</span>
           </div>
-          <div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Temp</p>
-            <p className="text-sm font-semibold text-slate-900 dark:text-white">
-              {patient.vitalSigns.temperature ? `${patient.vitalSigns.temperature}°C` : 'N/A'}
-            </p>
+
+          <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+            <Clock className="h-4 w-4" />
+            <span>Last log: {getTimeAgo(patient.lastUpdate)}</span>
+          </div>
+
+          <div className="grid grid-cols-3 gap-3 mt-4 p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
+            <div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">BP</p>
+              <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                {latestLog?.vitals.bloodPressure || 'N/A'}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">HR</p>
+              <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                {latestLog?.vitals.heartRate ? `${latestLog.vitals.heartRate} bpm` : 'N/A'}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Temp</p>
+              <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                {latestLog?.vitals.temperature ? `${latestLog.vitals.temperature}°C` : 'N/A'}
+              </p>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="flex gap-2 pt-4 border-t border-slate-200 dark:border-slate-700">
-        <button className="flex-1 px-3 py-2 text-sm font-medium rounded-md bg-blue-600 dark:bg-blue-700 text-white hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors">
-          Check Vitals
-        </button>
-        <button className="flex-1 px-3 py-2 text-sm font-medium rounded-md bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100 hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors">
-          View Details
-        </button>
+        <div className="flex gap-2 pt-4 border-t border-slate-200 dark:border-slate-700">
+          <button className="flex-1 px-3 py-2 text-sm font-medium rounded-md bg-blue-600 dark:bg-blue-700 text-white hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors">
+            Check Vitals
+          </button>
+          <Link to={`/nurse/patient/${patient.id}`} className="flex-1 px-3 py-2 text-center text-sm font-medium rounded-md bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100 hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors">
+            View Details
+          </Link>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="space-y-6">

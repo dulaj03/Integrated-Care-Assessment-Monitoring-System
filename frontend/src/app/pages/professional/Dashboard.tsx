@@ -1,22 +1,41 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { Search, Filter, AlertCircle, CheckCircle, Clock, ChevronRight, User } from 'lucide-react';
-import { MOCK_PATIENTS, Patient } from '../../lib/mockData';
+import { MOCK_PATIENTS, Patient, MOCK_PENDING_PATIENTS } from '../../lib/mockData';
 import { clsx } from 'clsx';
 import { useTranslation } from 'react-i18next';
+import { motion } from 'motion/react';
 
-export function ProfessionalDashboard() {
+export function ProfessionalDashboard({ role }: { role?: 'doctor' | 'nurse' }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [filter, setFilter] = useState<'all' | 'critical' | 'monitoring' | 'stable'>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [pendingPatients, setPendingPatients] = useState<any[]>(MOCK_PENDING_PATIENTS);
+  const userRole = role || (sessionStorage.getItem('userRole') as 'doctor' | 'nurse') || 'doctor';
+  const userId = userRole === 'doctor' ? 'd1' : 'n1'; // Default IDs for mock demo
+
+  const handleApprove = (id: string) => {
+    setPendingPatients(prev => prev.filter(p => p.id !== id));
+    // In a real app, this would trigger PUT /doctor/approve/:patientId
+  };
+
+  const handleReject = (id: string) => {
+    setPendingPatients(prev => prev.filter(p => p.id !== id));
+  };
 
   const filteredPatients = MOCK_PATIENTS.filter(patient => {
+    const isAssigned = userRole === 'doctor'
+      ? patient.assignedDoctorId === userId
+      : patient.assignedNurseId === userId;
+
     const matchesFilter = filter === 'all' || patient.status === filter;
     const matchesSearch = patient.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       patient.condition.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesFilter && matchesSearch;
+    return isAssigned && matchesFilter && matchesSearch;
   });
+
+  const pendingCount = pendingPatients.filter(p => p.assignedDoctorId === userId).length;
 
   const getStatusColor = (status: Patient['status']) => {
     switch (status) {
@@ -38,6 +57,34 @@ export function ProfessionalDashboard() {
         </div>
       </div>
 
+      {/* Critical Alerts Banner */}
+      {MOCK_PATIENTS.filter(p => (userRole === 'doctor' ? p.assignedDoctorId === userId : true) && p.status === 'critical').length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="rounded-xl bg-red-600 p-4 border border-red-500 shadow-xl shadow-red-500/20 flex items-center justify-between"
+        >
+          <div className="flex items-center gap-3">
+            <div className="bg-white/20 p-2 rounded-lg animate-pulse">
+              <AlertCircle className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <p className="font-bold text-white text-lg">Critical Monitoring Alerts</p>
+              <p className="text-white/80 text-sm">
+                {MOCK_PATIENTS.filter(p => (userRole === 'doctor' ? p.assignedDoctorId === userId : true) && p.status === 'critical').length} patient(s) require immediate attention.
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            {MOCK_PATIENTS.filter(p => (userRole === 'doctor' ? p.assignedDoctorId === userId : p.assignedNurseId === userId) && p.status === 'critical').slice(0, 2).map(p => (
+              <Link key={p.id} to={userRole === 'doctor' ? `/doctor/patient/${p.id}` : `/nurse/patient/${p.id}`} className="px-4 py-2 bg-white text-red-600 font-bold rounded-lg hover:bg-red-50 transition-colors text-sm">
+                View {p.name.split(' ')[0]}
+              </Link>
+            ))}
+          </div>
+        </motion.div>
+      )}
+
       {/* Stats Cards */}
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         <div className="bg-white dark:bg-slate-900 overflow-hidden shadow dark:shadow-xl rounded-lg">
@@ -50,7 +97,7 @@ export function ProfessionalDashboard() {
                 <dl>
                   <dt className="text-sm font-medium text-slate-500 dark:text-slate-400 truncate">{t('professional_dashboard.totalPatients')}</dt>
                   <dd>
-                    <div className="text-lg font-medium text-slate-900 dark:text-white">{MOCK_PATIENTS.length}</div>
+                    <div className="text-lg font-medium text-slate-900 dark:text-white">{filteredPatients.length}</div>
                   </dd>
                 </dl>
               </div>
@@ -69,7 +116,7 @@ export function ProfessionalDashboard() {
                   <dt className="text-sm font-medium text-slate-500 dark:text-slate-400 truncate">{t('professional_dashboard.criticalAlerts')}</dt>
                   <dd>
                     <div className="text-lg font-medium text-slate-900 dark:text-white">
-                      {MOCK_PATIENTS.filter(p => p.status === 'critical').length}
+                      {filteredPatients.filter(p => p.status === 'critical').length}
                     </div>
                   </dd>
                 </dl>
@@ -86,9 +133,13 @@ export function ProfessionalDashboard() {
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
-                  <dt className="text-sm font-medium text-slate-500 dark:text-slate-400 truncate">Pending Reviews</dt>
+                  <dt className="text-sm font-medium text-slate-500 dark:text-slate-400 truncate">
+                    {userRole === 'doctor' ? 'Pending Reviews' : 'Recent Rounds'}
+                  </dt>
                   <dd>
-                    <div className="text-lg font-medium text-slate-900 dark:text-white">2</div>
+                    <div className="text-lg font-medium text-slate-900 dark:text-white">
+                      {userRole === 'doctor' ? pendingCount : '12'}
+                    </div>
                   </dd>
                 </dl>
               </div>
@@ -97,7 +148,48 @@ export function ProfessionalDashboard() {
         </div>
       </div>
 
-      {/* Filters & Search */}
+      {/* Pending Patient Requests - DOCTOR ONLY */}
+      {userRole === 'doctor' && pendingPatients.length > 0 && (
+        <div className="bg-white dark:bg-slate-900 shadow dark:shadow-xl rounded-lg overflow-hidden border border-blue-500/20">
+          <div className="px-4 py-5 sm:px-6 bg-blue-50/50 dark:bg-blue-900/10 border-b border-blue-500/20">
+            <h3 className="text-lg font-medium leading-6 text-slate-900 dark:text-white flex items-center">
+              <Clock className="mr-2 h-5 w-5 text-blue-500" />
+              Pending Patient Requests
+            </h3>
+          </div>
+          <ul className="divide-y divide-slate-200 dark:divide-slate-800">
+            {pendingPatients.map((patient) => (
+              <li key={patient.id} className="p-4 sm:px-6">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+                  <div className="flex items-center">
+                    <div className="h-10 w-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
+                      <User className="h-6 w-6 text-slate-500" />
+                    </div>
+                    <div className="ml-4">
+                      <p className="text-sm font-semibold text-slate-900 dark:text-white">{patient.name}</p>
+                      <p className="text-sm text-slate-500 dark:text-slate-400">Condition: {patient.condition}</p>
+                    </div>
+                  </div>
+                  <div className="flex space-x-3">
+                    <button
+                      onClick={() => handleApprove(patient.id)}
+                      className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition-colors"
+                    >
+                      Approve
+                    </button>
+                    <button
+                      onClick={() => handleReject(patient.id)}
+                      className="px-4 py-1.5 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-md text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                    >
+                      Reject
+                    </button>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       <div className="bg-white dark:bg-slate-900 shadow dark:shadow-xl rounded-lg p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
         <div className="flex items-center space-x-4">
           <div className="relative rounded-md shadow-sm max-w-xs">
@@ -134,7 +226,7 @@ export function ProfessionalDashboard() {
         <ul className="divide-y divide-slate-200 dark:divide-slate-800">
           {filteredPatients.map((patient) => (
             <li key={patient.id}>
-              <Link to={`/doctor/patient/${patient.id}`} className="block hover:bg-slate-50 dark:hover:bg-slate-800 transition duration-150 ease-in-out">
+              <Link to={userRole === 'doctor' ? `/doctor/patient/${patient.id}` : `/nurse/patient/${patient.id}`} className="block hover:bg-slate-50 dark:hover:bg-slate-800 transition duration-150 ease-in-out">
                 <div className="px-4 py-4 sm:px-6">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">

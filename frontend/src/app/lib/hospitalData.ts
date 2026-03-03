@@ -130,6 +130,29 @@ export interface DoctorClinicalNote {
   nurseResponse?: string;
 }
 
+export interface NurseReport {
+  id: string;
+  patientId: string;
+  nurseId: string;
+  date: string;
+  title: string;
+  steps: Array<{
+    title: string;
+    description: string;
+    completed: boolean;
+    timestamp?: string;
+  }>;
+  summary: string;
+  recommendations: string;
+  vitalsSnapshot?: {
+    bp?: string;
+    hr?: number;
+    temp?: number;
+    spo2?: number;
+  };
+  status: 'draft' | 'completed';
+}
+
 // ─── Sri Lankan Hospitals ─────────────────────────────────────────────────────
 
 export const MOCK_HOSPITALS: Hospital[] = [
@@ -303,7 +326,7 @@ export const MOCK_HOSPITAL_APPOINTMENTS: HospitalAppointment[] = [
 
 // ─── Lab Tests ────────────────────────────────────────────────────────────────
 
-export const MOCK_LAB_TESTS: LabTest[] = [
+export let MOCK_LAB_TESTS: LabTest[] = [
   {
     id: 'lt1',
     patientId: 'p1',
@@ -536,6 +559,33 @@ export const MOCK_CLINICAL_NOTES: DoctorClinicalNote[] = [
   },
 ];
 
+// ─── Nurse Reports ────────────────────────────────────────────────────────────
+
+export const MOCK_NURSE_REPORTS: NurseReport[] = [
+  {
+    id: 'nr1',
+    patientId: 'p1',
+    nurseId: 'n1',
+    date: subHours(new Date(), 4).toISOString(),
+    title: 'Daily Care Review - Morning Shift',
+    steps: [
+      { title: 'Morning Vitals Check', description: 'Recorded BP, HR, and Temp', completed: true, timestamp: subHours(new Date(), 5).toISOString() },
+      { title: 'Medication Administration', description: 'Administered morning Metformin and Losartan', completed: true, timestamp: subHours(new Date(), 4.5).toISOString() },
+      { title: 'Wound Dressing', description: 'N/A for this patient', completed: true },
+      { title: 'Dietary Compliance', description: 'Consumed low-salt breakfast as per plan', completed: true, timestamp: subHours(new Date(), 4).toISOString() },
+    ],
+    summary: 'Patient is stable and responsive. Following the new medication regimen well.',
+    recommendations: 'Continue monitoring BP due to slight elevation at 9 AM. Ensure patient drinks enough water.',
+    vitalsSnapshot: {
+      bp: '138/88',
+      hr: 80,
+      temp: 37.0,
+      spo2: 97,
+    },
+    status: 'completed',
+  },
+];
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 export const getLabStatusLabel = (status: LabTestStatus): string => {
@@ -585,4 +635,5 @@ export const getPatientOrders = (patientId: string) => MOCK_CLINICAL_ORDERS.filt
 export const getPatientAppointments = (patientId: string) => MOCK_HOSPITAL_APPOINTMENTS.filter(a => a.patientId === patientId);
 export const getPatientNurseLogs = (patientId: string) => MOCK_NURSE_LOGS.filter(l => l.patientId === patientId);
 export const getPatientClinicalNotes = (patientId: string) => MOCK_CLINICAL_NOTES.filter(n => n.patientId === patientId);
+export const getPatientNurseReports = (patientId: string) => MOCK_NURSE_REPORTS.filter(r => r.patientId === patientId);
 export const getDoctorsByHospital = (hospitalId: string) => MOCK_HOSPITAL_DOCTORS.filter(d => d.hospitalId === hospitalId);

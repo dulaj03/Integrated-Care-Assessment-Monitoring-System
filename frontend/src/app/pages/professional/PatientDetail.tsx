@@ -25,7 +25,7 @@ export function PatientDetail() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center space-x-4">
-        <Link to="/doctor/dashboard" className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200">
+        <Link to="/nurse/dashboard" className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200">
           <ArrowLeft className="h-6 w-6 text-slate-600 dark:text-slate-400" />
         </Link>
         <div>
@@ -103,9 +103,8 @@ export function PatientDetail() {
         {/* Sidebar Info */}
         <div className="space-y-6">
 
-          {/* Action Card */}
           <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow dark:shadow-xl">
-            <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-4">Doctor's Orders</h3>
+            <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-4">Round Observations</h3>
             <textarea
               rows={4}
               className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-slate-300 dark:border-slate-600 rounded-md p-2 border bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 mb-4 transition-colors duration-200"

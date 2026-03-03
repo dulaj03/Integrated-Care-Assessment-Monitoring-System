@@ -77,8 +77,8 @@ export const router = createBrowserRouter([
         path: "doctor",
         element: <DashboardLayout role="doctor" userName={CURRENT_USER_DOCTOR.name} />,
         children: [
-          { index: true, Component: ProfessionalDashboard },
-          { path: "dashboard", Component: ProfessionalDashboard },
+          { index: true, element: <ProfessionalDashboard role="doctor" /> },
+          { path: "dashboard", element: <ProfessionalDashboard role="doctor" /> },
           { path: "patients", Component: DoctorPatients },
           { path: "patient/:id", Component: PatientWorkspace },
           { path: "schedule", Component: DoctorSchedule },
@@ -92,8 +92,8 @@ export const router = createBrowserRouter([
         path: "nurse",
         element: <DashboardLayout role="nurse" userName="Nurse Anjali" />,
         children: [
-          { index: true, Component: ProfessionalDashboard },
-          { path: "dashboard", Component: ProfessionalDashboard },
+          { index: true, element: <ProfessionalDashboard role="nurse" /> },
+          { path: "dashboard", element: <ProfessionalDashboard role="nurse" /> },
           { path: "patients", Component: NursePatients },
           { path: "care", Component: NursePatientCare },
           { path: "rounds", Component: NurseRounds },

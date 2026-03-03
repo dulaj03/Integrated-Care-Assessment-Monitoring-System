@@ -19,15 +19,12 @@ export function HospitalDashboard() {
 
   const todayAppointments = MOCK_HOSPITAL_APPOINTMENTS.filter(a => isToday(new Date(a.date)));
   const allAppointments = MOCK_HOSPITAL_APPOINTMENTS;
-  const pendingTests = MOCK_LAB_TESTS.filter(t => !['results_ready', 'reviewed_by_doctor'].includes(t.status));
-  const readyTests = MOCK_LAB_TESTS.filter(t => t.status === 'results_ready');
+
 
   const getPatientName = (id: string) => MOCK_PATIENTS.find(p => p.id === id)?.name || id;
 
   const stats = [
     { label: "Today's Appointments", value: todayAppointments.length || 2, icon: Calendar, color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-900/20' },
-    { label: 'Pending Lab Tests', value: pendingTests.length, icon: FlaskConical, color: 'text-yellow-600 dark:text-yellow-400', bg: 'bg-yellow-50 dark:bg-yellow-900/20' },
-    { label: 'Results Ready', value: readyTests.length, icon: CheckCircle2, color: 'text-green-600 dark:text-green-400', bg: 'bg-green-50 dark:bg-green-900/20' },
     { label: 'Doctors On Roster', value: MOCK_HOSPITAL_DOCTORS.filter(d => d.hospitalId === hospital.id).length, icon: Users, color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-50 dark:bg-purple-900/20' },
   ];
 
@@ -58,7 +55,7 @@ export function HospitalDashboard() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6">
         {/* Today's Appointments */}
         <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5">
           <div className="flex items-center justify-between mb-4">
@@ -90,33 +87,7 @@ export function HospitalDashboard() {
           )}
         </div>
 
-        {/* Lab Queue */}
-        <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-              <FlaskConical className="h-5 w-5 text-purple-500" /> Lab Queue
-            </h3>
-            <a href="/hospital/lab" className="text-xs text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1">
-              Manage <ChevronRight className="h-3 w-3" />
-            </a>
-          </div>
-          <div className="space-y-3">
-            {MOCK_LAB_TESTS.map(test => (
-              <div key={test.id} className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-700">
-                <div>
-                  <p className="font-medium text-slate-900 dark:text-white text-sm">{test.testName}</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    {getPatientName(test.patientId)} ·
-                    <span className={test.priority === 'urgent' || test.priority === 'stat' ? ' text-red-600 dark:text-red-400 font-semibold' : ''}> {test.priority}</span>
-                  </p>
-                </div>
-                <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${getLabStatusColor(test.status)}`}>
-                  {getLabStatusLabel(test.status)}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
+
       </div>
 
       {/* Doctor Roster */}
@@ -139,6 +110,61 @@ export function HospitalDashboard() {
               </div>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* Hospital Patient Directory */}
+      <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+            <Users className="h-5 w-5 text-emerald-500" /> Patient Directory
+          </h3>
+          <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
+            {MOCK_PATIENTS.filter(p => p.hospitalId === hospital.id).length} Active Patients
+          </span>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
+            <thead className="bg-slate-50 dark:bg-slate-900/50">
+              <tr>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Patient</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Condition</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Assigned Doctor</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
+              {MOCK_PATIENTS.filter(p => p.hospitalId === hospital.id).map((patient) => {
+                const doc = getDoctorById(patient.assignedDoctorId);
+                return (
+                  <tr key={patient.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="h-8 w-8 rounded-full overflow-hidden mr-3">
+                          <img src={patient.avatar} alt="" className="h-full w-full object-cover" />
+                        </div>
+                        <div className="text-sm font-medium text-slate-900 dark:text-white">{patient.name}</div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-slate-500 dark:text-slate-400">{patient.condition}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${patient.status === 'critical' ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400' :
+                        patient.status === 'monitoring' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400' :
+                          'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400'
+                        }`}>
+                        {patient.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
+                      {doc?.name}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

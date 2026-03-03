@@ -124,7 +124,6 @@ export function DashboardLayout({ role, userName }: DashboardLayoutProps) {
 
   const hospitalLinks = [
     { name: 'Dashboard', href: '/hospital/dashboard', icon: LayoutDashboard },
-    { name: 'Lab Management', href: '/hospital/lab', icon: FlaskConical },
     { name: 'Messages', href: '/hospital/messages', icon: MessageCircle },
   ];
 

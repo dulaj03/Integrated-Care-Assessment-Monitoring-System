@@ -30,18 +30,38 @@ export interface Patient extends User {
   age: number;
   gender: string;
   condition: string;
-  status: 'stable' | 'monitoring' | 'critical' | 'recovered';
+  status: 'stable' | 'monitoring' | 'critical' | 'recovered' | 'pending_approval';
   assignedDoctorId: string;
+  assignedNurseId?: string;
+  hospitalId: string;
   lastUpdate: string;
   upcomingAppointments: Array<{ id: string, date: string, title: string, location: string }>;
   medications: Array<{ name: string, dosage: string, frequency: string }>;
   logs: HealthLog[];
 }
 
+// Mock Hospitals
+export interface Hospital {
+  id: string;
+  name: string;
+  address: string;
+}
+
+export const MOCK_HOSPITALS: Hospital[] = [
+  { id: 'h1', name: 'General Hospital, Colombo', address: 'Colombo 08, Sri Lanka' },
+  { id: 'h2', name: 'Nawaloka Hospital', address: 'Colombo 02, Sri Lanka' },
+  { id: 'h3', name: 'Lanka Hospitals', address: 'Colombo 05, Sri Lanka' },
+];
+
+export interface Doctor extends User {
+  hospitalId: string;
+}
+
 // Mock Doctors
-export const MOCK_DOCTORS: User[] = [
-  { id: 'd1', name: 'Dr. Sarah Perera', role: 'doctor', email: 'sarah.perera@icams.lk', avatar: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&q=80&w=100&h=100' },
-  { id: 'd2', name: 'Dr. Kamal Silva', role: 'doctor', email: 'kamal.silva@icams.lk', avatar: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&q=80&w=100&h=100' },
+export const MOCK_DOCTORS: Doctor[] = [
+  { id: 'd1', name: 'Dr. Sarah Perera', role: 'doctor', email: 'sarah.perera@icams.lk', hospitalId: 'h1', avatar: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&q=80&w=100&h=100' },
+  { id: 'd2', name: 'Dr. Kamal Silva', role: 'doctor', email: 'kamal.silva@icams.lk', hospitalId: 'h1', avatar: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&q=80&w=100&h=100' },
+  { id: 'd3', name: 'Dr. Nimal Gunawardena', role: 'doctor', email: 'nimal.g@icams.lk', hospitalId: 'h2', avatar: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&q=80&w=100&h=100' },
 ];
 
 // Mock Nurses
@@ -84,6 +104,8 @@ export const MOCK_PATIENTS: Patient[] = [
     condition: 'Hypertension & Type 2 Diabetes',
     status: 'monitoring',
     assignedDoctorId: 'd1',
+    assignedNurseId: 'n1',
+    hospitalId: 'h1',
     lastUpdate: subDays(new Date(), 0).toISOString(),
     avatar: 'https://images.unsplash.com/photo-1552058544-f2b08422138a?auto=format&fit=crop&q=80&w=100&h=100',
     upcomingAppointments: [
@@ -105,6 +127,7 @@ export const MOCK_PATIENTS: Patient[] = [
     condition: 'Post-Surgery Recovery',
     status: 'stable',
     assignedDoctorId: 'd1',
+    hospitalId: 'h1',
     lastUpdate: subDays(new Date(), 1).toISOString(),
     avatar: 'https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?auto=format&fit=crop&q=80&w=100&h=100',
     upcomingAppointments: [],
@@ -123,6 +146,7 @@ export const MOCK_PATIENTS: Patient[] = [
     condition: 'COPD',
     status: 'critical',
     assignedDoctorId: 'd2',
+    hospitalId: 'h1',
     lastUpdate: subDays(new Date(), 0).toISOString(), // Updated today
     avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=100&h=100',
     upcomingAppointments: [
@@ -144,6 +168,29 @@ export const MOCK_PATIENTS: Patient[] = [
       }
       return log;
     }),
+  }
+];
+
+export const MOCK_PENDING_PATIENTS: Partial<Patient>[] = [
+  {
+    id: 'p-pending-1',
+    name: 'Saman Kumara',
+    email: 'saman@gmail.com',
+    condition: 'Chest Pain',
+    status: 'pending_approval',
+    assignedDoctorId: 'd1',
+    hospitalId: 'h1',
+    lastUpdate: new Date().toISOString(),
+  },
+  {
+    id: 'p-pending-2',
+    name: 'Anula Devi',
+    email: 'anula@gmail.com',
+    condition: 'Severe Migraine',
+    status: 'pending_approval',
+    assignedDoctorId: 'd1',
+    hospitalId: 'h1',
+    lastUpdate: new Date().toISOString(),
   }
 ];
 

@@ -1,90 +1,20 @@
 import { Users, AlertCircle, CheckCircle, Clock, Plus, Search, Filter, TrendingUp, Pill } from 'lucide-react';
 import { useState } from 'react';
-import { MOCK_PATIENTS, MOCK_DOCTORS } from '../../lib/mockData';
+import { MOCK_PATIENTS, Patient } from '../../lib/mockData';
 import { format } from 'date-fns';
-
-interface DoctorPatient {
-  id: string;
-  name: string;
-  age: number;
-  gender: string;
-  condition: string;
-  status: 'stable' | 'monitoring' | 'critical' | 'recovered';
-  lastVisit: string;
-  nextAppointment?: string;
-  medications: Array<{ name: string; dosage: string; frequency: string }>;
-  recentNotes?: string;
-}
+import { Link } from 'react-router';
 
 export function DoctorPatients() {
-  const [patients, setPatients] = useState<DoctorPatient[]>([
-    {
-      id: 'p1',
-      name: 'Nimal Jayasinghe',
-      age: 68,
-      gender: 'Male',
-      condition: 'Hypertension & Type 2 Diabetes',
-      status: 'monitoring',
-      lastVisit: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-      nextAppointment: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
-      medications: [
-        { name: 'Metformin', dosage: '500mg', frequency: 'Twice daily' },
-        { name: 'Losartan', dosage: '50mg', frequency: 'Once daily' },
-      ],
-      recentNotes: 'Blood pressure readings elevated. Consider adjusting medication dosage at next visit.',
-    },
-    {
-      id: 'p2',
-      name: 'Kusum Perera',
-      age: 54,
-      gender: 'Female',
-      condition: 'Post-Surgery Recovery',
-      status: 'stable',
-      lastVisit: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-      nextAppointment: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-      medications: [
-        { name: 'Paracetamol', dosage: '500mg', frequency: 'As needed' },
-      ],
-      recentNotes: 'Wound healing progressing well. Pain levels decreasing. Cleared for light physical activity.',
-    },
-    {
-      id: 'p3',
-      name: 'Ravi De Silva',
-      age: 72,
-      gender: 'Male',
-      condition: 'COPD',
-      status: 'critical',
-      lastVisit: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-      nextAppointment: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
-      medications: [
-        { name: 'Salbutamol Inhaler', dosage: '100mcg', frequency: 'As needed' },
-      ],
-      recentNotes: 'Oxygen saturation levels concerning. Increased respiratory rate observed. Recommend urgent follow-up.',
-    },
-    {
-      id: 'p4',
-      name: 'Anita Sharma',
-      age: 45,
-      gender: 'Female',
-      condition: 'Thyroid Disorder',
-      status: 'stable',
-      lastVisit: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-      nextAppointment: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000).toISOString(),
-      medications: [
-        { name: 'Levothyroxine', dosage: '75mcg', frequency: 'Once daily' },
-      ],
-      recentNotes: 'TSH levels normalizing. Continue current treatment plan.',
-    },
-  ]);
-
+  const userId = 'd1'; // Mock logged in doctor ID
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
-  const filteredPatients = patients.filter(patient => {
+  const filteredPatients = MOCK_PATIENTS.filter(patient => {
+    const isAssigned = patient.assignedDoctorId === userId;
     const matchesSearch = patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       patient.condition.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || patient.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    return isAssigned && matchesSearch && matchesStatus;
   });
 
   const getStatusColor = (status: string) => {
@@ -102,7 +32,7 @@ export function DoctorPatients() {
     }
   };
 
-  const PatientRow = ({ patient }: { patient: DoctorPatient }) => (
+  const PatientRow = ({ patient }: { patient: Patient }) => (
     <tr className="border-t border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
       <td className="px-6 py-4 whitespace-nowrap">
         <div>
@@ -119,15 +49,15 @@ export function DoctorPatients() {
         </span>
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600 dark:text-slate-400">
-        {format(new Date(patient.lastVisit), 'MMM d, yyyy')}
+        {format(new Date(patient.lastUpdate), 'MMM d, yyyy')}
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600 dark:text-slate-400">
-        {patient.nextAppointment ? format(new Date(patient.nextAppointment), 'MMM d, yyyy') : 'N/A'}
+        {patient.upcomingAppointments?.[0] ? format(new Date(patient.upcomingAppointments[0].date), 'MMM d, yyyy') : 'N/A'}
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-        <button className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
+        <Link to={`/doctor/patient/${patient.id}`} className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
           View
-        </button>
+        </Link>
         <button className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200">
           Edit
         </button>
@@ -265,7 +195,7 @@ export function DoctorPatients() {
           Recent Clinical Notes
         </h3>
         <div className="space-y-4">
-          {filteredPatients.filter(p => p.recentNotes).slice(0, 3).map(patient => (
+          {filteredPatients.filter(p => p.logs && p.logs.length > 0).slice(0, 3).map(patient => (
             <div key={patient.id} className="p-4 border border-slate-200 dark:border-slate-700 rounded-lg">
               <div className="flex items-start justify-between mb-2">
                 <p className="font-medium text-slate-900 dark:text-white">{patient.name}</p>
@@ -273,7 +203,7 @@ export function DoctorPatients() {
                   {patient.status.charAt(0).toUpperCase() + patient.status.slice(1)}
                 </span>
               </div>
-              <p className="text-sm text-slate-700 dark:text-slate-300">{patient.recentNotes}</p>
+              <p className="text-sm text-slate-700 dark:text-slate-300">{patient.logs[0].notes}</p>
             </div>
           ))}
         </div>

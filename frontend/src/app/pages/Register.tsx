@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router";
 import { UserPlus, Upload } from "lucide-react";
 import { Navbar } from "../components/Navbar";
@@ -14,6 +14,9 @@ export function Register() {
     role: roleParam,
     password: '',
     confirmPassword: '',
+    // Patient fields
+    hospitalId: '',
+    doctorId: '',
     // Professional fields
     licenseNumber: '',
     specialization: '',
@@ -23,6 +26,26 @@ export function Register() {
     qualifications: '',
     licenseDocument: null as File | null,
   });
+
+  const [hospitals, setHospitals] = useState<any[]>([]);
+  const [filteredDoctors, setFilteredDoctors] = useState<any[]>([]);
+
+  useEffect(() => {
+    // Simulate fetching hospitals
+    import('../lib/mockData').then(m => setHospitals(m.MOCK_HOSPITALS));
+  }, []);
+
+  useEffect(() => {
+    if (formData.hospitalId) {
+      // Simulate fetching doctors by hospital
+      import('../lib/mockData').then(m => {
+        const doctors = m.MOCK_DOCTORS.filter((d: any) => d.hospitalId === formData.hospitalId);
+        setFilteredDoctors(doctors);
+      });
+    } else {
+      setFilteredDoctors([]);
+    }
+  }, [formData.hospitalId]);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
@@ -119,14 +142,23 @@ export function Register() {
       // Store user data (in a real app, send to backend)
       sessionStorage.setItem('userRole', formData.role);
       sessionStorage.setItem('userEmail', formData.email);
+      sessionStorage.setItem('userName', formData.name);
 
-      // For professionals, store verification status as pending
-      if (isProfessional) {
+      // For patients, set status to pending_approval
+      if (formData.role === 'patient') {
+        sessionStorage.setItem('registrationStatus', 'pending_approval');
+        sessionStorage.setItem('hospitalId', formData.hospitalId);
+        sessionStorage.setItem('doctorId', formData.doctorId);
+
+        // Redirect to patient dashboard with a special flag
+        navigate('/patient/dashboard?status=pending');
+      } else if (isProfessional) {
         sessionStorage.setItem('verificationStatus', 'pending');
+        // Redirect to login page for the selected role
+        navigate(`/login/${formData.role}`);
+      } else {
+        navigate(`/login/${formData.role}`);
       }
-
-      // Redirect to login page for the selected role
-      navigate(`/login/${formData.role}`);
     } catch (error) {
       setErrors({ submit: 'An error occurred. Please try again.' });
     } finally {
@@ -234,6 +266,55 @@ export function Register() {
                   </select>
                 </div>
               </div>
+
+              {/* Patient Fields */}
+              {formData.role === 'patient' && (
+                <>
+                  <div>
+                    <label htmlFor="hospitalId" className="block text-sm font-medium leading-6 text-slate-900 dark:text-white">
+                      Select Hospital
+                    </label>
+                    <div className="mt-2">
+                      <select
+                        id="hospitalId"
+                        name="hospitalId"
+                        value={formData.hospitalId}
+                        onChange={handleChange}
+                        required
+                        disabled={loading}
+                        className="block w-full rounded-md border-0 py-1.5 text-slate-900 dark:text-white shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 focus:ring-2 focus:ring-inset focus:ring-blue-600 dark:focus:ring-blue-500 bg-white dark:bg-slate-800 sm:text-sm sm:leading-6 disabled:opacity-50 transition-colors duration-200"
+                      >
+                        <option value="">Choose a hospital</option>
+                        {hospitals.map(h => (
+                          <option key={h.id} value={h.id}>{h.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label htmlFor="doctorId" className="block text-sm font-medium leading-6 text-slate-900 dark:text-white">
+                      Select Doctor
+                    </label>
+                    <div className="mt-2">
+                      <select
+                        id="doctorId"
+                        name="doctorId"
+                        value={formData.doctorId}
+                        onChange={handleChange}
+                        required
+                        disabled={loading || !formData.hospitalId}
+                        className="block w-full rounded-md border-0 py-1.5 text-slate-900 dark:text-white shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 focus:ring-2 focus:ring-inset focus:ring-blue-600 dark:focus:ring-blue-500 bg-white dark:bg-slate-800 sm:text-sm sm:leading-6 disabled:opacity-50 transition-colors duration-200"
+                      >
+                        <option value="">{formData.hospitalId ? 'Choose a doctor' : 'Select a hospital first'}</option>
+                        {filteredDoctors.map(d => (
+                          <option key={d.id} value={d.id}>{d.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </>
+              )}
 
               {/* Professional Fields - Doctor */}
               {formData.role === 'doctor' && (

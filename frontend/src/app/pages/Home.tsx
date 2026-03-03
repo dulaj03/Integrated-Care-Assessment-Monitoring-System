@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/footer';
@@ -60,6 +60,7 @@ function Counter({ value, label, suffix = "", icon: Icon }: CounterProps) {
 
 export function Landing() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
@@ -209,10 +210,19 @@ export function Landing() {
                   </li>
                 ))}
               </ul>
-              <Link to="/patient/hospitals"
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  const role = sessionStorage.getItem('userRole');
+                  if (role === 'patient') {
+                    navigate('/patient/dashboard');
+                  } else {
+                    navigate('/login/patient');
+                  }
+                }}
                 className="mt-8 inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 font-semibold hover:text-blue-700 dark:hover:text-blue-300 transition-colors duration-200">
                 Find a Hospital <ArrowRight className="h-4 w-4" />
-              </Link>
+              </button>
             </motion.div>
           </div>
         </div>

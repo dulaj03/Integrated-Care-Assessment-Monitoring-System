@@ -19,11 +19,12 @@ import {
   getLabStatusLabel,
   getLabStatusColor,
   getHospitalById,
+  getPatientNurseReports,
   ClinicalOrder,
   OrderType,
 } from '../../lib/hospitalData';
 
-type WorkspaceTab = 'overview' | 'nurse_logs' | 'lab_tests' | 'orders' | 'notes' | 'messaging';
+type WorkspaceTab = 'overview' | 'nurse_logs' | 'nurse_reports' | 'lab_tests' | 'orders' | 'notes' | 'messaging';
 
 const ORDER_TYPES: { value: OrderType; label: string; color: string }[] = [
   { value: 'lab_test', label: 'Lab Test', color: 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300' },
@@ -47,6 +48,14 @@ export function PatientWorkspace() {
   const [localOrders, setLocalOrders] = useState<ClinicalOrder[]>(getPatientOrders(patient.id));
   const [noteSubmitted, setNoteSubmitted] = useState(false);
   const [orderSubmitted, setOrderSubmitted] = useState(false);
+  const [isNurseModalOpen, setIsNurseModalOpen] = useState(false);
+  const [assignedNurseId, setAssignedNurseId] = useState<string | null>(null);
+
+  const handleAssignNurse = (nurseId: string) => {
+    setAssignedNurseId(nurseId);
+    setIsNurseModalOpen(false);
+    // In a real app: POST /care-team/assign-nurse
+  };
 
   const labTests = getPatientLabTests(patient.id);
   const nurseLogs = getPatientNurseLogs(patient.id);
@@ -92,11 +101,111 @@ export function PatientWorkspace() {
 
   const TABS: { key: WorkspaceTab; label: string; icon: any }[] = [
     { key: 'overview', label: 'Overview', icon: Activity },
-    { key: 'nurse_logs', label: `Nurse Logs (${nurseLogs.length})`, icon: ClipboardList },
-    { key: 'lab_tests', label: `Lab Tests (${labTests.length})`, icon: FlaskConical },
+    { key: 'nurse_logs', label: `Nursing (${nurseLogs.length})`, icon: ClipboardList },
+    { key: 'nurse_reports', label: 'Shift Reports', icon: Send },
+    { key: 'lab_tests', label: `Labs (${labTests.length})`, icon: FlaskConical },
     { key: 'orders', label: `Orders (${localOrders.length})`, icon: Pill },
     { key: 'notes', label: 'Clinical Notes', icon: MessageSquare },
   ];
+
+  const LabTestReviewCard = ({ test }: { test: any }) => {
+    const [reviewNote, setReviewNote] = useState(test.result?.reviewNote || '');
+    const [isSaving, setIsSaving] = useState(false);
+    const [status, setStatus] = useState(test.status);
+
+    const handleSaveReview = () => {
+      setIsSaving(true);
+      setTimeout(() => {
+        const testIndex = MOCK_LAB_TESTS.findIndex(t => t.id === test.id);
+        if (testIndex !== -1) {
+          const updatedTest = { ...MOCK_LAB_TESTS[testIndex] };
+          updatedTest.status = 'reviewed_by_doctor';
+          updatedTest.result = {
+            ...updatedTest.result!,
+            reviewNote: reviewNote
+          };
+
+          // Add review step
+          updatedTest.steps = [...updatedTest.steps, {
+            step: `Doctor Review: Completed by Dr. Sarah Perera`,
+            completedAt: new Date().toISOString(),
+            note: reviewNote
+          }];
+
+          MOCK_LAB_TESTS[testIndex] = updatedTest;
+          setStatus('reviewed_by_doctor');
+        }
+        setIsSaving(false);
+      }, 1000);
+    };
+
+    return (
+      <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-sm transition-all hover:shadow-md">
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className={`p-2 rounded-lg ${test.testType === 'blood' ? 'bg-red-50 dark:bg-red-900/20 text-red-600' : 'bg-blue-50 dark:bg-blue-900/20 text-blue-600'}`}>
+              <FlaskConical className="h-5 w-5" />
+            </div>
+            <div>
+              <h4 className="font-bold text-slate-900 dark:text-white">{test.testName}</h4>
+              <p className="text-xs text-slate-500">Ordered: {format(new Date(test.orderedDate), 'MMM d, yyyy')}</p>
+            </div>
+          </div>
+          <span className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-tight ${getLabStatusColor(status)}`}>
+            {getLabStatusLabel(status)}
+          </span>
+        </div>
+
+        {test.result ? (
+          <div className="space-y-4">
+            <div className="p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg border border-slate-100 dark:border-slate-700">
+              <p className="text-xs font-bold text-slate-500 uppercase mb-2">Findings Summary</p>
+              <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-medium">{test.result.summary}</p>
+
+              {test.result.values && (
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  {test.result.values.map((v: any, i: number) => (
+                    <div key={i} className="flex justify-between items-center p-2 bg-white dark:bg-slate-800 rounded-lg border border-slate-100 dark:border-slate-700 text-xs">
+                      <span className="text-slate-500">{v.name}</span>
+                      <span className={`font-bold ${v.flag === 'high' ? 'text-red-600' : v.flag === 'low' ? 'text-blue-600' : 'text-green-600'}`}>
+                        {v.value} {v.unit}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-xs font-bold text-blue-600 uppercase">Clinical Review & Instructions</label>
+              <textarea
+                value={reviewNote}
+                onChange={(e) => setReviewNote(e.target.value)}
+                placeholder="Enter your clinical interpretation and next steps for the patient..."
+                className="w-full px-4 py-3 text-sm border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 resize-none"
+                rows={3}
+              />
+              <div className="flex justify-end pt-1">
+                <button
+                  onClick={handleSaveReview}
+                  disabled={isSaving || !reviewNote.trim()}
+                  className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white rounded-lg text-sm font-bold shadow-lg shadow-blue-500/20 flex items-center gap-2 transition-all"
+                >
+                  {isSaving ? <Clock className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+                  {status === 'reviewed_by_doctor' ? 'Update Review' : 'Finalize & Sign Results'}
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="p-8 text-center bg-slate-50 dark:bg-slate-900/40 rounded-xl border border-dashed border-slate-200 dark:border-slate-700">
+            <Clock className="h-8 w-8 text-slate-300 mx-auto mb-2" />
+            <p className="text-sm text-slate-500 italic">No results reported yet. Progressing through laboratory workflow.</p>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -111,9 +220,16 @@ export function PatientWorkspace() {
             <h2 className="text-xl font-bold text-slate-900 dark:text-white">{patient.name}</h2>
             <p className="text-sm text-slate-500 dark:text-slate-400">{patient.age} yrs · {patient.gender} · {patient.condition}</p>
           </div>
-          <span className={`ml-auto px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(patient.status)}`}>
+          <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(patient.status)}`}>
             {patient.status.charAt(0).toUpperCase() + patient.status.slice(1)}
           </span>
+          <button
+            onClick={() => setIsNurseModalOpen(true)}
+            className="px-4 py-2 bg-slate-800 dark:bg-slate-700 text-white rounded-lg text-sm font-medium hover:bg-slate-700 dark:hover:bg-slate-600 transition-all flex items-center gap-2"
+          >
+            <User className="h-4 w-4" />
+            {assignedNurseId ? 'Reassign Nurse' : 'Assign Nurse'}
+          </button>
         </div>
       </div>
 
@@ -123,8 +239,8 @@ export function PatientWorkspace() {
           {TABS.map(tab => (
             <button key={tab.key} onClick={() => setActiveTab(tab.key)}
               className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === tab.key
-                  ? 'border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400'
-                  : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:border-slate-300'
+                ? 'border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400'
+                : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:border-slate-300'
                 }`}>
               <tab.icon className="h-4 w-4" />
               {tab.label}
@@ -311,47 +427,82 @@ export function PatientWorkspace() {
           </motion.div>
         )}
 
+        {/* ─── Nurse Reports Tab ─── */}
+        {activeTab === 'nurse_reports' && (
+          <motion.div key="nurse_reports" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
+            <h3 className="font-semibold text-slate-900 dark:text-white">Nurse Shift Reports</h3>
+            {getPatientNurseReports(patient.id).length === 0 ? (
+              <p className="text-center py-12 text-slate-500 dark:text-slate-400">No shift reports filed yet.</p>
+            ) : getPatientNurseReports(patient.id).map(report => (
+              <div key={report.id} className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h4 className="font-bold text-slate-900 dark:text-white">{report.title}</h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">{format(new Date(report.date), 'MMMM d, yyyy · p')}</p>
+                  </div>
+                  <span className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full text-xs font-bold uppercase">Submitted</span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-3">
+                    <p className="text-xs font-bold text-blue-600 uppercase tracking-wider">Nursing Assessment</p>
+                    <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">{report.summary}</p>
+                    <p className="text-xs font-bold text-amber-600 uppercase tracking-wider mt-4">Nurse Recommendations</p>
+                    <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed italic border-l-2 border-amber-200 dark:border-amber-800 pl-3">
+                      {report.recommendations}
+                    </p>
+                  </div>
+
+                  <div className="space-y-3">
+                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Completed Tasks</p>
+                    <div className="space-y-2">
+                      {report.steps.map((step, idx) => (
+                        <div key={idx} className="flex gap-2">
+                          <CheckCircle2 className={`h-4 w-4 flex-shrink-0 ${step.completed ? 'text-green-500' : 'text-slate-300'}`} />
+                          <div>
+                            <p className="text-xs font-semibold text-slate-800 dark:text-slate-200">{step.title}</p>
+                            {step.description && <p className="text-[10px] text-slate-500">{step.description}</p>}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {report.vitalsSnapshot && (
+                  <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-700">
+                    <p className="text-xs font-bold text-slate-500 mb-3 uppercase tracking-wider">Shift Vitals Snapshot</p>
+                    <div className="grid grid-cols-4 gap-4">
+                      <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-900/50">
+                        <p className="text-[10px] text-slate-500">BP</p>
+                        <p className="text-sm font-bold text-slate-900 dark:text-white">{report.vitalsSnapshot.bp}</p>
+                      </div>
+                      <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-900/50">
+                        <p className="text-[10px] text-slate-500">Pulse</p>
+                        <p className="text-sm font-bold text-slate-900 dark:text-white">{report.vitalsSnapshot.hr} bpm</p>
+                      </div>
+                      <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-900/50">
+                        <p className="text-[10px] text-slate-500">SpO2</p>
+                        <p className="text-sm font-bold text-slate-900 dark:text-white">{report.vitalsSnapshot.spo2}%</p>
+                      </div>
+                      <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-900/50">
+                        <p className="text-[10px] text-slate-500">Temp</p>
+                        <p className="text-sm font-bold text-slate-900 dark:text-white">{report.vitalsSnapshot.temp}°C</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </motion.div>
+        )}
+
         {/* ─── Lab Tests Tab ─── */}
         {activeTab === 'lab_tests' && (
           <motion.div key="lab_tests" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
             <h3 className="font-semibold text-slate-900 dark:text-white">Ordered Lab Tests</h3>
-            {labTests.length === 0 ? (
-              <p className="text-center py-12 text-slate-500 dark:text-slate-400">No lab tests ordered yet.</p>
-            ) : labTests.map(test => (
-              <div key={test.id} className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5">
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <h4 className="font-semibold text-slate-900 dark:text-white">{test.testName}</h4>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">{getHospitalById(test.hospitalId)?.name} · {format(new Date(test.orderedDate), 'MMM d, yyyy')}</p>
-                  </div>
-                  <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${getLabStatusColor(test.status)}`}>
-                    {getLabStatusLabel(test.status)}
-                  </span>
-                </div>
-                {test.result && (
-                  <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-                    <p className="text-xs font-semibold text-green-800 dark:text-green-300 mb-1">Result Summary:</p>
-                    <p className="text-xs text-slate-700 dark:text-slate-300">{test.result.summary}</p>
-                    {test.result.values && (
-                      <div className="mt-2 grid grid-cols-2 gap-1.5">
-                        {test.result.values.map((v, i) => (
-                          <div key={i} className="flex justify-between items-center p-1.5 bg-white dark:bg-slate-700 rounded text-xs">
-                            <span className="text-slate-600 dark:text-slate-400">{v.name}</span>
-                            <span className={`font-bold ${v.flag === 'high' ? 'text-red-600' : v.flag === 'low' ? 'text-blue-600' : 'text-green-600'}`}>
-                              {v.value} {v.unit}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    <textarea placeholder="Add your review note for this test result..."
-                      className="mt-3 w-full px-3 py-2 text-xs border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" rows={2} />
-                    <button className="mt-2 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700 transition-colors">
-                      Save Review
-                    </button>
-                  </div>
-                )}
-              </div>
+            {labTests.map(test => (
+              <LabTestReviewCard key={test.id} test={test} />
             ))}
           </motion.div>
         )}
@@ -464,6 +615,51 @@ export function PatientWorkspace() {
               </div>
             ))}
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Nurse Assignment Modal */}
+      <AnimatePresence>
+        {isNurseModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-200 dark:border-slate-800"
+            >
+              <div className="p-6 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white">Assign Nurse</h3>
+                <button onClick={() => setIsNurseModalOpen(false)} className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors">
+                  <Plus className="h-6 w-6 rotate-45" />
+                </button>
+              </div>
+              <div className="p-4 max-h-[400px] overflow-y-auto space-y-3">
+                {MOCK_NURSES.map((nurse) => (
+                  <div key={nurse.id} className="p-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 hover:border-blue-500 transition-all group">
+                    <div className="flex items-center gap-4">
+                      <img src={nurse.avatar} alt={nurse.name} className="h-12 w-12 rounded-full object-cover" />
+                      <div className="flex-1">
+                        <p className="font-bold text-slate-900 dark:text-white">{nurse.name}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">RN · 5+ years experience</p>
+                      </div>
+                      <button
+                        onClick={() => handleAssignNurse(nurse.id)}
+                        className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-semibold hover:bg-blue-700 transition-colors"
+                      >
+                        Assign
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="p-4 bg-slate-50 dark:bg-slate-800/50 flex justify-end">
+                <button onClick={() => setIsNurseModalOpen(false)} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-400 font-medium hover:text-slate-900 dark:hover:text-white transition-colors">
+                  Close
+                </button>
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </div>
