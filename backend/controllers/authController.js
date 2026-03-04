@@ -109,8 +109,19 @@ const registerPatient = async (req, res) => {
 const registerDoctor = async (req, res) => {
   const {
     full_name, email, password, license_number, specialization,
-    years_of_experience, institution_name, registration_number
+    years_of_experience, institution_name, registration_number, hospital_ids
   } = req.body;
+
+  let parsedHospitalIds = [];
+  if (hospital_ids) {
+    try {
+      parsedHospitalIds = typeof hospital_ids === 'string' ? JSON.parse(hospital_ids) : hospital_ids;
+    } catch (e) {
+      if (typeof hospital_ids === 'string') {
+        parsedHospitalIds = hospital_ids.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
+      }
+    }
+  }
 
   try {
     const existing = await DoctorModel.findByEmail(email);
@@ -120,6 +131,7 @@ const registerDoctor = async (req, res) => {
     const doctor = await DoctorModel.create({
       full_name, email, password: hashedPassword, license_number, specialization,
       years_of_experience, institution_name, registration_number,
+      hospital_ids: parsedHospitalIds,
       license_document: req.file ? req.file.path : null
     });
 
@@ -133,8 +145,19 @@ const registerDoctor = async (req, res) => {
 const registerNurse = async (req, res) => {
   const {
     full_name, email, password, license_number, specialization,
-    years_of_experience, institution_name, registration_number
+    years_of_experience, institution_name, registration_number, hospital_ids
   } = req.body;
+
+  let parsedHospitalIds = [];
+  if (hospital_ids) {
+    try {
+      parsedHospitalIds = typeof hospital_ids === 'string' ? JSON.parse(hospital_ids) : hospital_ids;
+    } catch (e) {
+      if (typeof hospital_ids === 'string') {
+        parsedHospitalIds = hospital_ids.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
+      }
+    }
+  }
 
   // Map specialization to qualification for nurses
   const qualification = specialization;
@@ -147,6 +170,7 @@ const registerNurse = async (req, res) => {
     const nurse = await NurseModel.create({
       full_name, email, password: hashedPassword, license_number, qualification,
       years_of_experience, institution_name, registration_number,
+      hospital_ids: parsedHospitalIds,
       license_document: req.file ? req.file.path : null
     });
 
@@ -158,14 +182,14 @@ const registerNurse = async (req, res) => {
 };
 
 const registerHospital = async (req, res) => {
-  const { name, email, password, registration_number, address, phone } = req.body;
+  const { name, email, password, registration_number, address, phone, type, specialties } = req.body;
   try {
     const existing = await HospitalModel.findByEmail(email);
     if (existing) return res.status(400).json({ error: 'Email already registered' });
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const hospital = await HospitalModel.create({
-      name, email, password: hashedPassword, registration_number, address, phone
+      name, email, password: hashedPassword, registration_number, address, phone, type, specialties
     });
 
     res.status(201).json({ message: 'Hospital registered successfully', user: hospital });

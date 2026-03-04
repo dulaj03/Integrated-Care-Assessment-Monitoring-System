@@ -54,14 +54,14 @@ const updateProfessionalStatus = async (req, res) => {
 
 // Create a new hospital (Admin only)
 const createHospital = async (req, res) => {
-  const { name, email, password, registration_number, address, phone } = req.body;
+  const { name, email, password, registration_number, address, phone, type, specialties } = req.body;
   try {
     const existing = await HospitalModel.findByEmail(email);
     if (existing) return res.status(400).json({ error: 'Hospital email already registered' });
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const hospital = await HospitalModel.create({
-      name, email, password: hashedPassword, registration_number, address, phone
+      name, email, password: hashedPassword, registration_number, address, phone, type, specialties
     });
 
     res.status(201).json({ message: 'Hospital created successfully', hospital });

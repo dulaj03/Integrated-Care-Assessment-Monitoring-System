@@ -4,19 +4,19 @@ class NurseModel {
   static async create(data) {
     const {
       full_name, email, password, license_number, qualification,
-      years_of_experience, institution_name, registration_number, license_document
+      years_of_experience, institution_name, registration_number, license_document, hospital_ids
     } = data;
 
     const result = await pool.query(
       `INSERT INTO nurses (
         full_name, email, password, license_number, qualification, 
-        years_of_experience, institution_name, registration_number, license_document
+        years_of_experience, institution_name, registration_number, license_document, hospital_ids
       )
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
        RETURNING id, full_name, email, qualification, status`,
       [
         full_name, email, password, license_number, qualification,
-        years_of_experience, institution_name, registration_number, license_document
+        years_of_experience, institution_name, registration_number, license_document, hospital_ids || []
       ]
     );
     return result.rows[0];
@@ -29,7 +29,7 @@ class NurseModel {
 
   static async findById(id) {
     const result = await pool.query(
-      'SELECT id, full_name, email, qualification, status, created_at FROM nurses WHERE id = $1',
+      'SELECT id, full_name, email, qualification, status, created_at, hospital_ids, institution_name FROM nurses WHERE id = $1',
       [id]
     );
     return result.rows[0];
@@ -45,7 +45,7 @@ class NurseModel {
 
   static async findAll() {
     const result = await pool.query(
-      'SELECT id, full_name, email, qualification, license_number, years_of_experience, institution_name, registration_number, license_document, status, created_at FROM nurses ORDER BY created_at DESC'
+      'SELECT id, full_name, email, qualification, license_number, years_of_experience, institution_name, registration_number, hospital_ids, license_document, status, created_at FROM nurses ORDER BY created_at DESC'
     );
     return result.rows;
   }

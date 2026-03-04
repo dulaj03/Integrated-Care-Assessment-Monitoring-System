@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Activity, Calendar, Droplet, Heart, Thermometer, TrendingUp, AlertCircle, Plus, FlaskConical, Pill, ClipboardList, ChevronRight, Building2, CheckCircle2, Clock, Send, User, History as HistoryIcon } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { CURRENT_USER_PATIENT } from '../../lib/mockData';
@@ -22,18 +22,56 @@ export function PatientDashboard() {
   const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const isPending = false; // Patients no longer need approval
+  const patientId = sessionStorage.getItem('userId');
+  const userRole = sessionStorage.getItem('userRole');
+  const userEmail = sessionStorage.getItem('userEmail');
+  const userName = sessionStorage.getItem('userName') || 'Patient';
 
-  const patient = CURRENT_USER_PATIENT;
-  const recentLogs = patient.logs.slice(0, 7).reverse();
+  // If we have a real user, use their data, otherwise fallback to mock
+  const patient = {
+    ...CURRENT_USER_PATIENT,
+    id: patientId || CURRENT_USER_PATIENT.id,
+    name: userName,
+    email: userEmail || CURRENT_USER_PATIENT.email,
+  };
+
+  const [dbLogs, setDbLogs] = useState<any[]>([]);
+  const [loadingHealth, setLoadingHealth] = useState(true);
+
+  const fetchHealthLogs = async () => {
+    if (!patientId || isNaN(parseInt(patientId))) {
+      setLoadingHealth(false);
+      return;
+    }
+    try {
+      const res = await fetch(`http://localhost:5000/api/health/all/${patientId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setDbLogs(data);
+      }
+    } catch (error) {
+      console.error('Error fetching health logs:', error);
+    } finally {
+      setLoadingHealth(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchHealthLogs();
+  }, [patientId]);
+
+  const recentLogs = dbLogs.length > 0
+    ? [...dbLogs].slice(0, 7).reverse()
+    : patient.logs.slice(0, 7).reverse();
 
   const chartData = recentLogs.map(log => ({
-    name: new Date(log.date).toLocaleDateString('en-US', { weekday: 'short' }),
-    systolic: log.vitals.bloodPressure ? parseInt(log.vitals.bloodPressure.split('/')[0]) : 0,
-    diastolic: log.vitals.bloodPressure ? parseInt(log.vitals.bloodPressure.split('/')[1]) : 0,
-    heartRate: log.vitals.heartRate,
+    name: new Date(log.created_at || log.date).toLocaleDateString('en-US', { weekday: 'short' }),
+    systolic: log.systolic_bp || (log.vitals?.bloodPressure ? parseInt(log.vitals.bloodPressure.split('/')[0]) : 0),
+    diastolic: log.diastolic_bp || (log.vitals?.bloodPressure ? parseInt(log.vitals.bloodPressure.split('/')[1]) : 0),
+    heartRate: log.heart_rate || (log.vitals?.heartRate || 0),
   }));
 
-  const latestLog = patient.logs[0];
+  const latestLog = dbLogs.length > 0 ? dbLogs[0] : patient.logs[0];
 
   // Hospital data
   const labTests = getPatientLabTests(patient.id);
@@ -54,9 +92,26 @@ export function PatientDashboard() {
     heartRate: '',
     temperature: '',
     oxygenLevel: '',
+    mood: 'great' as 'great' | 'good' | 'okay' | 'poor' | 'bad',
+    symptoms: [] as string[],
+    notes: '',
   });
 
-  const handleLogSubmit = (e: React.FormEvent) => {
+  const availableSymptoms = [
+    'Headache', 'Fever', 'Cough', 'Fatigue',
+    'Shortness of Breath', 'Dizziness', 'Nausea', 'Chest Pain'
+  ];
+
+  const handleSymptomToggle = (symptom: string) => {
+    setLogFormData(prev => ({
+      ...prev,
+      symptoms: prev.symptoms.includes(symptom)
+        ? prev.symptoms.filter(s => s !== symptom)
+        : [...prev.symptoms, symptom]
+    }));
+  };
+
+  const handleLogSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const bpSystolic = parseInt(logFormData.systolic);
     const bpDiastolic = parseInt(logFormData.diastolic);
@@ -90,8 +145,47 @@ export function PatientDashboard() {
       setCriticalAlert(null);
     }
 
-    setIsLogFormOpen(false);
-    // In a real app: POST /health-logs and GET /patients/:id/status
+    try {
+      const res = await fetch('http://localhost:5000/api/health/log', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          patient_id: patientId,
+          systolic_bp: bpSystolic,
+          diastolic_bp: bpDiastolic,
+          heart_rate: hr,
+          temperature: temp,
+          oxygen_level: spo2,
+          mood: logFormData.mood,
+          symptoms: logFormData.symptoms,
+          notes: logFormData.notes
+        }),
+      });
+
+      if (res.ok) {
+        alert('Health log saved successfully!');
+        setIsLogFormOpen(false);
+        setLogFormData({
+          systolic: '',
+          diastolic: '',
+          heartRate: '',
+          temperature: '',
+          oxygenLevel: '',
+          mood: 'great',
+          symptoms: [],
+          notes: ''
+        });
+        await fetchHealthLogs(); // Refresh dashboard data
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Failed to submit health log');
+      }
+    } catch (err) {
+      console.error('Error submitting health log:', err);
+      alert('Network error. Is the backend running?');
+    }
   };
 
   return (
@@ -210,10 +304,34 @@ export function PatientDashboard() {
       {/* Vitals Cards */}
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {[
-          { label: t('patient_dashboard.bloodPressure'), value: latestLog?.vitals.bloodPressure || 'N/A', icon: Activity, color: 'text-slate-400', sub: 'Normal range' },
-          { label: t('patient_dashboard.heartRate'), value: `${latestLog?.vitals.heartRate || 'N/A'} bpm`, icon: Heart, color: 'text-red-400', sub: 'Resting rate' },
-          { label: t('patient_dashboard.temperature'), value: `${latestLog?.vitals.temperature || 'N/A'}°C`, icon: Thermometer, color: 'text-orange-400', sub: 'Last checked' },
-          { label: t('patient_dashboard.bloodOxygen'), value: `${latestLog?.vitals.oxygenLevel || 'N/A'}%`, icon: Droplet, color: 'text-blue-400', sub: 'SpO2' },
+          {
+            label: t('patient_dashboard.bloodPressure'),
+            value: latestLog?.systolic_bp ? `${latestLog.systolic_bp}/${latestLog.diastolic_bp}` : (latestLog?.vitals?.bloodPressure || 'N/A'),
+            icon: Activity,
+            color: 'text-slate-400',
+            sub: latestLog?.created_at ? `Latest update: ${format(new Date(latestLog.created_at), 'MMM d, p')}` : (latestLog?.date ? `Record from ${format(new Date(latestLog.date), 'MMM d')}` : 'No records yet')
+          },
+          {
+            label: t('patient_dashboard.heartRate'),
+            value: `${latestLog?.heart_rate || latestLog?.vitals?.heartRate || 'N/A'} bpm`,
+            icon: Heart,
+            color: 'text-red-400',
+            sub: latestLog?.created_at ? `Latest update: ${format(new Date(latestLog.created_at), 'MMM d')}` : 'Resting rate'
+          },
+          {
+            label: t('patient_dashboard.temperature'),
+            value: `${latestLog?.temperature || latestLog?.vitals?.temperature || 'N/A'}°C`,
+            icon: Thermometer,
+            color: 'text-orange-400',
+            sub: latestLog?.created_at ? `Latest update: ${format(new Date(latestLog.created_at), 'MMM d')}` : 'Last checked'
+          },
+          {
+            label: t('patient_dashboard.bloodOxygen'),
+            value: `${latestLog?.oxygen_level || latestLog?.vitals?.oxygenLevel || 'N/A'}%`,
+            icon: Droplet,
+            color: 'text-blue-400',
+            sub: latestLog?.created_at ? `Latest update: ${format(new Date(latestLog.created_at), 'MMM d')}` : 'SpO2'
+          },
         ].map(vital => (
           <div key={vital.label} className="bg-white dark:bg-slate-900 overflow-hidden shadow dark:shadow-xl rounded-lg">
             <div className="p-5">
@@ -231,6 +349,49 @@ export function PatientDashboard() {
           </div>
         ))}
       </div>
+
+      {/* Symptoms & Mood Display */}
+      {latestLog && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="bg-white dark:bg-slate-900 rounded-xl shadow p-6 border border-slate-200 dark:border-slate-800">
+            <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-4 uppercase flex items-center gap-2">
+              <Activity className="h-4 w-4 text-blue-500" />
+              Current Condition
+            </h4>
+            <div className="flex items-center gap-4 mb-4">
+              <div className="text-3xl">
+                {latestLog.mood === 'great' ? '😊' :
+                  latestLog.mood === 'good' ? '🙂' :
+                    latestLog.mood === 'okay' ? '😐' :
+                      latestLog.mood === 'poor' ? '☹️' : '🤒'}
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">Feeling {latestLog.mood || 'stable'}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Reported on {format(new Date(latestLog.created_at || latestLog.date), 'MMM d, h:mm a')}</p>
+              </div>
+            </div>
+            {latestLog.symptoms && (Array.isArray(latestLog.symptoms) ? latestLog.symptoms : JSON.parse(latestLog.symptoms || '[]')).length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {(Array.isArray(latestLog.symptoms) ? latestLog.symptoms : JSON.parse(latestLog.symptoms || '[]')).map((symptom: string) => (
+                  <span key={symptom} className="px-2 py-1 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-[10px] font-bold rounded-full border border-red-100 dark:border-red-800">
+                    {symptom}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-slate-400 italic">No symptoms reported today.</p>
+            )}
+          </div>
+          {latestLog.notes && (
+            <div className="bg-white dark:bg-slate-900 rounded-xl shadow p-6 border border-slate-200 dark:border-slate-800">
+              <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-2 uppercase">Additional Notes</h4>
+              <p className="text-sm text-slate-600 dark:text-slate-400 italic leading-relaxed">
+                "{latestLog.notes}"
+              </p>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Quick Action Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -515,9 +676,67 @@ export function PatientDashboard() {
                     onChange={(e) => setLogFormData({ ...logFormData, oxygenLevel: e.target.value })}
                     className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500" />
                 </div>
-                <div className="pt-4">
-                  <button type="submit" className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-500/20">
-                    Submit Health Log
+                <div className="space-y-3">
+                  <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">How are you feeling overall?</label>
+                  <div className="flex justify-between gap-2">
+                    {(['great', 'good', 'okay', 'poor', 'bad'] as const).map((mood) => (
+                      <button
+                        key={mood}
+                        type="button"
+                        onClick={() => setLogFormData({ ...logFormData, mood })}
+                        className={`flex-1 py-2 rounded-lg border transition-all ${logFormData.mood === mood
+                          ? 'bg-blue-600 border-blue-600 text-white shadow-md'
+                          : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400'
+                          }`}
+                      >
+                        <span className="block text-xl">
+                          {mood === 'great' ? '😊' : mood === 'good' ? '🙂' : mood === 'okay' ? '😐' : mood === 'poor' ? '☹️' : '🤒'}
+                        </span>
+                        <span className="text-[10px] font-bold uppercase">{mood}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Select any symptoms:</label>
+                  <div className="flex flex-wrap gap-2">
+                    {availableSymptoms.map((symptom) => (
+                      <button
+                        key={symptom}
+                        type="button"
+                        onClick={() => handleSymptomToggle(symptom)}
+                        className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${logFormData.symptoms.includes(symptom)
+                          ? 'bg-red-600 border-red-600 text-white'
+                          : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:border-red-400'
+                          }`}
+                      >
+                        {symptom}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Additional Notes</label>
+                  <textarea
+                    placeholder="Anything else you'd like to share with your doctor?"
+                    value={logFormData.notes}
+                    onChange={(e) => setLogFormData({ ...logFormData, notes: e.target.value })}
+                    className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 min-h-[80px]"
+                  />
+                </div>
+
+                <div className="pt-4 flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setIsLogFormOpen(false)}
+                    className="flex-1 py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-200"
+                  >
+                    Cancel
+                  </button>
+                  <button type="submit" className="flex-[2] py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-500/20">
+                    Save Log
                   </button>
                 </div>
               </form>

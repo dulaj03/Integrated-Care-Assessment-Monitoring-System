@@ -31,7 +31,7 @@ VALUES (
 );
 
 -- ============================================================
--- TABLE: patients
+-- TABLE: patients  dulaj / dulaj123
 -- ============================================================
 CREATE TABLE patients (
     id              SERIAL PRIMARY KEY,
@@ -46,7 +46,7 @@ CREATE TABLE patients (
 );
 
 -- ============================================================
--- TABLE: doctors
+-- TABLE: doctors dinoth@gmail.com / dinoth123
 -- ============================================================
 CREATE TABLE doctors (
     id                  SERIAL PRIMARY KEY,
@@ -65,7 +65,7 @@ CREATE TABLE doctors (
 );
 
 -- ============================================================
--- TABLE: nurses
+-- TABLE: nurses amanda@gmail.com / amanda123
 -- ============================================================
 CREATE TABLE nurses (
     id                  SERIAL PRIMARY KEY,
@@ -84,7 +84,7 @@ CREATE TABLE nurses (
 );
 
 -- ============================================================
--- TABLE: hospitals
+-- TABLE: hospitals generalhos@gmail.com / hospital123
 -- ============================================================
 CREATE TABLE hospitals (
     id                  SERIAL PRIMARY KEY,
@@ -99,3 +99,20 @@ CREATE TABLE hospitals (
     updated_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- ============================================================
+-- TABLE: health_logs
+-- Stores daily vitals submitted by patients
+-- ============================================================
+CREATE TABLE health_logs (
+    id              SERIAL PRIMARY KEY,
+    patient_id      INTEGER NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
+    systolic_bp     INTEGER NOT NULL,
+    diastolic_bp    INTEGER NOT NULL,
+    heart_rate      INTEGER NOT NULL,
+    temperature     DECIMAL(4,2) NOT NULL,
+    oxygen_level    INTEGER NOT NULL,
+    mood            VARCHAR(20),
+    symptoms        JSONB,           -- Stores array of symptoms
+    notes           TEXT,
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

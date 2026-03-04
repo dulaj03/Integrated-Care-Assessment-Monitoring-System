@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, MapPin, Phone, Star, Building2, Stethoscope, ChevronRight, Clock, DollarSign, Calendar, CheckCircle, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
@@ -19,26 +19,72 @@ export function HospitalFinder() {
   const [typeFilter, setTypeFilter] = useState<'all' | 'government' | 'private'>('all');
   const [specFilter, setSpecFilter] = useState('all');
   const [step, setStep] = useState<BookingStep>('browse');
-  const [selectedHospital, setSelectedHospital] = useState<Hospital | null>(null);
-  const [selectedDoctor, setSelectedDoctor] = useState<HospitalDoctor | null>(null);
+  const [selectedHospital, setSelectedHospital] = useState<any | null>(null);
+  const [selectedDoctor, setSelectedDoctor] = useState<any | null>(null);
   const [selectedSlot, setSelectedSlot] = useState('');
   const [selectedDate, setSelectedDate] = useState('');
   const [reason, setReason] = useState('');
 
-  const allSpecs = Array.from(new Set(MOCK_HOSPITALS.flatMap(h => h.specializations))).sort();
-  const allCities = Array.from(new Set(MOCK_HOSPITALS.map(h => h.city))).sort();
+  const [dbHospitals, setDbHospitals] = useState<any[]>([]);
+  const [dbDoctors, setDbDoctors] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filtered = MOCK_HOSPITALS.filter(h => {
-    const matchSearch = h.name.toLowerCase().includes(search.toLowerCase()) || h.address.toLowerCase().includes(search.toLowerCase());
-    const matchCity = cityFilter === 'all' || h.city === cityFilter;
-    const matchType = typeFilter === 'all' || h.type === typeFilter;
-    const matchSpec = specFilter === 'all' || h.specializations.includes(specFilter);
+  useEffect(() => {
+    fetchHospitals();
+  }, []);
+
+  const fetchHospitals = async () => {
+    try {
+      const res = await fetch('http://localhost:5000/api/hospitals');
+      if (res.ok) {
+        const data = await res.json();
+        setDbHospitals(data);
+      }
+    } catch (error) {
+      console.error('Error fetching hospitals:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchDoctorsForHospital = async (hospitalId: string) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/hospitals/${hospitalId}/doctors`);
+      if (res.ok) {
+        const data = await res.json();
+        setDbDoctors(data);
+      }
+    } catch (error) {
+      console.error('Error fetching doctors:', error);
+    }
+  };
+
+  const hospitalsToDisplay = dbHospitals.length > 0 ? dbHospitals : MOCK_HOSPITALS;
+
+  const allSpecs = Array.from(new Set(hospitalsToDisplay.flatMap(h => h.specialties || h.specializations || []))).sort();
+  const allCities = Array.from(new Set(hospitalsToDisplay.map(h => h.city || h.address.split(',').pop()?.trim()))).sort();
+
+  const filtered = hospitalsToDisplay.filter(h => {
+    const name = h.name.toLowerCase();
+    const address = h.address.toLowerCase();
+    const matchSearch = name.includes(search.toLowerCase()) || address.includes(search.toLowerCase());
+
+    const city = h.city || h.address.split(',').pop()?.trim();
+    const matchCity = cityFilter === 'all' || city === cityFilter;
+
+    const type = (h.type || 'private').toLowerCase();
+    const matchType = typeFilter === 'all' || type === typeFilter;
+
+    const specs = h.specialties || h.specializations || [];
+    const matchSpec = specFilter === 'all' || specs.includes(specFilter);
+
     return matchSearch && matchCity && matchType && matchSpec;
   });
 
-  const handleBook = (hospital: Hospital) => {
+  const handleBook = (hospital: any) => {
     setSelectedHospital(hospital);
     setStep('select_doctor');
+    fetchDoctorsForHospital(hospital.id);
   };
 
   const handleSelectDoctor = (doctor: HospitalDoctor) => {
@@ -74,7 +120,7 @@ export function HospitalFinder() {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="text-center">
           <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Appointment Booked!</h2>
           <p className="text-slate-600 dark:text-slate-400 max-w-md">
-            Your appointment with <strong>{selectedDoctor?.name}</strong> at <strong>{selectedHospital?.name}</strong> on <strong>{selectedDate}</strong> at <strong>{selectedSlot}</strong> has been confirmed.
+            Your appointment with <strong>{selectedDoctor?.full_name || selectedDoctor?.name}</strong> at <strong>{selectedHospital?.name}</strong> on <strong>{selectedDate}</strong> at <strong>{selectedSlot}</strong> has been confirmed.
           </p>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">You will receive a confirmation message on your registered phone number.</p>
         </motion.div>
@@ -175,8 +221,8 @@ export function HospitalFinder() {
                       <div>
                         <h3 className="font-bold text-slate-900 dark:text-white text-lg leading-tight">{hospital.name}</h3>
                         <span className={`inline-block mt-1 text-xs font-semibold px-2 py-0.5 rounded-full ${hospital.type === 'private'
-                            ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'
-                            : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                          ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'
+                          : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
                           }`}>
                           {hospital.type === 'private' ? 'Private' : 'Government'}
                         </span>
@@ -199,11 +245,11 @@ export function HospitalFinder() {
                     </div>
 
                     <div className="flex flex-wrap gap-1.5 mb-4">
-                      {hospital.specializations.slice(0, 4).map(s => (
+                      {(hospital.specialties || hospital.specializations || []).slice(0, 4).map((s: string) => (
                         <span key={s} className="text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300">{s}</span>
                       ))}
-                      {hospital.specializations.length > 4 && (
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400">+{hospital.specializations.length - 4} more</span>
+                      {(hospital.specialties || hospital.specializations || []).length > 4 && (
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400">+{(hospital.specialties || hospital.specializations || []).length - 4} more</span>
                       )}
                     </div>
 
@@ -237,29 +283,29 @@ export function HospitalFinder() {
             </div>
             <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Available Doctors</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {getDoctorsByHospital(selectedHospital.id).map(doc => (
+              {(dbDoctors.length > 0 ? dbDoctors : getDoctorsByHospital(selectedHospital.id)).map((doc: any) => (
                 <motion.div key={doc.id} whileHover={{ scale: 1.01 }}
                   className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 cursor-pointer hover:border-blue-400 dark:hover:border-blue-500 transition-all"
                   onClick={() => handleSelectDoctor(doc)}>
                   <div className="flex items-start gap-4">
-                    <img src={doc.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${doc.id}`} alt={doc.name}
+                    <img src={doc.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${doc.id}`} alt={doc.full_name || doc.name}
                       className="h-14 w-14 rounded-full object-cover border-2 border-blue-200 dark:border-blue-700" />
                     <div className="flex-1">
-                      <h4 className="font-bold text-slate-900 dark:text-white">{doc.name}</h4>
+                      <h4 className="font-bold text-slate-900 dark:text-white">{doc.full_name || doc.name}</h4>
                       <p className="text-blue-600 dark:text-blue-400 text-sm font-medium">{doc.specialization}</p>
-                      <p className="text-slate-500 dark:text-slate-400 text-xs mt-1">{doc.qualifications}</p>
+                      <p className="text-slate-500 dark:text-slate-400 text-xs mt-1">{doc.years_of_experience || doc.experience} yrs exp</p>
                       <div className="flex items-center gap-4 mt-2">
                         <span className="flex items-center gap-1 text-xs text-slate-600 dark:text-slate-400">
-                          <Stethoscope className="h-3 w-3" /> {doc.experience} yrs exp
+                          <Stethoscope className="h-3 w-3" /> {doc.years_of_experience || doc.experience} yrs exp
                         </span>
                         <span className="flex items-center gap-1 text-xs text-slate-600 dark:text-slate-400">
-                          <Clock className="h-3 w-3" /> {doc.availableDays.join(', ')}
+                          <Clock className="h-3 w-3" /> {doc.availableDays?.join(', ') || 'Mon, Wed, Fri'}
                         </span>
                       </div>
                     </div>
                     <div className="text-right">
                       <p className="text-xs text-slate-500 dark:text-slate-400">Fee</p>
-                      <p className="font-bold text-slate-900 dark:text-white text-sm">LKR {doc.consultationFee.toLocaleString()}</p>
+                      <p className="font-bold text-slate-900 dark:text-white text-sm">LKR {(doc.consultationFee || 2500).toLocaleString()}</p>
                     </div>
                   </div>
                   <button className="mt-4 w-full py-2 text-sm font-medium text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-700 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
@@ -278,9 +324,9 @@ export function HospitalFinder() {
         {step === 'select_time' && selectedDoctor && (
           <motion.div key="time" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-5">
             <div className="flex items-center gap-4 p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
-              <img src={selectedDoctor.avatar} alt={selectedDoctor.name} className="h-12 w-12 rounded-full object-cover" />
+              <img src={selectedDoctor.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${selectedDoctor.id}`} alt={selectedDoctor.full_name || selectedDoctor.name} className="h-12 w-12 rounded-full object-cover" />
               <div>
-                <p className="font-bold text-slate-900 dark:text-white">{selectedDoctor.name}</p>
+                <p className="font-bold text-slate-900 dark:text-white">{selectedDoctor.full_name || selectedDoctor.name}</p>
                 <p className="text-sm text-blue-600 dark:text-blue-400">{selectedDoctor.specialization} · {selectedHospital?.name}</p>
               </div>
             </div>
@@ -294,7 +340,7 @@ export function HospitalFinder() {
                   onChange={e => setSelectedDate(e.target.value)}
                   className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Available: {selectedDoctor.availableDays.join(', ')}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Available: {(selectedDoctor.availableDays || ['Mon', 'Wed', 'Fri']).join(', ')}</p>
               </div>
 
               <div>
@@ -315,8 +361,8 @@ export function HospitalFinder() {
                 {TIME_SLOTS.map(slot => (
                   <button key={slot} onClick={() => setSelectedSlot(slot)}
                     className={`py-2 px-3 text-sm rounded-lg border transition-all ${selectedSlot === slot
-                        ? 'bg-blue-600 text-white border-blue-600 font-medium'
-                        : 'border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:border-blue-400 dark:hover:border-blue-500 bg-white dark:bg-slate-700'
+                      ? 'bg-blue-600 text-white border-blue-600 font-medium'
+                      : 'border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:border-blue-400 dark:hover:border-blue-500 bg-white dark:bg-slate-700'
                       }`}>
                     {slot}
                   </button>
@@ -344,11 +390,11 @@ export function HospitalFinder() {
               <div className="p-5 space-y-4">
                 {[
                   { label: 'Hospital', value: selectedHospital.name },
-                  { label: 'Doctor', value: selectedDoctor.name },
+                  { label: 'Doctor', value: selectedDoctor.full_name || selectedDoctor.name },
                   { label: 'Specialization', value: selectedDoctor.specialization },
                   { label: 'Date', value: selectedDate },
                   { label: 'Time', value: selectedSlot },
-                  { label: 'Consultation Fee', value: `LKR ${selectedDoctor.consultationFee.toLocaleString()}` },
+                  { label: 'Consultation Fee', value: `LKR ${(selectedDoctor.consultationFee || 2500).toLocaleString()}` },
                   { label: 'Reason', value: reason },
                 ].map(item => (
                   <div key={item.label} className="flex justify-between items-start border-b border-slate-100 dark:border-slate-700 pb-3 last:border-0 last:pb-0">

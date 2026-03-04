@@ -14,8 +14,10 @@ export function HealthLog() {
     oxygenLevel: '',
     symptoms: [] as string[],
     notes: '',
-    mood: 'good',
+    mood: 'good' as 'great' | 'good' | 'okay' | 'poor' | 'bad',
   });
+  const [loading, setLoading] = useState(false);
+  const patientId = sessionStorage.getItem('userId');
 
   const commonSymptoms = [
     'Headache', 'Fever', 'Cough', 'Fatigue', 'Shortness of Breath',
@@ -32,11 +34,48 @@ export function HealthLog() {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, this would submit to the API
-    alert('Health log submitted successfully!');
-    navigate('/patient/dashboard');
+
+    if (!patientId) {
+      alert('You must be logged in to save health logs.');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const res = await fetch('http://localhost:5000/api/health/log', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          patient_id: patientId,
+          systolic_bp: parseInt(formData.systolic),
+          diastolic_bp: parseInt(formData.diastolic),
+          heart_rate: parseInt(formData.heartRate),
+          temperature: parseFloat(formData.temperature),
+          oxygen_level: parseInt(formData.oxygenLevel),
+          mood: formData.mood,
+          symptoms: formData.symptoms,
+          notes: formData.notes
+        }),
+      });
+
+      if (res.ok) {
+        alert('Health log saved successfully!');
+        navigate('/patient/dashboard');
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Failed to submit health log');
+      }
+    } catch (err) {
+      console.error('Error submitting health log:', err);
+      alert('Network error. Is the backend running?');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -136,7 +175,7 @@ export function HealthLog() {
 
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">How are you feeling overall?</label>
             <div className="flex space-x-4 mb-6">
-              {['great', 'good', 'okay', 'poor', 'bad'].map((mood) => (
+              {(['great', 'good', 'okay', 'poor', 'bad'] as const).map((mood) => (
                 <button
                   key={mood}
                   type="button"
@@ -195,9 +234,10 @@ export function HealthLog() {
             </button>
             <button
               type="submit"
-              className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-900 focus:ring-blue-500 transition-colors duration-200"
+              disabled={loading}
+              className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-900 focus:ring-blue-500 transition-colors duration-200 disabled:opacity-50"
             >
-              Save Log
+              {loading ? 'Saving...' : 'Save Log'}
             </button>
           </div>
 

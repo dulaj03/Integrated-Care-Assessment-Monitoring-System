@@ -25,23 +25,34 @@ export function Register() {
     registrationNumber: '',
     qualifications: '',
     licenseDocument: null as File | null,
+    hospital_ids: [] as number[],
   });
 
   const [hospitals, setHospitals] = useState<any[]>([]);
   const [filteredDoctors, setFilteredDoctors] = useState<any[]>([]);
 
   useEffect(() => {
-    // Simulate fetching hospitals
-    import('../lib/mockData').then(m => setHospitals(m.MOCK_HOSPITALS));
+    fetchHospitals();
   }, []);
+
+  const fetchHospitals = async () => {
+    try {
+      const res = await fetch('http://localhost:5000/api/hospitals');
+      if (res.ok) {
+        const data = await res.json();
+        setHospitals(data);
+      }
+    } catch (err) {
+      console.error('Error fetching hospitals:', err);
+    }
+  };
 
   useEffect(() => {
     if (formData.hospitalId) {
-      // Simulate fetching doctors by hospital
-      import('../lib/mockData').then(m => {
-        const doctors = m.MOCK_DOCTORS.filter((d: any) => d.hospitalId === formData.hospitalId);
-        setFilteredDoctors(doctors);
-      });
+      fetch(`http://localhost:5000/api/hospitals/${formData.hospitalId}/doctors`)
+        .then(res => res.json())
+        .then(data => setFilteredDoctors(data))
+        .catch(err => console.error('Error fetching doctors:', err));
     } else {
       setFilteredDoctors([]);
     }
@@ -120,7 +131,7 @@ export function Register() {
       if (!formData.specialization.trim()) newErrors.specialization = formData.role === 'doctor' ? 'Specialization is required' : 'Qualification is required';
       if (!formData.yearsOfExperience) newErrors.yearsOfExperience = 'Years of experience is required';
       if (parseInt(formData.yearsOfExperience) < 0) newErrors.yearsOfExperience = 'Years of experience must be a positive number';
-      if (!formData.institutionName.trim()) newErrors.institutionName = 'Institution/Hospital name is required';
+      if (formData.hospital_ids.length === 0) newErrors.institutionName = 'At least one hospital affiliation is required';
       if (!formData.registrationNumber.trim()) newErrors.registrationNumber = 'Registration number is required';
       if (!formData.licenseDocument) newErrors.licenseDocument = 'Professional license document is required';
     }
@@ -148,7 +159,8 @@ export function Register() {
         data.append('license_number', formData.licenseNumber);
         data.append('specialization', formData.specialization);
         data.append('years_of_experience', formData.yearsOfExperience);
-        data.append('institution_name', formData.institutionName);
+        data.append('institution_name', formData.hospital_ids.map(id => hospitals.find(h => h.id === id)?.name).filter(Boolean).join(', '));
+        data.append('hospital_ids', JSON.stringify(formData.hospital_ids));
         data.append('registration_number', formData.registrationNumber);
         if (formData.licenseDocument) {
           data.append('licenseDocument', formData.licenseDocument);
@@ -352,7 +364,7 @@ export function Register() {
                       >
                         <option value="">{formData.hospitalId ? 'Choose a doctor' : 'Select a hospital first'}</option>
                         {filteredDoctors.map(d => (
-                          <option key={d.id} value={d.id}>{d.name}</option>
+                          <option key={d.id} value={d.id}>{d.full_name || d.name}</option>
                         ))}
                       </select>
                     </div>
@@ -454,23 +466,47 @@ export function Register() {
                     </div>
                   </div>
 
-                  <div>
-                    <label htmlFor="institutionName" className="block text-sm font-medium leading-6 text-slate-900 dark:text-white">
-                      Current Hospital/Clinic Name
+                  <div className="space-y-4">
+                    <label className="block text-sm font-medium leading-6 text-slate-900 dark:text-white">
+                      Current Hospital/Clinic Affiliations
                     </label>
-                    <div className="mt-2">
-                      <input
-                        id="institutionName"
-                        name="institutionName"
-                        type="text"
-                        value={formData.institutionName}
-                        onChange={handleChange}
-                        disabled={loading}
-                        placeholder="e.g., City Medical Center"
-                        className="block w-full rounded-md border-0 py-1.5 text-slate-900 dark:text-white shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-blue-600 dark:focus:ring-blue-500 bg-white dark:bg-slate-800 sm:text-sm sm:leading-6 disabled:opacity-50 transition-colors duration-200"
-                      />
-                      {errors.institutionName && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.institutionName}</p>}
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {formData.hospital_ids.map(id => {
+                        const h = hospitals.find(h => h.id === id);
+                        return h ? (
+                          <span key={id} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs font-medium border border-blue-200 dark:border-blue-800">
+                            {h.name}
+                            <button
+                              type="button"
+                              onClick={() => setFormData(prev => ({ ...prev, hospital_ids: prev.hospital_ids.filter(hid => hid !== id) }))}
+                              className="hover:text-blue-900 dark:hover:text-blue-100"
+                            >
+                              ×
+                            </button>
+                          </span>
+                        ) : null;
+                      })}
                     </div>
+                    <select
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value);
+                        if (val && !formData.hospital_ids.includes(val)) {
+                          setFormData(prev => ({ ...prev, hospital_ids: [...prev.hospital_ids, val] }));
+                        }
+                        e.target.value = "";
+                      }}
+                      className="block w-full rounded-md border-0 py-1.5 text-slate-900 dark:text-white shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 focus:ring-2 focus:ring-inset focus:ring-blue-600 dark:focus:ring-blue-500 bg-white dark:bg-slate-800 sm:text-sm sm:leading-6"
+                    >
+                      <option value="">Add a hospital...</option>
+                      {hospitals
+                        .filter(h => !formData.hospital_ids.includes(h.id))
+                        .map(h => <option key={h.id} value={h.id}>{h.name}</option>)
+                      }
+                    </select>
+                    {errors.institutionName && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.institutionName}</p>}
+                    <p className="text-[10px] text-slate-500 mt-1 italic">
+                      Note: You must select at least one registered hospital.
+                    </p>
                   </div>
                 </>
               )}
@@ -566,23 +602,44 @@ export function Register() {
                     </div>
                   </div>
 
-                  <div>
-                    <label htmlFor="institutionName" className="block text-sm font-medium leading-6 text-slate-900 dark:text-white">
-                      Current Hospital/Clinic/Facility Name
+                  <div className="space-y-4">
+                    <label className="block text-sm font-medium leading-6 text-slate-900 dark:text-white">
+                      Current Hospital/Clinic Affiliations
                     </label>
-                    <div className="mt-2">
-                      <input
-                        id="institutionName"
-                        name="institutionName"
-                        type="text"
-                        value={formData.institutionName}
-                        onChange={handleChange}
-                        disabled={loading}
-                        placeholder="e.g., District General Hospital"
-                        className="block w-full rounded-md border-0 py-1.5 text-slate-900 dark:text-white shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-blue-600 dark:focus:ring-blue-500 bg-white dark:bg-slate-800 sm:text-sm sm:leading-6 disabled:opacity-50 transition-colors duration-200"
-                      />
-                      {errors.institutionName && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.institutionName}</p>}
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {formData.hospital_ids.map(id => {
+                        const h = hospitals.find(h => h.id === id);
+                        return h ? (
+                          <span key={id} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs font-medium border border-blue-200 dark:border-blue-800">
+                            {h.name}
+                            <button
+                              type="button"
+                              onClick={() => setFormData(prev => ({ ...prev, hospital_ids: prev.hospital_ids.filter(hid => hid !== id) }))}
+                              className="hover:text-blue-900 dark:hover:text-blue-100"
+                            >
+                              ×
+                            </button>
+                          </span>
+                        ) : null;
+                      })}
                     </div>
+                    <select
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value);
+                        if (val && !formData.hospital_ids.includes(val)) {
+                          setFormData(prev => ({ ...prev, hospital_ids: [...prev.hospital_ids, val] }));
+                        }
+                        e.target.value = "";
+                      }}
+                      className="block w-full rounded-md border-0 py-1.5 text-slate-900 dark:text-white shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 focus:ring-2 focus:ring-inset focus:ring-blue-600 dark:focus:ring-blue-500 bg-white dark:bg-slate-800 sm:text-sm sm:leading-6"
+                    >
+                      <option value="">Add a hospital...</option>
+                      {hospitals
+                        .filter(h => !formData.hospital_ids.includes(h.id))
+                        .map(h => <option key={h.id} value={h.id}>{h.name}</option>)
+                      }
+                    </select>
+                    {errors.institutionName && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.institutionName}</p>}
                   </div>
                 </>
               )}

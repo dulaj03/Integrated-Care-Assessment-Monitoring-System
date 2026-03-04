@@ -28,7 +28,10 @@ export const AddHospitalModal = ({ isOpen, onClose, onSuccess }: AddHospitalModa
     registration_number: '',
     address: '',
     phone: '',
+    type: 'Private' as 'Government' | 'Private',
+    specialties: [] as string[],
   });
+  const [newSpecialty, setNewSpecialty] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,6 +66,8 @@ export const AddHospitalModal = ({ isOpen, onClose, onSuccess }: AddHospitalModa
         registration_number: '',
         address: '',
         phone: '',
+        type: 'Private',
+        specialties: [],
       });
     } catch (err: any) {
       toast.error(err.message);
@@ -189,6 +194,66 @@ export const AddHospitalModal = ({ isOpen, onClose, onSuccess }: AddHospitalModa
                       onChange={e => setFormData({ ...formData, address: e.target.value })}
                     />
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Hospital Type</label>
+                  <select
+                    className="w-full bg-slate-900 border border-white/10 rounded-xl py-2.5 px-4 text-sm focus:outline-none focus:border-blue-500/50 text-white"
+                    value={formData.type}
+                    onChange={e => setFormData({ ...formData, type: e.target.value as any })}
+                  >
+                    <option value="Government">Government</option>
+                    <option value="Private">Private</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Specialties</label>
+                <div className="flex gap-2 mb-2">
+                  <input
+                    type="text"
+                    className="flex-1 bg-slate-900 border border-white/10 rounded-xl py-2.5 px-4 text-sm focus:outline-none focus:border-blue-500/50"
+                    placeholder="Add specialty (e.g. Cardiology)"
+                    value={newSpecialty}
+                    onChange={e => setNewSpecialty(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (newSpecialty.trim()) {
+                          setFormData({ ...formData, specialties: [...formData.specialties, newSpecialty.trim()] });
+                          setNewSpecialty('');
+                        }
+                      }
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (newSpecialty.trim()) {
+                        setFormData({ ...formData, specialties: [...formData.specialties, newSpecialty.trim()] });
+                        setNewSpecialty('');
+                      }
+                    }}
+                    className="px-4 bg-slate-800 hover:bg-slate-700 rounded-xl border border-white/10 text-white transition-all"
+                  >
+                    Add
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {formData.specialties.map((s, idx) => (
+                    <span key={idx} className="bg-blue-500/10 text-blue-400 px-3 py-1 rounded-full text-xs font-bold border border-blue-500/20 flex items-center gap-2">
+                      {s}
+                      <button
+                        type="button"
+                        onClick={() => setFormData({ ...formData, specialties: formData.specialties.filter((_, i) => i !== idx) })}
+                        className="hover:text-white"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
                 </div>
               </div>
 
