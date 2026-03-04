@@ -13,11 +13,11 @@ export function ProfessionalDashboard({ role }: { role?: 'doctor' | 'nurse' }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [pendingPatients, setPendingPatients] = useState<any[]>(MOCK_PENDING_PATIENTS);
   const userRole = role || (sessionStorage.getItem('userRole') as 'doctor' | 'nurse') || 'doctor';
-  const userId = userRole === 'doctor' ? 'd1' : 'n1'; // Default IDs for mock demo
+  const userId = sessionStorage.getItem('userId') || (userRole === 'doctor' ? 'd1' : 'n1');
 
   const handleApprove = (id: string) => {
     setPendingPatients(prev => prev.filter(p => p.id !== id));
-    // In a real app, this would trigger PUT /doctor/approve/:patientId
+    // Implementation for real approval would go here
   };
 
   const handleReject = (id: string) => {

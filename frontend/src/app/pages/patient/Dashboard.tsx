@@ -21,8 +21,7 @@ import { motion, AnimatePresence } from 'motion/react';
 export function PatientDashboard() {
   const { t } = useTranslation();
   const [searchParams] = useSearchParams();
-  const registrationStatus = searchParams.get('status');
-  const isPending = registrationStatus === 'pending' || CURRENT_USER_PATIENT.status === 'pending_approval';
+  const isPending = false; // Patients no longer need approval
 
   const patient = CURRENT_USER_PATIENT;
   const recentLogs = patient.logs.slice(0, 7).reverse();
@@ -276,8 +275,8 @@ export function PatientDashboard() {
               {activeOrders.slice(0, 3).map(order => (
                 <div key={order.id} className="flex items-start gap-2">
                   <span className={`mt-0.5 h-2 w-2 rounded-full flex-shrink-0 ${order.type === 'lab_test' ? 'bg-purple-500' :
-                      order.type === 'medication' ? 'bg-green-500' :
-                        order.type === 'scan' ? 'bg-blue-500' : 'bg-orange-500'}`} />
+                    order.type === 'medication' ? 'bg-green-500' :
+                      order.type === 'scan' ? 'bg-blue-500' : 'bg-orange-500'}`} />
                   <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">{order.description}</p>
                 </div>
               ))}

@@ -136,31 +136,75 @@ export function Register() {
 
     setLoading(true);
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      let response;
+      const baseUrl = 'http://localhost:5000/api/auth';
 
-      // Store user data (in a real app, send to backend)
+      if (isProfessional) {
+        const data = new FormData();
+        data.append('full_name', formData.name);
+        data.append('email', formData.email);
+        data.append('password', formData.password);
+        data.append('role', formData.role);
+        data.append('license_number', formData.licenseNumber);
+        data.append('specialization', formData.specialization);
+        data.append('years_of_experience', formData.yearsOfExperience);
+        data.append('institution_name', formData.institutionName);
+        data.append('registration_number', formData.registrationNumber);
+        if (formData.licenseDocument) {
+          data.append('licenseDocument', formData.licenseDocument);
+        }
+
+        response = await fetch(`${baseUrl}/register/${formData.role}`, {
+          method: 'POST',
+          body: data,
+        });
+      } else if (formData.role === 'patient') {
+        response = await fetch(`${baseUrl}/register/patient`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            full_name: formData.name,
+            email: formData.email,
+            password: formData.password,
+            hospital_id: formData.hospitalId,
+            doctor_id: formData.doctorId,
+          }),
+        });
+      } else {
+        // Handle hospital or other roles if needed
+        response = await fetch(`${baseUrl}/register/${formData.role}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData),
+        });
+      }
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Registration failed');
+      }
+
+      // Store user data
       sessionStorage.setItem('userRole', formData.role);
       sessionStorage.setItem('userEmail', formData.email);
       sessionStorage.setItem('userName', formData.name);
 
-      // For patients, set status to pending_approval
       if (formData.role === 'patient') {
-        sessionStorage.setItem('registrationStatus', 'pending_approval');
+        sessionStorage.setItem('registrationStatus', 'active');
         sessionStorage.setItem('hospitalId', formData.hospitalId);
         sessionStorage.setItem('doctorId', formData.doctorId);
-
-        // Redirect to patient dashboard with a special flag
-        navigate('/patient/dashboard?status=pending');
+        navigate('/patient/dashboard');
       } else if (isProfessional) {
         sessionStorage.setItem('verificationStatus', 'pending');
-        // Redirect to login page for the selected role
+        // Show success message or redirect
+        alert('Registration successful! Your account is pending verification.');
         navigate(`/login/${formData.role}`);
       } else {
         navigate(`/login/${formData.role}`);
       }
-    } catch (error) {
-      setErrors({ submit: 'An error occurred. Please try again.' });
+    } catch (error: any) {
+      setErrors({ submit: error.message || 'An error occurred. Please try again.' });
     } finally {
       setLoading(false);
     }

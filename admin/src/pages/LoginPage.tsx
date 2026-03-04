@@ -18,21 +18,36 @@ export const LoginPage = ({ onLogin }: LoginPageProps) => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate network delay
-    setTimeout(() => {
-      if (username === 'admin' && password === 'admin') {
-        localStorage.setItem('admin_auth', 'true');
-        onLogin();
-        toast.success('Successfully logged in');
-      } else {
-        toast.error('Invalid credentials');
-        setIsLoading(false);
+    try {
+      const res = await fetch('http://localhost:5000/api/auth/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.error || 'Invalid credentials');
+        return;
       }
-    }, 800);
+
+      // Store token and admin info
+      localStorage.setItem('admin_token', data.token);
+      localStorage.setItem('admin_name', data.admin.full_name);
+      localStorage.setItem('admin_auth', 'true');
+      onLogin();
+      toast.success(`Welcome back, ${data.admin.full_name}!`);
+
+    } catch (err) {
+      toast.error('Cannot connect to server. Is the backend running?');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

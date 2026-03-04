@@ -27,9 +27,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ─── Routes (add more as we build them) ───────────────────────
-// app.use('/api/auth',      require('./routes/auth'));
-// app.use('/api/users',     require('./routes/users'));
-// app.use('/api/hospitals', require('./routes/hospitals'));
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/admin', require('./routes/admin'));
 
 // ─── Health Check ─────────────────────────────────────────────
 app.get('/', (req, res) => {

@@ -62,7 +62,7 @@ export const UserTable = ({ users, onApprove, onReject, title }: UserTableProps)
                   </div>
                 </td>
                 <td className="px-6 py-4">
-                  <span className={`badge ${user.status === 'APPROVED' ? 'badge-approved' :
+                  <span className={`badge ${user.status === 'ACTIVE' ? 'badge-approved' :
                     user.status === 'PENDING' ? 'badge-pending' : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
                     }`}>
                     {user.status}

@@ -62,7 +62,7 @@ export function DashboardLayout({ role, userName }: DashboardLayoutProps) {
     }
   }, []);
 
-  // Simulate automatic alert generation from health logs (every 30 seconds in this demo)
+  // Automatic alert generation from health logs (every 30 seconds)
   useEffect(() => {
     const interval = setInterval(() => {
       setNotifications((prev) => {
@@ -131,6 +131,8 @@ export function DashboardLayout({ role, userName }: DashboardLayoutProps) {
     : role === 'doctor' ? doctorLinks
       : role === 'nurse' ? nurseLinks
         : hospitalLinks;
+
+  const userId = sessionStorage.getItem('userId') || 'default-id';
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex">

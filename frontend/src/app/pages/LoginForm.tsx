@@ -11,30 +11,26 @@ export function LoginForm() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const roleConfig: Record<string, { label: string; color: string; icon: string; hint: string }> = {
+  const roleConfig: Record<string, { label: string; color: string; icon: string }> = {
     patient: {
       label: 'Patient',
       color: 'blue',
       icon: '👤',
-      hint: 'patient@icams.lk',
     },
     doctor: {
       label: 'Doctor',
       color: 'purple',
       icon: '👨‍⚕️',
-      hint: 'doctor@icams.lk',
     },
     nurse: {
       label: 'Nurse',
       color: 'green',
       icon: '👩‍⚕️',
-      hint: 'nurse@icams.lk',
     },
     hospital: {
       label: 'Hospital Admin',
       color: 'emerald',
       icon: '🏥',
-      hint: 'admin@nawaloka.lk',
     },
   };
 
@@ -46,9 +42,26 @@ export function LoginForm() {
     setLoading(true);
 
     try {
-      // Store auth info (in a real app, this would validate credentials against a backend)
+      const response = await fetch('http://localhost:5000/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password, role }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Login failed');
+      }
+
+      // Store auth info
+      sessionStorage.setItem('token', result.token);
+      sessionStorage.setItem('userId', result.user.id);
       sessionStorage.setItem('userRole', role || 'patient');
-      sessionStorage.setItem('userEmail', email);
+      sessionStorage.setItem('userEmail', result.user.email);
+      sessionStorage.setItem('userName', result.user.full_name || result.user.name);
 
       // Navigate to role-specific dashboard
       if (role === 'patient') {
@@ -60,8 +73,8 @@ export function LoginForm() {
       } else if (role === 'hospital') {
         navigate('/hospital/dashboard');
       }
-    } catch (err) {
-      setError('An error occurred. Please try again.');
+    } catch (err: any) {
+      setError(err.message || 'An error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -110,12 +123,6 @@ export function LoginForm() {
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white dark:bg-slate-900 py-8 px-4 shadow dark:shadow-xl sm:rounded-xl sm:px-10">
 
-          {/* Demo credentials hint */}
-          <div className="mb-6 p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg">
-            <p className="text-xs text-slate-500 dark:text-slate-400 text-center">
-              🔑 Demo — use any email &amp; password · e.g. <span className="font-mono font-semibold">{config.hint}</span>
-            </p>
-          </div>
 
           {error && (
             <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-md text-red-700 dark:text-red-400 text-sm">
@@ -138,7 +145,7 @@ export function LoginForm() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder={config.hint}
+                  placeholder="Enter email address"
                   disabled={loading}
                   className={`block w-full pl-10 pr-3 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 ${ringColor[c]} focus:border-${c}-500 transition-colors duration-200 disabled:opacity-50 text-sm`}
                 />

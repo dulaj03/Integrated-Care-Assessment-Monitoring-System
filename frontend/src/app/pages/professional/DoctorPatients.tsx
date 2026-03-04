@@ -5,7 +5,7 @@ import { format } from 'date-fns';
 import { Link } from 'react-router';
 
 export function DoctorPatients() {
-  const userId = 'd1'; // Mock logged in doctor ID
+  const userId = sessionStorage.getItem('userId') || 'd1';
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
 

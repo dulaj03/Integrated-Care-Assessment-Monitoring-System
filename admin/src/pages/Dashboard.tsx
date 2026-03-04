@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Sidebar } from '../components/Sidebar';
 import { UserTable } from '../components/UserTable';
+import { AddHospitalModal } from '../components/AddHospitalModal';
 import type { AdminUser, UserStatus } from '../types/user';
 import {
   Search,
@@ -8,66 +9,73 @@ import {
   Users,
   ShieldCheck,
   AlertCircle,
-  TrendingUp
+  TrendingUp,
+  PlusCircle,
+  Loader2
 } from 'lucide-react';
 import { motion } from 'motion/react';
-
-// Mock data
-const INITIAL_USERS: AdminUser[] = [
-  {
-    id: '1',
-    name: 'Dr. Sarah Wilson',
-    email: 'sarah.w@example.com',
-    role: 'DOCTOR',
-    status: 'PENDING',
-    createdAt: '2024-03-01',
-    specialization: 'Cardiology',
-    licenseNumber: 'DOC12345'
-  },
-  {
-    id: '2',
-    name: 'John Doe',
-    email: 'john.d@example.com',
-    role: 'PATIENT',
-    status: 'APPROVED',
-    createdAt: '2024-02-28'
-  },
-  {
-    id: '3',
-    name: 'City Central Hospital',
-    email: 'admin@citycentral.com',
-    role: 'HOSPITAL',
-    status: 'PENDING',
-    createdAt: '2024-03-02',
-    address: '123 Health Ave, Medical District',
-    registrationNumber: 'HOSP9876'
-  },
-  {
-    id: '4',
-    name: 'Nurse Emma Brown',
-    email: 'emma.b@example.com',
-    role: 'NURSE',
-    status: 'PENDING',
-    createdAt: '2024-03-01',
-    licenseNumber: 'NUR45678'
-  },
-  {
-    id: '5',
-    name: 'Mike Johnson',
-    email: 'mike.j@example.com',
-    role: 'PATIENT',
-    status: 'APPROVED',
-    createdAt: '2024-02-27'
-  },
-];
+import { toast } from 'sonner';
 
 export const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [users, setUsers] = useState<AdminUser[]>(INITIAL_USERS);
+  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isHospitalModalOpen, setIsHospitalModalOpen] = useState(false);
 
-  const handleUpdateStatus = (id: string, status: UserStatus) => {
-    setUsers(users.map(u => u.id === id ? { ...u, status } : u));
+  const fetchUsers = async () => {
+    setLoading(true);
+    const token = localStorage.getItem('admin_token');
+    try {
+      const res = await fetch('http://localhost:5000/api/admin/users', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to fetch users');
+
+      // Combine and map roles
+      const allUsers: AdminUser[] = [
+        ...data.doctors.map((u: any) => ({ ...u, name: u.full_name, role: 'DOCTOR', createdAt: u.created_at })),
+        ...data.nurses.map((u: any) => ({ ...u, name: u.full_name, role: 'NURSE', createdAt: u.created_at })),
+        ...data.patients.map((u: any) => ({ ...u, name: u.full_name, role: 'PATIENT', createdAt: u.created_at })),
+        ...data.hospitals.map((u: any) => ({ ...u, role: 'HOSPITAL', createdAt: u.created_at })),
+      ].map(u => ({
+        ...u,
+        createdAt: new Date(u.createdAt).toLocaleDateString()
+      }));
+
+      setUsers(allUsers);
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const handleUpdateStatus = async (id: string, role: string, status: UserStatus) => {
+    const token = localStorage.getItem('admin_token');
+    try {
+      const res = await fetch('http://localhost:5000/api/admin/users/update-status', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ id, role: role.toLowerCase(), status }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to update status');
+
+      toast.success(data.message);
+      fetchUsers(); // Refresh list
+    } catch (err: any) {
+      toast.error(err.message);
+    }
   };
 
   const filteredUsers = users.filter(u => {
@@ -99,6 +107,13 @@ export const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
           </div>
 
           <div className="flex items-center gap-4">
+            <button
+              onClick={() => setIsHospitalModalOpen(true)}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-xl text-xs font-bold text-white transition-all flex items-center gap-2 shadow-lg shadow-blue-500/20"
+            >
+              <PlusCircle className="w-4 h-4" />
+              ADD HOSPITAL
+            </button>
             <button className="relative p-2 hover:bg-white/5 rounded-xl transition-all group">
               <Bell className="w-5 h-5 text-slate-400 group-hover:text-white" />
               {pendingCount > 0 && (
@@ -132,7 +147,7 @@ export const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
                 {[
                   { label: 'Total Users', value: users.length, icon: Users, color: 'text-blue-500', bg: 'bg-blue-500/10' },
                   { label: 'Pending Approvals', value: pendingCount, icon: AlertCircle, color: 'text-amber-500', bg: 'bg-amber-500/10' },
-                  { label: 'Verified Entities', value: users.filter(u => u.status === 'APPROVED').length, icon: ShieldCheck, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+                  { label: 'Verified Entities', value: users.filter(u => u.status === 'ACTIVE').length, icon: ShieldCheck, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
                   { label: 'System Health', value: '99.9%', icon: TrendingUp, color: 'text-indigo-500', bg: 'bg-indigo-500/10' },
                 ].map((stat, i) => (
                   <motion.div
@@ -156,14 +171,27 @@ export const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
           )}
 
           <div className="animate-fade-in">
-            <UserTable
-              users={filteredUsers}
-              title={activeTab === 'dashboard' ? 'Recent Users' : `${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Management`}
-              onApprove={(id) => handleUpdateStatus(id, 'APPROVED')}
-              onReject={(id) => handleUpdateStatus(id, 'REJECTED')}
-            />
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-20 gap-4">
+                <Loader2 className="w-10 h-10 text-blue-500 animate-spin" />
+                <p className="text-slate-400 font-medium animate-pulse">Fetching latest records...</p>
+              </div>
+            ) : (
+              <UserTable
+                users={filteredUsers}
+                title={activeTab === 'dashboard' ? 'Recent Users' : `${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Management`}
+                onApprove={(id) => handleUpdateStatus(id, users.find(u => u.id === id)?.role || '', 'ACTIVE')}
+                onReject={(id) => handleUpdateStatus(id, users.find(u => u.id === id)?.role || '', 'REJECTED')}
+              />
+            )}
           </div>
         </div>
+
+        <AddHospitalModal
+          isOpen={isHospitalModalOpen}
+          onClose={() => setIsHospitalModalOpen(false)}
+          onSuccess={fetchUsers}
+        />
       </main>
     </div>
   );

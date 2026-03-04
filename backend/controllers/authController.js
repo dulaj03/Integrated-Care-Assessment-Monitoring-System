@@ -1,0 +1,205 @@
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const pool = require('../config/db');
+const AdminModel = require('../models/adminModel');
+const PatientModel = require('../models/patientModel');
+const DoctorModel = require('../models/doctorModel');
+const NurseModel = require('../models/nurseModel');
+const HospitalModel = require('../models/hospitalModel');
+
+// ─── Generate JWT Token ─────────────────────────────────────────
+const generateToken = (id, role, extra = {}) => {
+  return jwt.sign(
+    { id, role, ...extra },
+    process.env.JWT_SECRET,
+    { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+  );
+};
+
+// ─── POST /api/auth/admin/login ───────────────────────────────
+const adminLogin = async (req, res) => {
+  const { username, password } = req.body;
+  try {
+    if (!username || !password) return res.status(400).json({ error: 'Username and password are required' });
+    const admin = await AdminModel.findByUsername(username);
+    if (!admin) return res.status(401).json({ error: 'Invalid username or password' });
+    const isMatch = await bcrypt.compare(password, admin.password);
+    if (!isMatch) return res.status(401).json({ error: 'Invalid username or password' });
+
+    const token = generateToken(admin.id, 'admin', { username: admin.username });
+    res.json({
+      message: 'Login successful',
+      token,
+      user: { id: admin.id, username: admin.username, email: admin.email, full_name: admin.full_name, role: 'admin' },
+    });
+  } catch (err) {
+    console.error('Admin login error:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+// ─── Generic User Login ─────────────────────────────────────────
+// POST /api/auth/login
+const login = async (req, res) => {
+  const { email, password, role } = req.body;
+
+  try {
+    if (!email || !password || !role) {
+      return res.status(400).json({ error: 'Email, password and role are required' });
+    }
+
+    let user;
+    let model;
+
+    switch (role) {
+      case 'patient': model = PatientModel; break;
+      case 'doctor': model = DoctorModel; break;
+      case 'nurse': model = NurseModel; break;
+      case 'hospital': model = HospitalModel; break;
+      default: return res.status(400).json({ error: 'Invalid role' });
+    }
+
+    user = await model.findByEmail(email);
+    if (!user) return res.status(401).json({ error: 'Invalid email or password' });
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(401).json({ error: 'Invalid email or password' });
+
+    // For non-patient and non-hospital roles (Doctor/Nurse), check if they are active
+    if ((role === 'doctor' || role === 'nurse')) {
+      if (user.status?.toUpperCase() !== 'ACTIVE') {
+        console.log(`[Login] Role: ${role}, Email: ${email}, Status: ${user.status} - Access Denied`);
+        return res.status(403).json({ error: 'Your account is pending verification or has been rejected. Please contact administrator.' });
+      }
+    }
+
+    const token = generateToken(user.id, role, { email: user.email });
+
+    // Clean user object (remove password)
+    const { password: _, ...userData } = user;
+    userData.role = role;
+
+    res.json({ message: 'Login successful', token, user: userData });
+  } catch (err) {
+    console.error('Login error:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+// ─── Registration Handlers ─────────────────────────────────────
+
+const registerPatient = async (req, res) => {
+  const { full_name, email, password, hospital_id, doctor_id } = req.body;
+  try {
+    const existing = await PatientModel.findByEmail(email);
+    if (existing) return res.status(400).json({ error: 'Email already registered' });
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const patient = await PatientModel.create({
+      full_name, email, password: hashedPassword, hospital_id, doctor_id
+    });
+
+    res.status(201).json({ message: 'Registration successful! You can now log in.', user: patient });
+  } catch (err) {
+    console.error('Patient registration error:', err.message);
+    res.status(500).json({ error: 'Server error during registration' });
+  }
+};
+
+const registerDoctor = async (req, res) => {
+  const {
+    full_name, email, password, license_number, specialization,
+    years_of_experience, institution_name, registration_number
+  } = req.body;
+
+  try {
+    const existing = await DoctorModel.findByEmail(email);
+    if (existing) return res.status(400).json({ error: 'Email already registered' });
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const doctor = await DoctorModel.create({
+      full_name, email, password: hashedPassword, license_number, specialization,
+      years_of_experience, institution_name, registration_number,
+      license_document: req.file ? req.file.path : null
+    });
+
+    res.status(201).json({ message: 'Registration submitted for verification', user: doctor });
+  } catch (err) {
+    console.error('Doctor registration error:', err.message);
+    res.status(500).json({ error: 'Server error during registration' });
+  }
+};
+
+const registerNurse = async (req, res) => {
+  const {
+    full_name, email, password, license_number, specialization,
+    years_of_experience, institution_name, registration_number
+  } = req.body;
+
+  // Map specialization to qualification for nurses
+  const qualification = specialization;
+
+  try {
+    const existing = await NurseModel.findByEmail(email);
+    if (existing) return res.status(400).json({ error: 'Email already registered' });
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const nurse = await NurseModel.create({
+      full_name, email, password: hashedPassword, license_number, qualification,
+      years_of_experience, institution_name, registration_number,
+      license_document: req.file ? req.file.path : null
+    });
+
+    res.status(201).json({ message: 'Registration submitted for verification', user: nurse });
+  } catch (err) {
+    console.error('Nurse registration error:', err.message);
+    res.status(500).json({ error: 'Server error during registration' });
+  }
+};
+
+const registerHospital = async (req, res) => {
+  const { name, email, password, registration_number, address, phone } = req.body;
+  try {
+    const existing = await HospitalModel.findByEmail(email);
+    if (existing) return res.status(400).json({ error: 'Email already registered' });
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const hospital = await HospitalModel.create({
+      name, email, password: hashedPassword, registration_number, address, phone
+    });
+
+    res.status(201).json({ message: 'Hospital registered successfully', user: hospital });
+  } catch (err) {
+    console.error('Hospital registration error:', err.message);
+    res.status(500).json({ error: 'Server error during registration' });
+  }
+};
+
+// ─── GET /api/auth/me ────────────────────────────────────
+const getMe = async (req, res) => {
+  try {
+    const { id, role } = req.user; // Set by middleware
+    let user;
+    if (role === 'admin') user = await AdminModel.findById(id);
+    else if (role === 'patient') user = await PatientModel.findById(id);
+    else if (role === 'doctor') user = await DoctorModel.findById(id);
+    else if (role === 'nurse') user = await NurseModel.findById(id);
+    else if (role === 'hospital') user = await HospitalModel.findById(id);
+
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json({ user: { ...user, role } });
+  } catch (err) {
+    console.error('Get me error:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+module.exports = {
+  adminLogin,
+  login,
+  registerPatient,
+  registerDoctor,
+  registerNurse,
+  registerHospital,
+  getMe
+};
