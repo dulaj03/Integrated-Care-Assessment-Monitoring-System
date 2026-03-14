@@ -9,6 +9,7 @@ export interface BaseUser {
   role: UserRole;
   status: UserStatus;
   createdAt: string;
+  uniqueId?: string;
 }
 
 export interface Patient extends BaseUser {

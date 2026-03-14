@@ -31,6 +31,22 @@ class PatientModel {
     );
     return result.rows;
   }
+
+  static async updateStatus(id, status) {
+    const result = await pool.query(
+      'UPDATE patients SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING id, full_name, status',
+      [status, id]
+    );
+    return result.rows[0];
+  }
+
+  static async delete(id) {
+    const result = await pool.query(
+      'DELETE FROM patients WHERE id = $1 RETURNING id',
+      [id]
+    );
+    return result.rows[0];
+  }
 }
 
 module.exports = PatientModel;

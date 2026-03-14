@@ -7,10 +7,31 @@ const bcrypt = require('bcryptjs');
 // Get all users across all categories for admin overview
 const getAllUsers = async (req, res) => {
   try {
-    const doctors = await DoctorModel.findAll();
-    const nurses = await NurseModel.findAll();
-    const patients = await PatientModel.findAll();
-    const hospitals = await HospitalModel.findAll();
+    console.log('[Admin] Fetching all users...');
+
+    const doctors = await DoctorModel.findAll().catch(err => {
+      console.error('[Admin] Error fetching doctors:', err.message, err.stack);
+      throw new Error(`Doctors query failed: ${err.message}`);
+    });
+    console.log(`[Admin] Found ${doctors.length} doctors`);
+
+    const nurses = await NurseModel.findAll().catch(err => {
+      console.error('[Admin] Error fetching nurses:', err.message, err.stack);
+      throw new Error(`Nurses query failed: ${err.message}`);
+    });
+    console.log(`[Admin] Found ${nurses.length} nurses`);
+
+    const patients = await PatientModel.findAll().catch(err => {
+      console.error('[Admin] Error fetching patients:', err.message, err.stack);
+      throw new Error(`Patients query failed: ${err.message}`);
+    });
+    console.log(`[Admin] Found ${patients.length} patients`);
+
+    const hospitals = await HospitalModel.findAll().catch(err => {
+      console.error('[Admin] Error fetching hospitals:', err.message, err.stack);
+      throw new Error(`Hospitals query failed: ${err.message}`);
+    });
+    console.log(`[Admin] Found ${hospitals.length} hospitals`);
 
     res.json({
       doctors: doctors.map(d => ({ ...d, role: 'doctor' })),
@@ -19,8 +40,8 @@ const getAllUsers = async (req, res) => {
       hospitals: hospitals.map(h => ({ ...h, role: 'hospital' }))
     });
   } catch (err) {
-    console.error('Get all users error:', err.message);
-    res.status(500).json({ error: 'Server error fetching user data' });
+    console.error('[Admin] Get all users error:', err.message, err.stack);
+    res.status(500).json({ error: `Server error fetching user data: ${err.message}` });
   }
 };
 
@@ -71,8 +92,96 @@ const createHospital = async (req, res) => {
   }
 };
 
+// Deactivate user (set status to INACTIVE)
+const deactivateUser = async (req, res) => {
+  const { id, role } = req.body;
+  const userId = parseInt(id);
+
+  console.log(`[Admin] Deactivating user - ID: ${userId}, Role: ${role}, Original: ${id}`);
+
+  try {
+    if (!id || !role) {
+      return res.status(400).json({ error: 'ID and role are required' });
+    }
+
+    if (isNaN(userId)) {
+      return res.status(400).json({ error: 'Invalid user ID format' });
+    }
+
+    let updated;
+    try {
+      if (role === 'doctor') {
+        updated = await DoctorModel.updateStatus(userId, 'INACTIVE');
+      } else if (role === 'nurse') {
+        updated = await NurseModel.updateStatus(userId, 'INACTIVE');
+      } else if (role === 'patient') {
+        updated = await PatientModel.updateStatus(userId, 'INACTIVE');
+      } else if (role === 'hospital') {
+        updated = await HospitalModel.updateStatus(userId, 'INACTIVE');
+      } else {
+        return res.status(400).json({ error: 'Invalid role' });
+      }
+    } catch (modelErr) {
+      console.error(`Error updating model for role ${role}:`, modelErr);
+      return res.status(500).json({ error: `Error updating user status for role ${role}: ${modelErr.message}` });
+    }
+
+    if (!updated) return res.status(404).json({ error: 'User not found' });
+
+    res.json({ message: 'User deactivated successfully', user: updated });
+  } catch (err) {
+    console.error('Deactivate user error:', err);
+    res.status(500).json({ error: 'Server error deactivating user: ' + err.message });
+  }
+};
+
+// Delete user
+const deleteUser = async (req, res) => {
+  const { id, role } = req.body;
+  const userId = parseInt(id);
+
+  console.log(`[Admin] Deleting user - ID: ${userId}, Role: ${role}, Original: ${id}`);
+
+  try {
+    if (!id || !role) {
+      return res.status(400).json({ error: 'ID and role are required' });
+    }
+
+    if (isNaN(userId)) {
+      return res.status(400).json({ error: 'Invalid user ID format' });
+    }
+
+    let deleted;
+    try {
+      if (role === 'doctor') {
+        deleted = await DoctorModel.delete(userId);
+      } else if (role === 'nurse') {
+        deleted = await NurseModel.delete(userId);
+      } else if (role === 'patient') {
+        deleted = await PatientModel.delete(userId);
+      } else if (role === 'hospital') {
+        deleted = await HospitalModel.delete(userId);
+      } else {
+        return res.status(400).json({ error: 'Invalid role' });
+      }
+    } catch (modelErr) {
+      console.error(`Error deleting model for role ${role}:`, modelErr);
+      return res.status(500).json({ error: `Error deleting user for role ${role}: ${modelErr.message}` });
+    }
+
+    if (!deleted) return res.status(404).json({ error: 'User not found' });
+
+    res.json({ message: 'User deleted successfully' });
+  } catch (err) {
+    console.error('Delete user error:', err);
+    res.status(500).json({ error: 'Server error deleting user: ' + err.message });
+  }
+};
+
 module.exports = {
   getAllUsers,
   updateProfessionalStatus,
-  createHospital
+  createHospital,
+  deactivateUser,
+  deleteUser
 };

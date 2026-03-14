@@ -11,7 +11,8 @@ import {
   AlertCircle,
   TrendingUp,
   PlusCircle,
-  Loader2
+  Loader2,
+  X
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { toast } from 'sonner';
@@ -22,6 +23,8 @@ export const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [isHospitalModalOpen, setIsHospitalModalOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -35,10 +38,10 @@ export const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
 
       // Combine and map roles
       const allUsers: AdminUser[] = [
-        ...data.doctors.map((u: any) => ({ ...u, name: u.full_name, role: 'DOCTOR', createdAt: u.created_at })),
-        ...data.nurses.map((u: any) => ({ ...u, name: u.full_name, role: 'NURSE', createdAt: u.created_at })),
-        ...data.patients.map((u: any) => ({ ...u, name: u.full_name, role: 'PATIENT', createdAt: u.created_at })),
-        ...data.hospitals.map((u: any) => ({ ...u, role: 'HOSPITAL', createdAt: u.created_at })),
+        ...data.doctors.map((u: any) => ({ ...u, name: u.full_name, role: 'DOCTOR', createdAt: u.created_at, uniqueId: `doctor-${u.id}` })),
+        ...data.nurses.map((u: any) => ({ ...u, name: u.full_name, role: 'NURSE', createdAt: u.created_at, uniqueId: `nurse-${u.id}` })),
+        ...data.patients.map((u: any) => ({ ...u, name: u.full_name, role: 'PATIENT', createdAt: u.created_at, uniqueId: `patient-${u.id}` })),
+        ...data.hospitals.map((u: any) => ({ ...u, role: 'HOSPITAL', createdAt: u.created_at, uniqueId: `hospital-${u.id}` })),
       ].map(u => ({
         ...u,
         createdAt: new Date(u.createdAt).toLocaleDateString()
@@ -76,6 +79,71 @@ export const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
     } catch (err: any) {
       toast.error(err.message);
     }
+  };
+
+  const handleActivate = async (id: string, role: string) => {
+    await handleUpdateStatus(id, role, 'ACTIVE');
+  };
+
+  const handleDeactivate = async (id: string, role: string) => {
+    const token = localStorage.getItem('admin_token');
+    try {
+      const requestBody = { id: String(id), role: role.toLowerCase() };
+      console.log('[Deactivate Request]', requestBody);
+
+      const res = await fetch('http://localhost:5000/api/admin/users/deactivate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      const data = await res.json();
+      console.log('[Deactivate Response]', data);
+      if (!res.ok) throw new Error(data.error || 'Failed to deactivate user');
+
+      toast.success('User deactivated successfully');
+      fetchUsers();
+    } catch (err: any) {
+      console.error('[Deactivate Error]', err);
+      toast.error(err.message);
+    }
+  };
+
+  const handleDelete = async (id: string, role: string) => {
+    if (!confirm(`Are you sure you want to delete this ${role.toLowerCase()}? This action cannot be undone.`)) return;
+
+    const token = localStorage.getItem('admin_token');
+    try {
+      const requestBody = { id: String(id), role: role.toLowerCase() };
+      console.log('[Delete Request]', requestBody);
+
+      const res = await fetch('http://localhost:5000/api/admin/users/delete', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      const data = await res.json();
+      console.log('[Delete Response]', data);
+      if (!res.ok) throw new Error(data.error || 'Failed to delete user');
+
+      toast.success('User deleted successfully');
+      fetchUsers();
+    } catch (err: any) {
+      console.error('[Delete Error]', err);
+      toast.error(err.message);
+    }
+  };
+
+  const handleEdit = (user: AdminUser) => {
+    setEditingUser(user);
+    setIsEditModalOpen(true);
   };
 
   const filteredUsers = users.filter(u => {
@@ -182,6 +250,10 @@ export const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
                 title={activeTab === 'dashboard' ? 'Recent Users' : `${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Management`}
                 onApprove={(id) => handleUpdateStatus(id, users.find(u => u.id === id)?.role || '', 'ACTIVE')}
                 onReject={(id) => handleUpdateStatus(id, users.find(u => u.id === id)?.role || '', 'REJECTED')}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onActivate={handleActivate}
+                onDeactivate={handleDeactivate}
               />
             )}
           </div>
@@ -192,6 +264,108 @@ export const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
           onClose={() => setIsHospitalModalOpen(false)}
           onSuccess={fetchUsers}
         />
+
+        {/* Edit User Modal */}
+        {isEditModalOpen && editingUser && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center"
+            onClick={() => setIsEditModalOpen(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-slate-900 border border-white/10 rounded-2xl p-8 w-full max-w-md shadow-2xl"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-white">Edit User</h2>
+                <button
+                  onClick={() => setIsEditModalOpen(false)}
+                  className="p-2 hover:bg-white/5 rounded-lg text-slate-400 hover:text-white transition-all"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">Name</label>
+                  <input
+                    type="text"
+                    value={editingUser.name}
+                    readOnly
+                    className="w-full bg-slate-800 border border-white/10 rounded-lg px-4 py-2 text-slate-200 cursor-text"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">Email</label>
+                  <input
+                    type="email"
+                    value={editingUser.email}
+                    readOnly
+                    className="w-full bg-slate-800 border border-white/10 rounded-lg px-4 py-2 text-slate-200 cursor-text"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">Role</label>
+                  <input
+                    type="text"
+                    value={editingUser.role}
+                    readOnly
+                    className="w-full bg-slate-800 border border-white/10 rounded-lg px-4 py-2 text-slate-200 cursor-text"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">Status</label>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => {
+                        if (editingUser.status !== 'ACTIVE') {
+                          handleActivate(editingUser.id, editingUser.role);
+                          setIsEditModalOpen(false);
+                        }
+                      }}
+                      className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all ${editingUser.status === 'ACTIVE'
+                        ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 cursor-not-allowed'
+                        : 'bg-slate-800 border border-white/10 text-slate-300 hover:bg-slate-700'
+                        }`}
+                    >
+                      Activate
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (editingUser.status === 'ACTIVE') {
+                          handleDeactivate(editingUser.id, editingUser.role);
+                          setIsEditModalOpen(false);
+                        }
+                      }}
+                      className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all ${editingUser.status !== 'ACTIVE'
+                        ? 'bg-red-500/20 text-red-400 border border-red-500/30 cursor-not-allowed'
+                        : 'bg-slate-800 border border-white/10 text-slate-300 hover:bg-slate-700'
+                        }`}
+                    >
+                      Deactivate
+                    </button>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setIsEditModalOpen(false)}
+                  className="w-full mt-6 py-2 px-4 bg-slate-800 border border-white/10 text-slate-300 rounded-lg hover:bg-slate-700 transition-all font-medium"
+                >
+                  Close
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
       </main>
     </div>
   );

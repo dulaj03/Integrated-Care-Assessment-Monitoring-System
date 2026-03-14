@@ -3,7 +3,9 @@ const router = express.Router();
 const {
   getAllUsers,
   updateProfessionalStatus,
-  createHospital
+  createHospital,
+  deactivateUser,
+  deleteUser
 } = require('../controllers/adminController');
 const { verifyAdminToken } = require('../middleware/authMiddleware');
 
@@ -12,6 +14,8 @@ router.use(verifyAdminToken);
 
 router.get('/users', getAllUsers);
 router.post('/users/update-status', updateProfessionalStatus);
+router.post('/users/deactivate', deactivateUser);
+router.delete('/users/delete', deleteUser);
 router.post('/hospitals', createHospital);
 
 module.exports = router;

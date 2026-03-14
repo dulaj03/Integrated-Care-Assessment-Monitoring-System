@@ -38,10 +38,10 @@ export const LoginPage = ({ onLogin }: LoginPageProps) => {
 
       // Store token and admin info
       localStorage.setItem('admin_token', data.token);
-      localStorage.setItem('admin_name', data.admin.full_name);
+      localStorage.setItem('admin_name', data.user.full_name);
       localStorage.setItem('admin_auth', 'true');
       onLogin();
-      toast.success(`Welcome back, ${data.admin.full_name}!`);
+      toast.success(`Welcome back, ${data.user.full_name}!`);
 
     } catch (err) {
       toast.error('Cannot connect to server. Is the backend running?');

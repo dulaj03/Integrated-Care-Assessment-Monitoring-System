@@ -243,7 +243,7 @@ export const AddHospitalModal = ({ isOpen, onClose, onSuccess }: AddHospitalModa
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {formData.specialties.map((s, idx) => (
-                    <span key={idx} className="bg-blue-500/10 text-blue-400 px-3 py-1 rounded-full text-xs font-bold border border-blue-500/20 flex items-center gap-2">
+                    <span key={`specialty-${idx}-${s}`} className="bg-blue-500/10 text-blue-400 px-3 py-1 rounded-full text-xs font-bold border border-blue-500/20 flex items-center gap-2">
                       {s}
                       <button
                         type="button"
@@ -268,7 +268,7 @@ export const AddHospitalModal = ({ isOpen, onClose, onSuccess }: AddHospitalModa
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex-[2] btn-primary py-2.5 justify-center text-sm font-bold tracking-wide disabled:opacity-50"
+                  className="flex-2 btn-primary py-2.5 justify-center text-sm font-bold tracking-wide disabled:opacity-50"
                 >
                   {loading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />

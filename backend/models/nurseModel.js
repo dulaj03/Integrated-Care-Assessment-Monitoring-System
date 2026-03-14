@@ -49,6 +49,14 @@ class NurseModel {
     );
     return result.rows;
   }
+
+  static async delete(id) {
+    const result = await pool.query(
+      'DELETE FROM nurses WHERE id = $1 RETURNING id',
+      [id]
+    );
+    return result.rows[0];
+  }
 }
 
 module.exports = NurseModel;

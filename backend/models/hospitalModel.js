@@ -31,6 +31,22 @@ class HospitalModel {
     );
     return result.rows;
   }
+
+  static async updateStatus(id, status) {
+    const result = await pool.query(
+      'UPDATE hospitals SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING id, name, status',
+      [status, id]
+    );
+    return result.rows[0];
+  }
+
+  static async delete(id) {
+    const result = await pool.query(
+      'DELETE FROM hospitals WHERE id = $1 RETURNING id',
+      [id]
+    );
+    return result.rows[0];
+  }
 }
 
 module.exports = HospitalModel;
