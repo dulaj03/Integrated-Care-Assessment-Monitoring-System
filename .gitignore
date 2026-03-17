@@ -1,0 +1,54 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Testing
+coverage/
+.nyc_output/
+*.lcov
+.test-cache/
+dist/
+build/
+
+# Local env files
+.env
+.env.local
+.env.*.local
+
+# Editor directories and files
+.vscode/
+.idea/
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+
+# Vite
+.vite/
+
+# npm & npx
+.npm/
+.eslintcache
+
+# Logs
+logs/
+*.log
+
+# Application specific
+uploads/
+!uploads/.gitkeep
+
+# VCS
+.git/
+
+# CI/CD
+.github/workflows/logs/
+
+# OS
+Thumbs.db
+.env.test
