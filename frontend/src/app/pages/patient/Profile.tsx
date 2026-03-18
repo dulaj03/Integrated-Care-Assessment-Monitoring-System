@@ -1,7 +1,6 @@
-import { Mail, Phone, Calendar, Heart, Pill, AlertCircle, Edit, Shield, MapPin, File, User as UserIcon } from 'lucide-react';
+import { Mail, Phone, Calendar, Heart, Pill, AlertCircle, Edit, Shield, MapPin, User as UserIcon } from 'lucide-react';
 import { useState } from 'react';
 import { CURRENT_USER_PATIENT, MOCK_DOCTORS } from '../../lib/mockData';
-import { format } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 
 export function Profile() {
@@ -33,7 +32,7 @@ export function Profile() {
     console.log('Saving profile:', formData);
   };
 
-  const InfoCard = ({ icon: Icon, label, value }: { icon: any; label: string; value: string }) => (
+  const InfoCard = ({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) => (
     <div className="flex items-center gap-3">
       <Icon className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
       <div>
@@ -85,7 +84,7 @@ export function Profile() {
               : patient.status === 'monitoring'
                 ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'
                 : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
-              }`}>
+            }`}>
               <Heart className="h-3 w-3" />
               {patient.status.charAt(0).toUpperCase() + patient.status.slice(1)}
             </p>

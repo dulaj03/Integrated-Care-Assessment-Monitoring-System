@@ -183,7 +183,7 @@ export function HealthLog() {
                   className={`px-3 py-2 rounded-md text-sm font-medium capitalize transition-colors duration-200 ${formData.mood === mood
                     ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300 ring-2 ring-blue-500'
                     : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
-                    }`}
+                  }`}
                 >
                   {mood}
                 </button>
@@ -200,7 +200,7 @@ export function HealthLog() {
                   className={`flex items-center justify-center px-3 py-2 border text-sm font-medium rounded-md transition-colors duration-200 ${formData.symptoms.includes(symptom)
                     ? 'bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800 text-red-700 dark:text-red-400'
                     : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
-                    }`}
+                  }`}
                 >
                   {symptom}
                 </button>

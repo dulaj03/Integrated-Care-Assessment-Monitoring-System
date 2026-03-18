@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router';
-import { Search, Filter, AlertCircle, CheckCircle, Clock, ChevronRight, User } from 'lucide-react';
+import { Link } from 'react-router';
+import { Search, AlertCircle, Clock, ChevronRight, User } from 'lucide-react';
 import { MOCK_PATIENTS, Patient, MOCK_PENDING_PATIENTS } from '../../lib/mockData';
 import { clsx } from 'clsx';
 import { useTranslation } from 'react-i18next';
@@ -8,10 +8,9 @@ import { motion } from 'motion/react';
 
 export function ProfessionalDashboard({ role }: { role?: 'doctor' | 'nurse' }) {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const [filter, setFilter] = useState<'all' | 'critical' | 'monitoring' | 'stable'>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [pendingPatients, setPendingPatients] = useState<any[]>(MOCK_PENDING_PATIENTS);
+  const [pendingPatients, setPendingPatients] = useState<Partial<Patient>[]>(MOCK_PENDING_PATIENTS);
   const userRole = role || (sessionStorage.getItem('userRole') as 'doctor' | 'nurse') || 'doctor';
   const userId = sessionStorage.getItem('userId') || (userRole === 'doctor' ? 'd1' : 'n1');
 
@@ -39,10 +38,10 @@ export function ProfessionalDashboard({ role }: { role?: 'doctor' | 'nurse' }) {
 
   const getStatusColor = (status: Patient['status']) => {
     switch (status) {
-      case 'critical': return 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400';
-      case 'monitoring': return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400';
-      case 'stable': return 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400';
-      default: return 'bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-400';
+    case 'critical': return 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400';
+    case 'monitoring': return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400';
+    case 'stable': return 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400';
+    default: return 'bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-400';
     }
   };
 
@@ -172,13 +171,13 @@ export function ProfessionalDashboard({ role }: { role?: 'doctor' | 'nurse' }) {
                   </div>
                   <div className="flex space-x-3">
                     <button
-                      onClick={() => handleApprove(patient.id)}
+                      onClick={() => handleApprove(patient.id || '')}
                       className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition-colors"
                     >
                       Approve
                     </button>
                     <button
-                      onClick={() => handleReject(patient.id)}
+                      onClick={() => handleReject(patient.id || '')}
                       className="px-4 py-1.5 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-md text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                     >
                       Reject
@@ -209,7 +208,7 @@ export function ProfessionalDashboard({ role }: { role?: 'doctor' | 'nurse' }) {
             <span className="text-sm text-slate-500 dark:text-slate-400">Filter by:</span>
             <select
               value={filter}
-              onChange={(e) => setFilter(e.target.value as any)}
+              onChange={(e) => setFilter(e.target.value as 'all' | 'critical' | 'monitoring' | 'stable')}
               className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md bg-white dark:bg-slate-800 text-slate-900 dark:text-white transition-colors duration-200"
             >
               <option value="all">All Statuses</option>
@@ -240,7 +239,7 @@ export function ProfessionalDashboard({ role }: { role?: 'doctor' | 'nurse' }) {
                     </div>
                     <div className="ml-2 flex-shrink-0 flex">
                       <span className={clsx(
-                        "px-2 inline-flex text-xs leading-5 font-semibold rounded-full",
+                        'px-2 inline-flex text-xs leading-5 font-semibold rounded-full',
                         getStatusColor(patient.status)
                       )}>
                         {patient.status}

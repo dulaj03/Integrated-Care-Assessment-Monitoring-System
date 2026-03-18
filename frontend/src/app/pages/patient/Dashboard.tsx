@@ -1,29 +1,43 @@
 import { useState, useEffect } from 'react';
-import { Activity, Calendar, Droplet, Heart, Thermometer, TrendingUp, AlertCircle, Plus, FlaskConical, Pill, ClipboardList, ChevronRight, Building2, CheckCircle2, Clock, Send, User, History as HistoryIcon } from 'lucide-react';
+import { Activity, Calendar, Droplet, Heart, Thermometer, TrendingUp, AlertCircle, Plus, FlaskConical, Pill, ClipboardList, ChevronRight, Building2, CheckCircle2, Clock, User, History as HistoryIcon } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { CURRENT_USER_PATIENT } from '../../lib/mockData';
 import {
   getPatientLabTests,
   getPatientOrders,
-  getPatientAppointments,
   getLabStatusLabel,
   getLabStatusColor,
-  getHospitalById,
-  getDoctorById,
   getPatientNurseReports,
-  LAB_STATUS_STEPS,
 } from '../../lib/hospitalData';
 import { useTranslation } from 'react-i18next';
-import { useSearchParams, Link } from 'react-router';
+import { Link } from 'react-router';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'motion/react';
 
+interface DbHealthLog {
+  id: string | number;
+  patient_id: string | number;
+  systolic_bp: number;
+  diastolic_bp: number;
+  heart_rate: number;
+  temperature: number;
+  oxygen_level: number;
+  mood: string;
+  symptoms: string[] | string;
+  notes: string;
+  created_at: string;
+  date?: string; // from mock data
+  vitals?: {
+    bloodPressure?: string;
+    heartRate?: number;
+    temperature?: number;
+    oxygenLevel?: number;
+  };
+}
+
 export function PatientDashboard() {
   const { t } = useTranslation();
-  const [searchParams] = useSearchParams();
-  const isPending = false; // Patients no longer need approval
   const patientId = sessionStorage.getItem('userId');
-  const userRole = sessionStorage.getItem('userRole');
   const userEmail = sessionStorage.getItem('userEmail');
   const userName = sessionStorage.getItem('userName') || 'Patient';
 
@@ -35,12 +49,11 @@ export function PatientDashboard() {
     email: userEmail || CURRENT_USER_PATIENT.email,
   };
 
-  const [dbLogs, setDbLogs] = useState<any[]>([]);
-  const [loadingHealth, setLoadingHealth] = useState(true);
+  const [dbLogs, setDbLogs] = useState<DbHealthLog[]>([]);
+  const isPending = false;
 
   const fetchHealthLogs = async () => {
     if (!patientId || isNaN(parseInt(patientId))) {
-      setLoadingHealth(false);
       return;
     }
     try {
@@ -51,8 +64,6 @@ export function PatientDashboard() {
       }
     } catch (error) {
       console.error('Error fetching health logs:', error);
-    } finally {
-      setLoadingHealth(false);
     }
   };
 
@@ -60,27 +71,25 @@ export function PatientDashboard() {
     fetchHealthLogs();
   }, [patientId]);
 
-  const recentLogs = dbLogs.length > 0
+  const recentLogs: DbHealthLog[] = dbLogs.length > 0
     ? [...dbLogs].slice(0, 7).reverse()
-    : patient.logs.slice(0, 7).reverse();
+    : (patient.logs.slice(0, 7).reverse() as unknown as DbHealthLog[]);
 
   const chartData = recentLogs.map(log => ({
-    name: new Date(log.created_at || log.date).toLocaleDateString('en-US', { weekday: 'short' }),
+    name: new Date(log.created_at || log.date || '').toLocaleDateString('en-US', { weekday: 'short' }),
     systolic: log.systolic_bp || (log.vitals?.bloodPressure ? parseInt(log.vitals.bloodPressure.split('/')[0]) : 0),
     diastolic: log.diastolic_bp || (log.vitals?.bloodPressure ? parseInt(log.vitals.bloodPressure.split('/')[1]) : 0),
     heartRate: log.heart_rate || (log.vitals?.heartRate || 0),
   }));
 
-  const latestLog = dbLogs.length > 0 ? dbLogs[0] : patient.logs[0];
+  const latestLog: DbHealthLog = dbLogs.length > 0 ? dbLogs[0] : (patient.logs[0] as unknown as DbHealthLog);
 
   // Hospital data
   const labTests = getPatientLabTests(patient.id);
   const orders = getPatientOrders(patient.id);
-  const hospitalAppointments = getPatientAppointments(patient.id);
   const nurseReports = getPatientNurseReports(patient.id);
 
   const readyTests = labTests.filter(t => t.status === 'results_ready');
-  const upcomingHospitalAppts = hospitalAppointments.filter(a => a.status === 'confirmed' || a.status === 'requested');
   const activeOrders = orders.filter(o => o.status === 'active');
 
   const [isLogFormOpen, setIsLogFormOpen] = useState(false);
@@ -120,7 +129,7 @@ export function PatientDashboard() {
     const spo2 = parseInt(logFormData.oxygenLevel);
 
     let isCritical = false;
-    let reasons = [];
+    const reasons = [];
 
     if (bpSystolic > 150 || bpDiastolic > 100) {
       isCritical = true;
@@ -367,12 +376,12 @@ export function PatientDashboard() {
               </div>
               <div>
                 <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">Feeling {latestLog.mood || 'stable'}</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">Reported on {format(new Date(latestLog.created_at || latestLog.date), 'MMM d, h:mm a')}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Reported on {format(new Date(latestLog.created_at || latestLog.date || ''), 'MMM d, h:mm a')}</p>
               </div>
             </div>
-            {latestLog.symptoms && (Array.isArray(latestLog.symptoms) ? latestLog.symptoms : JSON.parse(latestLog.symptoms || '[]')).length > 0 ? (
+            {(Array.isArray(latestLog.symptoms) ? latestLog.symptoms : JSON.parse((latestLog.symptoms as string) || '[]')).length > 0 ? (
               <div className="flex flex-wrap gap-2">
-                {(Array.isArray(latestLog.symptoms) ? latestLog.symptoms : JSON.parse(latestLog.symptoms || '[]')).map((symptom: string) => (
+                {(Array.isArray(latestLog.symptoms) ? latestLog.symptoms : JSON.parse((latestLog.symptoms as string) || '[]')).map((symptom: string) => (
                   <span key={symptom} className="px-2 py-1 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-[10px] font-bold rounded-full border border-red-100 dark:border-red-800">
                     {symptom}
                   </span>
@@ -687,7 +696,7 @@ export function PatientDashboard() {
                         className={`flex-1 py-2 rounded-lg border transition-all ${logFormData.mood === mood
                           ? 'bg-blue-600 border-blue-600 text-white shadow-md'
                           : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400'
-                          }`}
+                        }`}
                       >
                         <span className="block text-xl">
                           {mood === 'great' ? '😊' : mood === 'good' ? '🙂' : mood === 'okay' ? '😐' : mood === 'poor' ? '☹️' : '🤒'}
@@ -709,7 +718,7 @@ export function PatientDashboard() {
                         className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${logFormData.symptoms.includes(symptom)
                           ? 'bg-red-600 border-red-600 text-white'
                           : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:border-red-400'
-                          }`}
+                        }`}
                       >
                         {symptom}
                       </button>

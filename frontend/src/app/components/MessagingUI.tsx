@@ -102,16 +102,16 @@ export function MessagingUI({ conversation, currentUserId, onSendMessage }: Mess
                 {/* Message Bubble */}
                 <div
                   className={`max-w-xs lg:max-w-md xl:max-w-lg px-4 py-2 rounded-lg transition-all duration-200 ${isSender
-                      ? 'bg-blue-500 dark:bg-blue-600 text-white rounded-br-none'
-                      : 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white rounded-bl-none'
-                    }`}
+                    ? 'bg-blue-500 dark:bg-blue-600 text-white rounded-br-none'
+                    : 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white rounded-bl-none'
+                  }`}
                 >
                   <p className="text-sm leading-relaxed break-words">{message.content}</p>
                   <p
                     className={`text-xs mt-1 ${isSender
-                        ? 'text-blue-100'
-                        : 'text-slate-600 dark:text-slate-400'
-                      }`}
+                      ? 'text-blue-100'
+                      : 'text-slate-600 dark:text-slate-400'
+                    }`}
                   >
                     {formatMessageTime(message.timestamp)}
                   </p>

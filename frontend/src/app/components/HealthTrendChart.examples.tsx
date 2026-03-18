@@ -84,7 +84,7 @@ export const Example3_MonthlyComparison = ({ patient }: { patient: Patient }) =>
 
       <div className="grid grid-cols-2 gap-4">
         <div className={`p-4 rounded-lg ${hrTrend === 'improving' ? 'bg-green-50 dark:bg-green-900/20' : 'bg-yellow-50 dark:bg-yellow-900/20'
-          }`}>
+        }`}>
           <p className="text-sm text-slate-700 dark:text-slate-300">Heart Rate</p>
           <p className="text-lg font-bold capitalize text-green-600">
             {hrTrend === 'improving' ? '↓ Improving' : hrTrend === 'stable' ? '→ Stable' : '↑ Declining'}
@@ -92,7 +92,7 @@ export const Example3_MonthlyComparison = ({ patient }: { patient: Patient }) =>
         </div>
 
         <div className={`p-4 rounded-lg ${o2Trend === 'improving' ? 'bg-green-50 dark:bg-green-900/20' : 'bg-yellow-50 dark:bg-yellow-900/20'
-          }`}>
+        }`}>
           <p className="text-sm text-slate-700 dark:text-slate-300">SpO2 Level</p>
           <p className="text-lg font-bold capitalize text-green-600">
             {o2Trend === 'improving' ? '↑ Improving' : o2Trend === 'stable' ? '→ Stable' : '↓ Declining'}
@@ -231,7 +231,7 @@ export const Example6_DashboardIntegration = ({ patient }: { patient: Patient })
           <div className="bg-white dark:bg-slate-900 p-4 rounded-lg shadow">
             <p className="text-sm text-slate-600 dark:text-slate-400">Status</p>
             <p className={`text-2xl font-bold ${summary.anomalyCount === 0 ? 'text-green-600' : 'text-yellow-600'
-              }`}>
+            }`}>
               {summary.anomalyCount === 0 ? 'Stable' : `${summary.anomalyCount} Alert${summary.anomalyCount !== 1 ? 's' : ''}`}
             </p>
           </div>
@@ -258,9 +258,9 @@ export const Example7_RealTimeAlerts = ({ patients }: { patients: Patient[] }) =
           <div
             key={patient.id}
             className={`p-4 rounded-lg border-l-4 ${summary.anomalyCount > 0
-                ? 'bg-red-50 dark:bg-red-900/20 border-red-500'
-                : 'bg-green-50 dark:bg-green-900/20 border-green-500'
-              }`}
+              ? 'bg-red-50 dark:bg-red-900/20 border-red-500'
+              : 'bg-green-50 dark:bg-green-900/20 border-green-500'
+            }`}
           >
             <div className="flex items-center justify-between">
               <div>

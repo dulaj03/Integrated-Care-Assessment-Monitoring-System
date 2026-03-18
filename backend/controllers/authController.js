@@ -33,7 +33,6 @@ const adminLogin = async (req, res) => {
       user: { id: admin.id, username: admin.username, email: admin.email, full_name: admin.full_name, role: 'admin' },
     });
   } catch (err) {
-    console.error('Admin login error:', err.message);
     res.status(500).json({ error: 'Server error' });
   }
 };
@@ -52,11 +51,11 @@ const login = async (req, res) => {
     let model;
 
     switch (role) {
-      case 'patient': model = PatientModel; break;
-      case 'doctor': model = DoctorModel; break;
-      case 'nurse': model = NurseModel; break;
-      case 'hospital': model = HospitalModel; break;
-      default: return res.status(400).json({ error: 'Invalid role' });
+    case 'patient': model = PatientModel; break;
+    case 'doctor': model = DoctorModel; break;
+    case 'nurse': model = NurseModel; break;
+    case 'hospital': model = HospitalModel; break;
+    default: return res.status(400).json({ error: 'Invalid role' });
     }
 
     user = await model.findByEmail(email);
@@ -68,7 +67,6 @@ const login = async (req, res) => {
     // For non-patient and non-hospital roles (Doctor/Nurse), check if they are active
     if ((role === 'doctor' || role === 'nurse')) {
       if (user.status?.toUpperCase() !== 'ACTIVE') {
-        console.log(`[Login] Role: ${role}, Email: ${email}, Status: ${user.status} - Access Denied`);
         return res.status(403).json({ error: 'Your account is pending verification or has been rejected. Please contact administrator.' });
       }
     }
@@ -81,7 +79,6 @@ const login = async (req, res) => {
 
     res.json({ message: 'Login successful', token, user: userData });
   } catch (err) {
-    console.error('Login error:', err.message);
     res.status(500).json({ error: 'Server error' });
   }
 };
@@ -101,7 +98,6 @@ const registerPatient = async (req, res) => {
 
     res.status(201).json({ message: 'Registration successful! You can now log in.', user: patient });
   } catch (err) {
-    console.error('Patient registration error:', err.message);
     res.status(500).json({ error: 'Server error during registration' });
   }
 };
@@ -137,7 +133,6 @@ const registerDoctor = async (req, res) => {
 
     res.status(201).json({ message: 'Registration submitted for verification', user: doctor });
   } catch (err) {
-    console.error('Doctor registration error:', err.message);
     res.status(500).json({ error: 'Server error during registration' });
   }
 };
@@ -176,7 +171,6 @@ const registerNurse = async (req, res) => {
 
     res.status(201).json({ message: 'Registration submitted for verification', user: nurse });
   } catch (err) {
-    console.error('Nurse registration error:', err.message);
     res.status(500).json({ error: 'Server error during registration' });
   }
 };
@@ -194,7 +188,6 @@ const registerHospital = async (req, res) => {
 
     res.status(201).json({ message: 'Hospital registered successfully', user: hospital });
   } catch (err) {
-    console.error('Hospital registration error:', err.message);
     res.status(500).json({ error: 'Server error during registration' });
   }
 };
@@ -213,7 +206,6 @@ const getMe = async (req, res) => {
     if (!user) return res.status(404).json({ error: 'User not found' });
     res.json({ user: { ...user, role } });
   } catch (err) {
-    console.error('Get me error:', err.message);
     res.status(500).json({ error: 'Server error' });
   }
 };

@@ -1,9 +1,5 @@
 import { useState } from 'react';
-import {
-  Users, AlertCircle, CheckCircle2, Clock, Heart, Thermometer, Droplet, Activity,
-  Send, ArrowLeft, ClipboardList, MessageSquare, Plus, AlertTriangle, User,
-  History as HistoryIcon, FlaskConical, ChevronRight, Save, Trash2
-} from 'lucide-react';
+import { Users, ClipboardList, FlaskConical, Activity, Send, MessageSquare, ChevronRight, User, Heart, Thermometer, Droplet, Plus, Clock, CheckCircle2, AlertCircle, History as HistoryIcon, Trash2, Save, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'motion/react';
 import { MOCK_PATIENTS } from '../../lib/mockData';
@@ -16,7 +12,6 @@ import {
   getLabStatusColor,
   getPatientNurseReports,
   MOCK_LAB_TESTS,
-  NurseReport,
   LabTest,
   LabTestStatus,
   LAB_STATUS_STEPS,
@@ -58,7 +53,6 @@ export function NursePatientCare() {
 
   // Report Form State
   const [reportStep, setReportStep] = useState(1);
-  const [reportTitle, setReportTitle] = useState('Daily Care Review');
   const [reportTasks, setReportTasks] = useState([
     { title: 'Vitals Monitoring', description: '', completed: false },
     { title: 'Medication Delivery', description: '', completed: false },
@@ -92,10 +86,10 @@ export function NursePatientCare() {
   const labTests = selectedPatientId ? getPatientLabTests(selectedPatientId) : [];
 
   const toggleSymptom = (sym: string) => {
-    setForm(prev => ({
+    setForm((prev: SymptomForm) => ({
       ...prev,
       symptoms: prev.symptoms.includes(sym)
-        ? prev.symptoms.filter(s => s !== sym)
+        ? prev.symptoms.filter((s: string) => s !== sym)
         : [...prev.symptoms, sym],
     }));
   };
@@ -112,14 +106,14 @@ export function NursePatientCare() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'stable': return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300';
-      case 'monitoring': return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300';
-      case 'critical': return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300';
-      default: return 'bg-slate-100 dark:bg-slate-700 text-slate-700';
+    case 'stable': return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300';
+    case 'monitoring': return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300';
+    case 'critical': return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300';
+    default: return 'bg-slate-100 dark:bg-slate-700 text-slate-700';
     }
   };
 
-  const TABS: { key: NurseTab; label: string; icon: any; badge?: number }[] = [
+  const TABS: { key: NurseTab; label: string; icon: React.ElementType; badge?: number }[] = [
     { key: 'patients', label: 'My Patients', icon: Users },
     { key: 'log_symptoms', label: 'Log Symptoms', icon: ClipboardList },
     { key: 'lab_results', label: 'Lab Management', icon: FlaskConical },
@@ -133,7 +127,7 @@ export function NursePatientCare() {
   };
 
   const updateTaskDesc = (index: number, desc: string) => {
-    setReportTasks(prev => prev.map((t, i) => i === index ? { ...t, description: desc } : t));
+    setReportTasks((prev: typeof reportTasks) => prev.map((t: typeof reportTasks[0], i: number) => i === index ? { ...t, description: desc } : t));
   };
 
   const handleSubmitReport = () => {
@@ -143,12 +137,12 @@ export function NursePatientCare() {
       setReportStep(1);
       setReportSummary('');
       setReportRecs('');
-      setReportTasks(prev => prev.map(t => ({ ...t, completed: false, description: '' })));
+      setReportTasks((prev: typeof reportTasks) => prev.map((t: typeof reportTasks[0]) => ({ ...t, completed: false, description: '' })));
     }, 4000);
   };
 
   const LabManagementCard = ({ test }: { test: LabTest }) => {
-    const [status, setStatus] = useState<LabTestStatus>(test.status);
+    const [status, setStatus] = useState<LabTestStatus>(test.status as LabTestStatus);
     const [isUpdating, setIsUpdating] = useState(false);
     const [showResults, setShowResults] = useState(false);
     const [stepNote, setStepNote] = useState('');
@@ -430,7 +424,7 @@ export function NursePatientCare() {
                   className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === tab.key
                     ? 'border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400'
                     : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
-                    }`}>
+                  }`}>
                   <tab.icon className="h-4 w-4" />
                   {tab.label}
                 </button>
@@ -450,20 +444,20 @@ export function NursePatientCare() {
 
                   {/* Vitals Grid */}
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-5">
-                    {[
+                    {( [
                       { key: 'blood_pressure', label: 'Blood Pressure', placeholder: 'e.g. 120/80', icon: Activity },
                       { key: 'heart_rate', label: 'Heart Rate (bpm)', placeholder: 'e.g. 72', icon: Heart },
                       { key: 'temperature', label: 'Temperature (°C)', placeholder: 'e.g. 36.8', icon: Thermometer },
                       { key: 'oxygen_level', label: 'SpO2 (%)', placeholder: 'e.g. 98', icon: Droplet },
                       { key: 'weight', label: 'Weight (kg)', placeholder: 'e.g. 65', icon: User },
                       { key: 'respiratory_rate', label: 'Resp. Rate (/min)', placeholder: 'e.g. 16', icon: Activity },
-                    ].map(field => (
+                    ] as const).map(field => (
                       <div key={field.key}>
                         <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">{field.label}</label>
                         <div className="relative">
                           <field.icon className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
                           <input type="text" placeholder={field.placeholder}
-                            value={(form as any)[field.key]}
+                            value={form[field.key] as string}
                             onChange={e => setForm(prev => ({ ...prev, [field.key]: e.target.value }))}
                             className="w-full pl-9 pr-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
                         </div>
@@ -493,7 +487,7 @@ export function NursePatientCare() {
                           className={`flex-1 py-2 text-sm rounded-lg capitalize border transition-all ${form.mood === m
                             ? 'bg-blue-600 border-blue-600 text-white font-semibold'
                             : 'border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:border-blue-400'
-                            }`}>
+                          }`}>
                           {m === 'great' ? '😊' : m === 'good' ? '🙂' : m === 'okay' ? '😐' : m === 'poor' ? '😟' : '😢'} {m}
                         </button>
                       ))}
@@ -509,7 +503,7 @@ export function NursePatientCare() {
                           className={`px-3 py-1.5 text-xs rounded-full border transition-all ${form.symptoms.includes(sym)
                             ? 'bg-yellow-500 border-yellow-500 text-white font-semibold'
                             : 'border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:border-yellow-400'
-                            }`}>
+                          }`}>
                           {sym}
                         </button>
                       ))}
@@ -527,7 +521,7 @@ export function NursePatientCare() {
                   {/* Flag for Doctor */}
                   <div className="mb-5 flex items-center gap-3 p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
                     <input type="checkbox" id="flag_doc" checked={form.flag_doctor}
-                      onChange={e => setForm(prev => ({ ...prev, flag_doctor: e.target.checked }))}
+                      onChange={e => setForm((prev: SymptomForm) => ({ ...prev, flag_doctor: e.target.checked }))}
                       className="h-4 w-4 text-red-600 rounded" />
                     <label htmlFor="flag_doc" className="text-sm font-medium text-red-800 dark:text-red-300 cursor-pointer">
                       🚨 Flag this log for doctor review (urgent concerns)
@@ -600,7 +594,7 @@ export function NursePatientCare() {
                           order.type === 'medication' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' :
                             order.type === 'scan' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' :
                               'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300'
-                          }`}>
+                        }`}>
                           {order.type.replace('_', ' ').toUpperCase()}
                         </span>
                         <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${order.status === 'active' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400'}`}>
@@ -822,7 +816,7 @@ export function NursePatientCare() {
                               <label className="block text-xs font-bold text-slate-500 uppercase mb-1 px-0.5">Priority</label>
                               <select
                                 value={newTestPriority}
-                                onChange={(e) => setNewTestPriority(e.target.value as any)}
+                                onChange={(e) => setNewTestPriority(e.target.value as 'routine' | 'urgent' | 'stat')}
                                 className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
                               >
                                 <option value="routine">Routine</option>
@@ -834,7 +828,7 @@ export function NursePatientCare() {
                               <label className="block text-xs font-bold text-slate-500 uppercase mb-1 px-0.5">Sample Type</label>
                               <select
                                 value={newTestType}
-                                onChange={(e) => setNewTestType(e.target.value as any)}
+                                onChange={(e) => setNewTestType(e.target.value as 'blood' | 'urine' | 'scan' | 'xray')}
                                 className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
                               >
                                 <option value="blood">Blood</option>
@@ -855,12 +849,12 @@ export function NursePatientCare() {
                                   hospitalId: 'h2', // Defualt to current hospital
                                   orderedByDoctorId: 'hd1',
                                   testName: newTestName,
-                                  testType: newTestType as any,
+                                  testType: newTestType,
                                   status: 'ordered',
                                   orderedDate: new Date().toISOString(),
-                                  priority: newTestPriority as any,
+                                  priority: newTestPriority,
                                   steps: [
-                                    { step: `Test ordered by Nurse`, completedAt: new Date().toISOString() }
+                                    { step: 'Test ordered by Nurse', completedAt: new Date().toISOString() }
                                   ]
                                 };
                                 MOCK_LAB_TESTS.push(newTest);

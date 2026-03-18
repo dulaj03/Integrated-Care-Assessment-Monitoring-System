@@ -1,4 +1,4 @@
-import { Activity, Clock, CheckCircle, AlertCircle, User, MapPin, Plus, Filter, ChevronRight, Play, Pause, Check } from 'lucide-react';
+import { Activity, Clock, CheckCircle, AlertCircle, MapPin, Plus, Play, Pause, Check } from 'lucide-react';
 import { useState } from 'react';
 import { format } from 'date-fns';
 
@@ -101,29 +101,29 @@ export function NurseRounds() {
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'urgent':
-        return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800';
-      case 'high':
-        return 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-orange-800';
-      case 'normal':
-        return 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800';
-      case 'low':
-        return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800';
-      default:
-        return 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300';
+    case 'urgent':
+      return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800';
+    case 'high':
+      return 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-orange-800';
+    case 'normal':
+      return 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800';
+    case 'low':
+      return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800';
+    default:
+      return 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300';
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'completed':
-        return <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />;
-      case 'in-progress':
-        return <Play className="h-5 w-5 text-blue-600 dark:text-blue-400" />;
-      case 'pending':
-        return <Clock className="h-5 w-5 text-orange-600 dark:text-orange-400" />;
-      default:
-        return <AlertCircle className="h-5 w-5 text-slate-400" />;
+    case 'completed':
+      return <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />;
+    case 'in-progress':
+      return <Play className="h-5 w-5 text-blue-600 dark:text-blue-400" />;
+    case 'pending':
+      return <Clock className="h-5 w-5 text-orange-600 dark:text-orange-400" />;
+    default:
+      return <AlertCircle className="h-5 w-5 text-slate-400" />;
     }
   };
 
@@ -141,9 +141,9 @@ export function NurseRounds() {
 
   const TaskCard = ({ task }: { task: RoundTask }) => (
     <div className={`rounded-lg border p-4 ${task.status === 'completed'
-        ? 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 opacity-75'
-        : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800'
-      }`}>
+      ? 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 opacity-75'
+      : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800'
+    }`}>
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
@@ -291,36 +291,36 @@ export function NurseRounds() {
         <button
           onClick={() => setFilter('all')}
           className={`px-4 py-2 rounded-lg font-medium transition-colors ${filter === 'all'
-              ? 'bg-blue-600 dark:bg-blue-700 text-white'
-              : 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100 hover:bg-slate-300 dark:hover:bg-slate-600'
-            }`}
+            ? 'bg-blue-600 dark:bg-blue-700 text-white'
+            : 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100 hover:bg-slate-300 dark:hover:bg-slate-600'
+          }`}
         >
           All Tasks
         </button>
         <button
           onClick={() => setFilter('pending')}
           className={`px-4 py-2 rounded-lg font-medium transition-colors ${filter === 'pending'
-              ? 'bg-orange-600 dark:bg-orange-700 text-white'
-              : 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100 hover:bg-slate-300 dark:hover:bg-slate-600'
-            }`}
+            ? 'bg-orange-600 dark:bg-orange-700 text-white'
+            : 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100 hover:bg-slate-300 dark:hover:bg-slate-600'
+          }`}
         >
           Pending
         </button>
         <button
           onClick={() => setFilter('in-progress')}
           className={`px-4 py-2 rounded-lg font-medium transition-colors ${filter === 'in-progress'
-              ? 'bg-blue-600 dark:bg-blue-700 text-white'
-              : 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100 hover:bg-slate-300 dark:hover:bg-slate-600'
-            }`}
+            ? 'bg-blue-600 dark:bg-blue-700 text-white'
+            : 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100 hover:bg-slate-300 dark:hover:bg-slate-600'
+          }`}
         >
           In Progress
         </button>
         <button
           onClick={() => setFilter('completed')}
           className={`px-4 py-2 rounded-lg font-medium transition-colors ${filter === 'completed'
-              ? 'bg-green-600 dark:bg-green-700 text-white'
-              : 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100 hover:bg-slate-300 dark:hover:bg-slate-600'
-            }`}
+            ? 'bg-green-600 dark:bg-green-700 text-white'
+            : 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100 hover:bg-slate-300 dark:hover:bg-slate-600'
+          }`}
         >
           Completed
         </button>

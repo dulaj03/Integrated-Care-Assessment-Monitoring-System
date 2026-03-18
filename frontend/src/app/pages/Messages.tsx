@@ -43,9 +43,9 @@ export function Messages({ userRole, userId }: MessagesPageProps) {
                 className={`
                   w-full p-3 rounded-lg text-left transition-all duration-200
                   ${selectedConversation.id === conv.id
-                    ? 'bg-blue-100 dark:bg-blue-900/30 shadow-md'
-                    : 'hover:bg-slate-50 dark:hover:bg-slate-800'
-                  }
+                ? 'bg-blue-100 dark:bg-blue-900/30 shadow-md'
+                : 'hover:bg-slate-50 dark:hover:bg-slate-800'
+              }
                 `}
               >
                 <div className="flex items-start gap-3">

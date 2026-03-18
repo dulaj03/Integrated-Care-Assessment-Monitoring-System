@@ -1,8 +1,8 @@
-import { Link } from "react-router";
-import { ArrowLeft, ShieldCheck, Lock, Eye, FileSignature, Globe2 } from "lucide-react";
-import { Navbar } from "../components/Navbar";
+import { Link } from 'react-router';
+import { ArrowLeft, ShieldCheck, Lock, Eye, FileSignature, Globe2 } from 'lucide-react';
+import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/footer';
-import { motion } from "motion/react";
+import { motion } from 'motion/react';
 
 export function PrivacyPolicy() {
   return (

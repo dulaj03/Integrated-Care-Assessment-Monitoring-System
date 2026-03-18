@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FlaskConical, CheckCircle2, Clock, AlertTriangle, ChevronDown, ChevronUp, Upload, Plus, Send, Loader2 } from 'lucide-react';
+import { FlaskConical, CheckCircle2, ChevronDown, ChevronUp, Upload, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'motion/react';
 import {
@@ -103,9 +103,9 @@ export function LabManagement() {
         {['all', 'ordered', 'sample_scheduled', 'sample_collected', 'processing', 'results_ready'].map(s => (
           <button key={s} onClick={() => setFilterStatus(s)}
             className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${filterStatus === s
-                ? 'bg-blue-600 text-white'
-                : 'bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:border-blue-400'
-              }`}>
+              ? 'bg-blue-600 text-white'
+              : 'bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:border-blue-400'
+            }`}>
             {s === 'all' ? 'All' : getLabStatusLabel(s as LabTestStatus)}
           </button>
         ))}
@@ -128,9 +128,9 @@ export function LabManagement() {
                     <div className="flex items-center gap-2 mb-1">
                       <h3 className="font-bold text-slate-900 dark:text-white">{test.testName}</h3>
                       <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${test.priority === 'stat' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' :
-                          test.priority === 'urgent' ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300' :
-                            'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
-                        }`}>
+                        test.priority === 'urgent' ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300' :
+                          'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
+                      }`}>
                         {test.priority === 'stat' ? '🔴 STAT' : test.priority === 'urgent' ? '🟠 Urgent' : 'Routine'}
                       </span>
                     </div>
@@ -139,7 +139,7 @@ export function LabManagement() {
                       · Ordered: {format(new Date(test.orderedDate), 'MMM d, yyyy')}
                     </p>
                   </div>
-                  <span className={`text-xs px-3 py-1 rounded-full font-semibold ${getLabStatusColor(test.status)}`}>
+                  <span className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-tight ${getLabStatusColor(test.status)}`}>
                     {getLabStatusLabel(test.status)}
                   </span>
                 </div>

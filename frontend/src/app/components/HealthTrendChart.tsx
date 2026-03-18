@@ -125,9 +125,9 @@ export function HealthTrendChart({ logs, title = 'Health Trends', height = 320 }
           <button
             onClick={() => setViewPeriod('weekly')}
             className={`px-4 py-2 rounded font-medium transition-all duration-200 text-sm ${viewPeriod === 'weekly'
-                ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-sm'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-              }`}
+              ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-sm'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+            }`}
           >
             <Calendar className="inline h-4 w-4 mr-1" />
             Weekly
@@ -135,9 +135,9 @@ export function HealthTrendChart({ logs, title = 'Health Trends', height = 320 }
           <button
             onClick={() => setViewPeriod('monthly')}
             className={`px-4 py-2 rounded font-medium transition-all duration-200 text-sm ${viewPeriod === 'monthly'
-                ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-sm'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-              }`}
+              ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-sm'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+            }`}
           >
             <Calendar className="inline h-4 w-4 mr-1" />
             Monthly

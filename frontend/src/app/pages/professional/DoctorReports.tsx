@@ -108,29 +108,29 @@ export function DoctorReports() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed':
-        return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300';
-      case 'reviewed':
-        return 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300';
-      case 'pending':
-        return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300';
-      default:
-        return 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300';
+    case 'completed':
+      return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300';
+    case 'reviewed':
+      return 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300';
+    case 'pending':
+      return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300';
+    default:
+      return 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300';
     }
   };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'urgent':
-        return 'border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20';
-      case 'high':
-        return 'border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-900/20';
-      case 'normal':
-        return 'border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20';
-      case 'low':
-        return 'border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20';
-      default:
-        return 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800';
+    case 'urgent':
+      return 'border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20';
+    case 'high':
+      return 'border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-900/20';
+    case 'normal':
+      return 'border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20';
+    case 'low':
+      return 'border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20';
+    default:
+      return 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800';
     }
   };
 

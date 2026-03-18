@@ -12,7 +12,7 @@ import { SupportedLanguage, LANGUAGES } from '../types/i18n.types';
  * // Returns: { "common.appName": "I-CAMS" }
  */
 export const flattenKeys = (
-  obj: Record<string, any>,
+  obj: Record<string, unknown>,
   prefix = ''
 ): Record<string, string> => {
   const result: Record<string, string> = {};
@@ -23,7 +23,7 @@ export const flattenKeys = (
     if (typeof value === 'string') {
       result[newKey] = value;
     } else if (typeof value === 'object' && value !== null) {
-      Object.assign(result, flattenKeys(value, newKey));
+      Object.assign(result, flattenKeys(value as Record<string, unknown>, newKey));
     }
   });
 
@@ -35,7 +35,7 @@ export const flattenKeys = (
  * Useful for identifying missing translations
  */
 export const validateTranslationKeys = (
-  translations: Record<SupportedLanguage, any>
+  translations: Record<SupportedLanguage, unknown>
 ): { missing: string[]; extra: string[]; valid: boolean } => {
   const allLanguages = Object.keys(translations) as SupportedLanguage[];
 
@@ -44,13 +44,13 @@ export const validateTranslationKeys = (
   }
 
   const referenceKeys = new Set(
-    Object.keys(flattenKeys(translations[allLanguages[0]]))
+    Object.keys(flattenKeys(translations[allLanguages[0]] as Record<string, unknown>))
   );
   const issues = { missing: new Set<string>(), extra: new Set<string>() };
 
   // Check each language against the reference
   allLanguages.slice(1).forEach((lang) => {
-    const langKeys = new Set(Object.keys(flattenKeys(translations[lang])));
+    const langKeys = new Set(Object.keys(flattenKeys(translations[lang] as Record<string, unknown>)));
 
     // Find missing keys
     referenceKeys.forEach((key) => {
@@ -137,14 +137,14 @@ export const formatLanguageName = (
   const info = LANGUAGES[langCode];
 
   switch (format) {
-    case 'native':
-      return info.nativeName;
-    case 'english':
-      return info.englishName;
-    case 'both':
-      return `${info.nativeName} (${info.englishName})`;
-    default:
-      return info.nativeName;
+  case 'native':
+    return info.nativeName;
+  case 'english':
+    return info.englishName;
+  case 'both':
+    return `${info.nativeName} (${info.englishName})`;
+  default:
+    return info.nativeName;
   }
 };
 
@@ -204,11 +204,11 @@ export const validateAndChangeLang = (
 /**
  * Export translations statistics
  */
-export const getTranslationStats = (translations: Record<SupportedLanguage, any>) => {
-  const stats: Record<SupportedLanguage, number> = {} as any;
+export const getTranslationStats = (translations: Record<SupportedLanguage, unknown>) => {
+  const stats = {} as Record<SupportedLanguage, number>;
 
   Object.entries(translations).forEach(([lang, trans]) => {
-    const flattened = flattenKeys(trans);
+    const flattened = flattenKeys(trans as Record<string, unknown>);
     stats[lang as SupportedLanguage] = Object.keys(flattened).length;
   });
 

@@ -1,28 +1,28 @@
-import { useState } from "react";
-import { Bell, Clock } from "lucide-react";
-import { Badge } from "../components/ui/badge";
-import { Button } from "../components/ui/button";
+import { useState } from 'react';
+import { Bell, Clock } from 'lucide-react';
+import { Badge } from '../components/ui/badge';
+import { Button } from '../components/ui/button';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "../components/ui/popover";
-import { ScrollArea } from "../components/ui/scroll-area";
-import { Separator } from "../components/ui/separator";
+} from '../components/ui/popover';
+import { ScrollArea } from '../components/ui/scroll-area';
+import { Separator } from '../components/ui/separator';
 import {
   mockNotifications,
   NotificationStatus,
   Notification,
-} from "../lib/mockNotifications";
+} from '../lib/mockNotifications';
 
 const getStatusBadgeColor = (status: NotificationStatus) => {
   switch (status) {
-    case "High":
-      return "bg-red-100 text-red-800 border-red-300";
-    case "Moderate":
-      return "bg-yellow-100 text-yellow-800 border-yellow-300";
-    case "Normal":
-      return "bg-green-100 text-green-800 border-green-300";
+  case 'High':
+    return 'bg-red-100 text-red-800 border-red-300';
+  case 'Moderate':
+    return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+  case 'Normal':
+    return 'bg-green-100 text-green-800 border-green-300';
   }
 };
 
@@ -33,14 +33,14 @@ const formatTimestamp = (date: Date): string => {
   const diffHours = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
 
-  if (diffMins < 1) return "Just now";
+  if (diffMins < 1) return 'Just now';
   if (diffMins < 60) return `${diffMins}m ago`;
   if (diffHours < 24) return `${diffHours}h ago`;
   if (diffDays < 7) return `${diffDays}d ago`;
 
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
   });
 };
 
@@ -77,7 +77,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
           <Bell className="h-5 w-5 text-gray-700 dark:text-gray-300" />
           {unreadCount > 0 && (
             <span className="absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
-              {unreadCount > 9 ? "9+" : unreadCount}
+              {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           )}
         </Button>
@@ -104,8 +104,8 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
                 <div key={notification.id}>
                   <button
                     onClick={() => handleNotificationClick(notification)}
-                    className={`w-full px-4 py-3 text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-800 ${!notification.isRead ? "bg-blue-50 dark:bg-blue-900/20" : ""
-                      }`}
+                    className={`w-full px-4 py-3 text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-800 ${!notification.isRead ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+                    }`}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1">

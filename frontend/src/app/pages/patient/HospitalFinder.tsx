@@ -1,13 +1,21 @@
 import { useState, useEffect } from 'react';
-import { Search, MapPin, Phone, Star, Building2, Stethoscope, ChevronRight, Clock, DollarSign, Calendar, CheckCircle, X } from 'lucide-react';
+import { Search, MapPin, Phone, Star, Building2, Stethoscope, ChevronRight, Clock, Calendar, CheckCircle, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   MOCK_HOSPITALS,
-  MOCK_HOSPITAL_DOCTORS,
   Hospital,
   HospitalDoctor,
   getDoctorsByHospital,
 } from '../../lib/hospitalData';
+
+interface ExtendedHospital extends Hospital {
+  specialties?: string[];
+}
+
+interface ExtendedDoctor extends HospitalDoctor {
+  full_name?: string;
+  years_of_experience?: number;
+}
 
 const TIME_SLOTS = ['08:00 AM', '08:30 AM', '09:00 AM', '09:30 AM', '10:00 AM', '10:30 AM', '11:00 AM', '02:00 PM', '02:30 PM', '03:00 PM', '03:30 PM', '04:00 PM'];
 
@@ -19,15 +27,14 @@ export function HospitalFinder() {
   const [typeFilter, setTypeFilter] = useState<'all' | 'government' | 'private'>('all');
   const [specFilter, setSpecFilter] = useState('all');
   const [step, setStep] = useState<BookingStep>('browse');
-  const [selectedHospital, setSelectedHospital] = useState<any | null>(null);
-  const [selectedDoctor, setSelectedDoctor] = useState<any | null>(null);
+  const [selectedHospital, setSelectedHospital] = useState<ExtendedHospital | null>(null);
+  const [selectedDoctor, setSelectedDoctor] = useState<ExtendedDoctor | null>(null);
   const [selectedSlot, setSelectedSlot] = useState('');
   const [selectedDate, setSelectedDate] = useState('');
   const [reason, setReason] = useState('');
 
-  const [dbHospitals, setDbHospitals] = useState<any[]>([]);
-  const [dbDoctors, setDbDoctors] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [dbHospitals, setDbHospitals] = useState<ExtendedHospital[]>([]);
+  const [dbDoctors, setDbDoctors] = useState<ExtendedDoctor[]>([]);
 
   useEffect(() => {
     fetchHospitals();
@@ -42,8 +49,6 @@ export function HospitalFinder() {
       }
     } catch (error) {
       console.error('Error fetching hospitals:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -59,7 +64,7 @@ export function HospitalFinder() {
     }
   };
 
-  const hospitalsToDisplay = dbHospitals.length > 0 ? dbHospitals : MOCK_HOSPITALS;
+  const hospitalsToDisplay: ExtendedHospital[] = dbHospitals.length > 0 ? dbHospitals : (MOCK_HOSPITALS as ExtendedHospital[]);
 
   const allSpecs = Array.from(new Set(hospitalsToDisplay.flatMap(h => h.specialties || h.specializations || []))).sort();
   const allCities = Array.from(new Set(hospitalsToDisplay.map(h => h.city || h.address.split(',').pop()?.trim()))).sort();
@@ -81,7 +86,7 @@ export function HospitalFinder() {
     return matchSearch && matchCity && matchType && matchSpec;
   });
 
-  const handleBook = (hospital: any) => {
+  const handleBook = (hospital: ExtendedHospital) => {
     setSelectedHospital(hospital);
     setStep('select_doctor');
     fetchDoctorsForHospital(hospital.id);
@@ -194,7 +199,7 @@ export function HospitalFinder() {
                   <option value="all">All Cities</option>
                   {allCities.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
-                <select value={typeFilter} onChange={e => setTypeFilter(e.target.value as any)}
+                <select value={typeFilter} onChange={e => setTypeFilter(e.target.value as 'all' | 'government' | 'private')}
                   className="px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                   <option value="all">All Types</option>
                   <option value="government">Government</option>
@@ -223,7 +228,7 @@ export function HospitalFinder() {
                         <span className={`inline-block mt-1 text-xs font-semibold px-2 py-0.5 rounded-full ${hospital.type === 'private'
                           ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'
                           : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                          }`}>
+                        }`}>
                           {hospital.type === 'private' ? 'Private' : 'Government'}
                         </span>
                       </div>
@@ -283,7 +288,7 @@ export function HospitalFinder() {
             </div>
             <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Available Doctors</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {(dbDoctors.length > 0 ? dbDoctors : getDoctorsByHospital(selectedHospital.id)).map((doc: any) => (
+              {(dbDoctors.length > 0 ? dbDoctors : getDoctorsByHospital(selectedHospital.id)).map((doc: ExtendedDoctor) => (
                 <motion.div key={doc.id} whileHover={{ scale: 1.01 }}
                   className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 cursor-pointer hover:border-blue-400 dark:hover:border-blue-500 transition-all"
                   onClick={() => handleSelectDoctor(doc)}>
@@ -363,7 +368,7 @@ export function HospitalFinder() {
                     className={`py-2 px-3 text-sm rounded-lg border transition-all ${selectedSlot === slot
                       ? 'bg-blue-600 text-white border-blue-600 font-medium'
                       : 'border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:border-blue-400 dark:hover:border-blue-500 bg-white dark:bg-slate-700'
-                      }`}>
+                    }`}>
                     {slot}
                   </button>
                 ))}

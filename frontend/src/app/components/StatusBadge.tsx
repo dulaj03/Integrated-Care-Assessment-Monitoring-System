@@ -56,38 +56,38 @@ export const getSeverityLevel = (severity: number): SeverityLevel => {
  */
 const getSeverityColors = (level: SeverityLevel) => {
   switch (level) {
-    case 'stable':
-      return {
-        bg: 'bg-green-100 dark:bg-green-900/30',
-        text: 'text-green-800 dark:text-green-300',
-        border: 'border-green-300 dark:border-green-700',
-        dot: 'bg-green-500',
-        label: 'Stable',
-      };
-    case 'moderate':
-      return {
-        bg: 'bg-yellow-100 dark:bg-yellow-900/30',
-        text: 'text-yellow-800 dark:text-yellow-300',
-        border: 'border-yellow-300 dark:border-yellow-700',
-        dot: 'bg-yellow-500',
-        label: 'Moderate',
-      };
-    case 'critical':
-      return {
-        bg: 'bg-red-100 dark:bg-red-900/30',
-        text: 'text-red-800 dark:text-red-300',
-        border: 'border-red-300 dark:border-red-700',
-        dot: 'bg-red-500',
-        label: 'Critical',
-      };
-    default:
-      return {
-        bg: 'bg-gray-100 dark:bg-gray-800',
-        text: 'text-gray-800 dark:text-gray-300',
-        border: 'border-gray-300 dark:border-gray-600',
-        dot: 'bg-gray-500',
-        label: 'Unknown',
-      };
+  case 'stable':
+    return {
+      bg: 'bg-green-100 dark:bg-green-900/30',
+      text: 'text-green-800 dark:text-green-300',
+      border: 'border-green-300 dark:border-green-700',
+      dot: 'bg-green-500',
+      label: 'Stable',
+    };
+  case 'moderate':
+    return {
+      bg: 'bg-yellow-100 dark:bg-yellow-900/30',
+      text: 'text-yellow-800 dark:text-yellow-300',
+      border: 'border-yellow-300 dark:border-yellow-700',
+      dot: 'bg-yellow-500',
+      label: 'Moderate',
+    };
+  case 'critical':
+    return {
+      bg: 'bg-red-100 dark:bg-red-900/30',
+      text: 'text-red-800 dark:text-red-300',
+      border: 'border-red-300 dark:border-red-700',
+      dot: 'bg-red-500',
+      label: 'Critical',
+    };
+  default:
+    return {
+      bg: 'bg-gray-100 dark:bg-gray-800',
+      text: 'text-gray-800 dark:text-gray-300',
+      border: 'border-gray-300 dark:border-gray-600',
+      dot: 'bg-gray-500',
+      label: 'Unknown',
+    };
   }
 };
 
@@ -96,14 +96,14 @@ const getSeverityColors = (level: SeverityLevel) => {
  */
 const getSeverityIcon = (level: SeverityLevel) => {
   switch (level) {
-    case 'stable':
-      return <CheckCircle className="w-full h-full" />;
-    case 'moderate':
-      return <AlertTriangle className="w-full h-full" />;
-    case 'critical':
-      return <AlertCircle className="w-full h-full" />;
-    default:
-      return null;
+  case 'stable':
+    return <CheckCircle className="w-full h-full" />;
+  case 'moderate':
+    return <AlertTriangle className="w-full h-full" />;
+  case 'critical':
+    return <AlertCircle className="w-full h-full" />;
+  default:
+    return null;
   }
 };
 
@@ -112,26 +112,26 @@ const getSeverityIcon = (level: SeverityLevel) => {
  */
 const getSizeClasses = (size: 'sm' | 'md' | 'lg') => {
   switch (size) {
-    case 'sm':
-      return {
-        container: 'px-2 py-1 text-xs',
-        icon: 'w-3 h-3',
-      };
-    case 'md':
-      return {
-        container: 'px-3 py-1.5 text-sm',
-        icon: 'w-4 h-4',
-      };
-    case 'lg':
-      return {
-        container: 'px-4 py-2 text-base',
-        icon: 'w-5 h-5',
-      };
-    default:
-      return {
-        container: 'px-3 py-1.5 text-sm',
-        icon: 'w-4 h-4',
-      };
+  case 'sm':
+    return {
+      container: 'px-2 py-1 text-xs',
+      icon: 'w-3 h-3',
+    };
+  case 'md':
+    return {
+      container: 'px-3 py-1.5 text-sm',
+      icon: 'w-4 h-4',
+    };
+  case 'lg':
+    return {
+      container: 'px-4 py-2 text-base',
+      icon: 'w-5 h-5',
+    };
+  default:
+    return {
+      container: 'px-3 py-1.5 text-sm',
+      icon: 'w-4 h-4',
+    };
   }
 };
 

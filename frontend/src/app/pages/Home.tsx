@@ -20,9 +20,9 @@ interface CounterProps {
   icon?: LucideIcon;
 }
 
-function Counter({ value, label, suffix = "", icon: Icon }: CounterProps) {
+function Counter({ value, label, suffix = '', icon: Icon }: CounterProps) {
   const ref = useRef<HTMLSpanElement>(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const isInView = useInView(ref, { once: true, margin: '-100px' });
 
   const springValue = useSpring(0, {
     mass: 1,
@@ -116,7 +116,7 @@ export function Landing() {
             <motion.div
               initial={{ opacity: 0, x: 30 }}
               whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.5, ease: "easeOut" }}
+              transition={{ duration: 0.8, delay: 0.5, ease: 'easeOut' }}
               viewport={{ once: true }}
               className="grid grid-cols-3 lg:grid-cols-1 gap-4 md:gap-6 w-full max-w-4xl lg:max-w-[280px]"
             >

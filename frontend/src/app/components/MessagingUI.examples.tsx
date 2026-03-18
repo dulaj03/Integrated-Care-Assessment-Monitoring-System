@@ -132,9 +132,9 @@ export const Example5_ConversationList = () => {
                   key={conv.id}
                   onClick={() => setSelectedConvId(conv.id)}
                   className={`w-full text-left p-4 border-b border-slate-200 dark:border-slate-800 transition-colors ${isSelected
-                      ? 'bg-blue-50 dark:bg-blue-900/20 border-l-4 border-l-blue-500'
-                      : 'hover:bg-slate-50 dark:hover:bg-slate-800'
-                    }`}
+                    ? 'bg-blue-50 dark:bg-blue-900/20 border-l-4 border-l-blue-500'
+                    : 'hover:bg-slate-50 dark:hover:bg-slate-800'
+                  }`}
                 >
                   <div className="flex items-center justify-between mb-1">
                     <span className="font-medium text-slate-900 dark:text-white">{otherName}</span>

@@ -1,11 +1,10 @@
 import { useState } from 'react';
-import { FlaskConical, Clock, CheckCircle2, AlertTriangle, ChevronDown, ChevronUp, TrendingUp, TrendingDown, Minus, Microscope, Scan, Zap, Droplet, FileText } from 'lucide-react';
+import { FlaskConical, Clock, CheckCircle2, AlertTriangle, ChevronDown, ChevronUp, TrendingUp, TrendingDown, Minus, Microscope, Scan, Zap, Droplet } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { format } from 'date-fns';
 import {
   MOCK_LAB_TESTS,
   LabTest,
-  LabTestStatus,
   LAB_STATUS_STEPS,
   getLabStatusLabel,
   getLabStatusColor,
@@ -13,7 +12,7 @@ import {
   getDoctorById,
 } from '../../lib/hospitalData';
 
-const TEST_TYPE_ICONS: Record<string, any> = {
+const TEST_TYPE_ICONS: Record<string, React.ElementType> = {
   blood: Droplet,
   urine: FlaskConical,
   scan: Scan,
@@ -30,7 +29,7 @@ const FLAG_COLORS: Record<string, string> = {
   critical: 'text-red-700 dark:text-red-300 font-bold',
 };
 
-const FLAG_ICONS: Record<string, any> = {
+const FLAG_ICONS: Record<string, React.ElementType> = {
   normal: Minus,
   high: TrendingUp,
   low: TrendingDown,
@@ -71,9 +70,9 @@ function LabTestCard({ test }: { test: LabTest }) {
               {getLabStatusLabel(test.status)}
             </span>
             <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${test.priority === 'stat' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' :
-                test.priority === 'urgent' ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300' :
-                  'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
-              }`}>
+              test.priority === 'urgent' ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300' :
+                'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
+            }`}>
               {test.priority === 'stat' ? '🔴 STAT' : test.priority === 'urgent' ? '🟠 Urgent' : 'Routine'}
             </span>
           </div>
@@ -85,9 +84,9 @@ function LabTestCard({ test }: { test: LabTest }) {
             {LAB_STATUS_STEPS.map((s, i) => (
               <div key={s} className="flex flex-col items-center flex-1">
                 <div className={`h-2.5 w-2.5 rounded-full border-2 transition-all ${i <= currentStepIdx
-                    ? 'bg-blue-600 border-blue-600 dark:bg-blue-400 dark:border-blue-400'
-                    : 'bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-600'
-                  }`} />
+                  ? 'bg-blue-600 border-blue-600 dark:bg-blue-400 dark:border-blue-400'
+                  : 'bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-600'
+                }`} />
                 {i < LAB_STATUS_STEPS.length - 1 && (
                   <div className="absolute" />
                 )}
@@ -236,9 +235,9 @@ export function LabResults() {
         ].map(opt => (
           <button key={opt.value} onClick={() => setFilterStatus(opt.value)}
             className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${filterStatus === opt.value
-                ? 'bg-blue-600 text-white'
-                : 'bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:border-blue-400'
-              }`}>
+              ? 'bg-blue-600 text-white'
+              : 'bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:border-blue-400'
+            }`}>
             {opt.label}
           </button>
         ))}

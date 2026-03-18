@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import { Activity, Mail, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 
 export function LoginForm() {
   const navigate = useNavigate();
@@ -73,8 +73,9 @@ export function LoginForm() {
       } else if (role === 'hospital') {
         navigate('/hospital/dashboard');
       }
-    } catch (err: any) {
-      setError(err.message || 'An error occurred. Please try again.');
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'An error occurred. Please try again.';
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }

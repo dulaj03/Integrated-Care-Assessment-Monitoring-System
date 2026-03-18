@@ -70,16 +70,16 @@ export const Example3_PatientList = ({ patients }: { patients: Patient[] }) => {
   // Map patient status to severity number
   const getPatientSeverity = (status: Patient['status']) => {
     switch (status) {
-      case 'recovered':
-        return 0;
-      case 'stable':
-        return 2;
-      case 'monitoring':
-        return 5;
-      case 'critical':
-        return 9;
-      default:
-        return 5;
+    case 'recovered':
+      return 0;
+    case 'stable':
+      return 2;
+    case 'monitoring':
+      return 5;
+    case 'critical':
+      return 9;
+    default:
+      return 5;
     }
   };
 
@@ -326,9 +326,9 @@ export const Example9_Interactive = () => {
             key={value}
             onClick={() => setSelectedSeverity(value)}
             className={`p-2 rounded-lg border transition-colors ${selectedSeverity === value
-                ? 'bg-blue-600 text-white border-blue-600'
-                : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 hover:border-blue-600'
-              }`}
+              ? 'bg-blue-600 text-white border-blue-600'
+              : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 hover:border-blue-600'
+            }`}
           >
             {value}
           </button>

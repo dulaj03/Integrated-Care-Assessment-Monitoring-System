@@ -36,20 +36,32 @@ export const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to fetch users');
 
+      interface UserApiResponse {
+        id: string;
+        full_name?: string;
+        name?: string;
+        email: string;
+        created_at: string;
+        status: UserStatus;
+        [key: string]: unknown;
+      }
+
       // Combine and map roles
       const allUsers: AdminUser[] = [
-        ...data.doctors.map((u: any) => ({ ...u, name: u.full_name, role: 'DOCTOR', createdAt: u.created_at, uniqueId: `doctor-${u.id}` })),
-        ...data.nurses.map((u: any) => ({ ...u, name: u.full_name, role: 'NURSE', createdAt: u.created_at, uniqueId: `nurse-${u.id}` })),
-        ...data.patients.map((u: any) => ({ ...u, name: u.full_name, role: 'PATIENT', createdAt: u.created_at, uniqueId: `patient-${u.id}` })),
-        ...data.hospitals.map((u: any) => ({ ...u, role: 'HOSPITAL', createdAt: u.created_at, uniqueId: `hospital-${u.id}` })),
+        ...data.doctors.map((u: UserApiResponse) => ({ ...u, name: u.full_name || '', role: 'DOCTOR' as const, createdAt: u.created_at, uniqueId: `doctor-${u.id}`, status: u.status })),
+        ...data.nurses.map((u: UserApiResponse) => ({ ...u, name: u.full_name || '', role: 'NURSE' as const, createdAt: u.created_at, uniqueId: `nurse-${u.id}`, status: u.status })),
+        ...data.patients.map((u: UserApiResponse) => ({ ...u, name: u.full_name || '', role: 'PATIENT' as const, createdAt: u.created_at, uniqueId: `patient-${u.id}`, status: u.status })),
+        ...data.hospitals.map((u: UserApiResponse) => ({ ...u, name: u.name || '', role: 'HOSPITAL' as const, createdAt: u.created_at, uniqueId: `hospital-${u.id}`, status: u.status })),
       ].map(u => ({
         ...u,
-        createdAt: new Date(u.createdAt).toLocaleDateString()
-      }));
+        createdAt: new Date(String(u.createdAt)).toLocaleDateString()
+      })) as AdminUser[];
 
       setUsers(allUsers);
-    } catch (err: any) {
-      toast.error(err.message);
+    } catch (err) {
+      if (err instanceof Error) {
+        toast.error(err.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -76,8 +88,10 @@ export const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
 
       toast.success(data.message);
       fetchUsers(); // Refresh list
-    } catch (err: any) {
-      toast.error(err.message);
+    } catch (err) {
+      if (err instanceof Error) {
+        toast.error(err.message);
+      }
     }
   };
 
@@ -106,9 +120,11 @@ export const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
 
       toast.success('User deactivated successfully');
       fetchUsers();
-    } catch (err: any) {
-      console.error('[Deactivate Error]', err);
-      toast.error(err.message);
+    } catch (err) {
+      if (err instanceof Error) {
+        console.error('[Deactivate Error]', err);
+        toast.error(err.message);
+      }
     }
   };
 
@@ -135,9 +151,11 @@ export const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
 
       toast.success('User deleted successfully');
       fetchUsers();
-    } catch (err: any) {
-      console.error('[Delete Error]', err);
-      toast.error(err.message);
+    } catch (err) {
+      if (err instanceof Error) {
+        console.error('[Delete Error]', err);
+        toast.error(err.message);
+      }
     }
   };
 

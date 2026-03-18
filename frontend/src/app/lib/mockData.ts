@@ -164,7 +164,7 @@ export const MOCK_PATIENTS: Patient[] = [
           vitals: { ...log.vitals, oxygenLevel: 88 + i, heartRate: 110 - i },
           symptoms: ['Shortness of breath', 'Chest tightness'],
           mood: 'bad'
-        }
+        };
       }
       return log;
     }),

@@ -326,7 +326,7 @@ export const MOCK_HOSPITAL_APPOINTMENTS: HospitalAppointment[] = [
 
 // ─── Lab Tests ────────────────────────────────────────────────────────────────
 
-export let MOCK_LAB_TESTS: LabTest[] = [
+export const MOCK_LAB_TESTS: LabTest[] = [
   {
     id: 'lt1',
     patientId: 'p1',

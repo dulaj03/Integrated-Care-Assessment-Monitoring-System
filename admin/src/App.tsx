@@ -4,11 +4,13 @@ import { LoginPage } from './pages/LoginPage';
 import { Toaster } from 'sonner';
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(() => {
+    const auth = localStorage.getItem('admin_auth');
+    return auth === 'true';
+  });
 
   useEffect(() => {
-    const auth = localStorage.getItem('admin_auth');
-    setIsAuthenticated(auth === 'true');
+    // Initial check is now in useState initializer
   }, []);
 
   const handleLogout = () => {

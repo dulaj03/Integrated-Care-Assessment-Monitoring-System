@@ -5,9 +5,9 @@
  * unread count badge, and rich notification details.
  */
 
-import { NotificationBell } from "./NotificationBell";
-import { mockNotifications, Notification } from "../lib/mockNotifications";
-import { useState } from "react";
+import { NotificationBell } from './NotificationBell';
+import { mockNotifications, Notification } from '../lib/mockNotifications';
+import { useState } from 'react';
 
 /**
  * EXAMPLE 1: Basic Usage (with mock data)
@@ -38,7 +38,7 @@ export const Example2_WithCallbacks = () => {
   };
 
   const handleNotificationClick = (notification: Notification) => {
-    console.log("Notification clicked:", notification);
+    console.log('Notification clicked:', notification);
     // Navigate to detail view or perform action
   };
 
@@ -96,10 +96,10 @@ export const Example4_DynamicNotifications = () => {
   const addNotification = () => {
     const newNotification: Notification = {
       id: String(Date.now()),
-      patientName: "New Patient",
-      message: "New alert received",
+      patientName: 'New Patient',
+      message: 'New alert received',
       timestamp: new Date(),
-      status: "High",
+      status: 'High',
       isRead: false,
     };
 

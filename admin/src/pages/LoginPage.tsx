@@ -43,7 +43,7 @@ export const LoginPage = ({ onLogin }: LoginPageProps) => {
       onLogin();
       toast.success(`Welcome back, ${data.user.full_name}!`);
 
-    } catch (err) {
+    } catch {
       toast.error('Cannot connect to server. Is the backend running?');
     } finally {
       setIsLoading(false);

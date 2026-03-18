@@ -38,7 +38,7 @@ export function LanguageSwitcher() {
           className={`px-4 sm:px-6 py-2 sm:py-3 rounded-md font-medium text-sm sm:text-base transition-all duration-200 ${i18n.language === lang.code
             ? 'bg-blue-600 dark:bg-blue-700 text-white shadow-lg dark:shadow-lg dark:shadow-blue-900/30'
             : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-900/50 border border-blue-300 dark:border-blue-700'
-            }`}
+          }`}
           aria-label={`Switch to ${lang.nativeLabel}`}
           aria-current={i18n.language === lang.code ? 'true' : 'false'}
         >

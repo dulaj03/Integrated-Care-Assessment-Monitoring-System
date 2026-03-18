@@ -54,7 +54,7 @@ export function AdvancedLanguageSwitcher({
             className={`px-2 py-1 text-sm rounded font-medium transition-colors ${i18n.language === lang.code
               ? 'bg-blue-600 text-white'
               : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600'
-              }`}
+            }`}
           >
             {lang.label.substring(0, 2).toUpperCase()}
           </button>
@@ -95,7 +95,7 @@ export function AdvancedLanguageSwitcher({
                 className={`w-full text-left px-4 py-3 transition-colors first:rounded-t-md last:rounded-b-md ${i18n.language === lang.code
                   ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-semibold'
                   : 'text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700'
-                  }`}
+                }`}
                 whileHover={{ paddingLeft: '1.25rem' }}
               >
                 <span className="flex items-center justify-between">

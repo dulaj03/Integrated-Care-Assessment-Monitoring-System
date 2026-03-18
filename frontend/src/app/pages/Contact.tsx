@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { Link } from 'react-router';
 import {
   ArrowLeft,
   Mail,
@@ -10,11 +10,11 @@ import {
   Clock,
   ExternalLink,
   Send
-} from "lucide-react";
-import { Navbar } from "../components/Navbar";
+} from 'lucide-react';
+import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/footer';
-import { motion } from "motion/react";
-import { useTranslation } from "react-i18next";
+import { motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 
 export function Contact() {
   const { t } = useTranslation();

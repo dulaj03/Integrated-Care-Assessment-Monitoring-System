@@ -3,11 +3,8 @@ import {
   LayoutDashboard,
   User,
   FileText,
-  Bell,
-  Settings,
   LogOut,
   Menu,
-  X,
   Activity,
   Calendar,
   Users,
@@ -15,7 +12,6 @@ import {
   Building2,
   FlaskConical,
   ClipboardList,
-  Stethoscope,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { clsx } from 'clsx';
@@ -43,7 +39,7 @@ export function DashboardLayout({ role, userName }: DashboardLayoutProps) {
     if (savedNotifications) {
       try {
         const parsed = JSON.parse(savedNotifications);
-        const loaded = parsed.map((n: any) => ({
+        const loaded = parsed.map((n: Notification) => ({
           ...n,
           timestamp: new Date(n.timestamp)
         }));
@@ -132,7 +128,6 @@ export function DashboardLayout({ role, userName }: DashboardLayoutProps) {
       : role === 'nurse' ? nurseLinks
         : hospitalLinks;
 
-  const userId = sessionStorage.getItem('userId') || 'default-id';
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex">
@@ -146,8 +141,8 @@ export function DashboardLayout({ role, userName }: DashboardLayoutProps) {
 
       {/* Sidebar */}
       <div className={clsx(
-        "fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transform transition-transform duration-300 ease-in-out md:translate-x-0 md:sticky md:top-0 md:h-screen md:inset-auto",
-        sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        'fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transform transition-transform duration-300 ease-in-out md:translate-x-0 md:sticky md:top-0 md:h-screen md:inset-auto',
+        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       )}>
         <div className="flex items-center justify-center h-16 border-b border-slate-200 dark:border-slate-800">
           <Link to="/" className="flex items-center gap-2 px-4">

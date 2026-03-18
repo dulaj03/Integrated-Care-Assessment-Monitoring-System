@@ -1,12 +1,12 @@
-import { Link } from "react-router";
+import { Link } from 'react-router';
 import {
   ArrowLeft, Activity, ShieldCheck, HeartPulse, Building2, FlaskConical,
   Users, Stethoscope, Heart, Clipboard, CheckCircle2, Zap, Globe, MessageSquare, ArrowRight,
-} from "lucide-react";
-import { Navbar } from "../components/Navbar";
+} from 'lucide-react';
+import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/footer';
-import { motion } from "motion/react";
-import { useTranslation } from "react-i18next";
+import { motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 
 export function About() {
   const { t } = useTranslation();

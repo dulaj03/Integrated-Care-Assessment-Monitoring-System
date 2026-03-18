@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { useParams } from 'react-router';
 import {
-  User, Activity, FlaskConical, Pill, ClipboardList, MessageSquare, ArrowLeft,
-  TrendingUp, TrendingDown, Minus, AlertTriangle, CheckCircle2, Plus, Clock, Send,
-  Heart, Thermometer, Droplet, ChevronDown, ChevronUp
+  Activity, FlaskConical, Pill, ClipboardList, MessageSquare, Send, CheckCircle2, Clock,
+  User, ArrowLeft, AlertTriangle, Heart, Thermometer, Droplet, Plus
 } from 'lucide-react';
 import { Link } from 'react-router';
 import { format } from 'date-fns';
@@ -14,14 +13,13 @@ import {
   getPatientOrders,
   getPatientNurseLogs,
   getPatientClinicalNotes,
-  MOCK_CLINICAL_ORDERS,
   MOCK_LAB_TESTS,
   getLabStatusLabel,
   getLabStatusColor,
-  getHospitalById,
   getPatientNurseReports,
   ClinicalOrder,
   OrderType,
+  LabTest,
 } from '../../lib/hospitalData';
 
 type WorkspaceTab = 'overview' | 'nurse_logs' | 'nurse_reports' | 'lab_tests' | 'orders' | 'notes' | 'messaging';
@@ -60,15 +58,14 @@ export function PatientWorkspace() {
   const labTests = getPatientLabTests(patient.id);
   const nurseLogs = getPatientNurseLogs(patient.id);
   const clinicalNotes = getPatientClinicalNotes(patient.id);
-  const latestLog = patient.logs[0];
   const latestNurseLog = nurseLogs[0];
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'stable': return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300';
-      case 'monitoring': return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300';
-      case 'critical': return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300';
-      default: return 'bg-slate-100 dark:bg-slate-700 text-slate-700';
+    case 'stable': return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300';
+    case 'monitoring': return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300';
+    case 'critical': return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300';
+    default: return 'bg-slate-100 dark:bg-slate-700 text-slate-700';
     }
   };
 
@@ -99,7 +96,7 @@ export function PatientWorkspace() {
     setTimeout(() => setNoteSubmitted(false), 3000);
   };
 
-  const TABS: { key: WorkspaceTab; label: string; icon: any }[] = [
+  const TABS: { key: WorkspaceTab; label: string; icon: React.ElementType }[] = [
     { key: 'overview', label: 'Overview', icon: Activity },
     { key: 'nurse_logs', label: `Nursing (${nurseLogs.length})`, icon: ClipboardList },
     { key: 'nurse_reports', label: 'Shift Reports', icon: Send },
@@ -108,7 +105,7 @@ export function PatientWorkspace() {
     { key: 'notes', label: 'Clinical Notes', icon: MessageSquare },
   ];
 
-  const LabTestReviewCard = ({ test }: { test: any }) => {
+  const LabTestReviewCard = ({ test }: { test: LabTest }) => {
     const [reviewNote, setReviewNote] = useState(test.result?.reviewNote || '');
     const [isSaving, setIsSaving] = useState(false);
     const [status, setStatus] = useState(test.status);
@@ -127,7 +124,7 @@ export function PatientWorkspace() {
 
           // Add review step
           updatedTest.steps = [...updatedTest.steps, {
-            step: `Doctor Review: Completed by Dr. Sarah Perera`,
+            step: 'Doctor Review: Completed by Dr. Sarah Perera',
             completedAt: new Date().toISOString(),
             note: reviewNote
           }];
@@ -164,7 +161,7 @@ export function PatientWorkspace() {
 
               {test.result.values && (
                 <div className="mt-3 grid grid-cols-2 gap-2">
-                  {test.result.values.map((v: any, i: number) => (
+                  {test.result.values.map((v: { name: string; value: string; unit: string; flag?: string }, i: number) => (
                     <div key={i} className="flex justify-between items-center p-2 bg-white dark:bg-slate-800 rounded-lg border border-slate-100 dark:border-slate-700 text-xs">
                       <span className="text-slate-500">{v.name}</span>
                       <span className={`font-bold ${v.flag === 'high' ? 'text-red-600' : v.flag === 'low' ? 'text-blue-600' : 'text-green-600'}`}>
@@ -241,7 +238,7 @@ export function PatientWorkspace() {
               className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === tab.key
                 ? 'border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400'
                 : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:border-slate-300'
-                }`}>
+              }`}>
               <tab.icon className="h-4 w-4" />
               {tab.label}
             </button>
@@ -524,7 +521,7 @@ export function PatientWorkspace() {
                   {ORDER_TYPES.map(ot => (
                     <button key={ot.value} onClick={() => setOrderType(ot.value)}
                       className={`px-3 py-1.5 rounded-full text-xs font-medium border-2 transition-all ${orderType === ot.value ? 'border-blue-500 ' + ot.color : 'border-transparent ' + ot.color + ' opacity-60'
-                        }`}>
+                      }`}>
                       {ot.label}
                     </button>
                   ))}

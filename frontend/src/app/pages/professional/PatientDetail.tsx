@@ -34,7 +34,7 @@ export function PatientDetail() {
         </div>
         <span className={`ml-auto px-3 py-1 rounded-full text-sm font-medium capitalize 
           ${patient.status === 'critical' ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400' :
-            patient.status === 'stable' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400' : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400'}`}>
+      patient.status === 'stable' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400' : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400'}`}>
           {patient.status}
         </span>
       </div>

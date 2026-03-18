@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
-import { Link, useSearchParams, useNavigate } from "react-router";
-import { UserPlus, Upload } from "lucide-react";
-import { Navbar } from "../components/Navbar";
+import { useState, useEffect } from 'react';
+import { Link, useSearchParams, useNavigate } from 'react-router';
+import { UserPlus, Upload } from 'lucide-react';
+import { Hospital, HospitalDoctor } from '../lib/hospitalData';
+import { Navbar } from '../components/Navbar';
 
 export function Register() {
   const [searchParams] = useSearchParams();
@@ -28,8 +29,8 @@ export function Register() {
     hospital_ids: [] as number[],
   });
 
-  const [hospitals, setHospitals] = useState<any[]>([]);
-  const [filteredDoctors, setFilteredDoctors] = useState<any[]>([]);
+  const [hospitals, setHospitals] = useState<Hospital[]>([]);
+  const [filteredDoctors, setFilteredDoctors] = useState<HospitalDoctor[]>([]);
 
   useEffect(() => {
     fetchHospitals();
@@ -215,8 +216,9 @@ export function Register() {
       } else {
         navigate(`/login/${formData.role}`);
       }
-    } catch (error: any) {
-      setErrors({ submit: error.message || 'An error occurred. Please try again.' });
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'An error occurred. Please try again.';
+      setErrors({ submit: errorMsg });
     } finally {
       setLoading(false);
     }
@@ -235,7 +237,7 @@ export function Register() {
           </h2>
           <p className="mt-2 text-center text-sm text-slate-600 dark:text-slate-400">
             Or{' '}
-            <Link to={roleParam ? `/login/${roleParam}` : "/login"} className="font-semibold text-blue-600 dark:text-blue-500 hover:text-blue-500 dark:hover:text-blue-400 transition-colors duration-200">
+            <Link to={roleParam ? `/login/${roleParam}` : '/login'} className="font-semibold text-blue-600 dark:text-blue-500 hover:text-blue-500 dark:hover:text-blue-400 transition-colors duration-200">
               sign in to your existing account
             </Link>
           </p>
@@ -493,7 +495,7 @@ export function Register() {
                         if (val && !formData.hospital_ids.includes(val)) {
                           setFormData(prev => ({ ...prev, hospital_ids: [...prev.hospital_ids, val] }));
                         }
-                        e.target.value = "";
+                        e.target.value = '';
                       }}
                       className="block w-full rounded-md border-0 py-1.5 text-slate-900 dark:text-white shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 focus:ring-2 focus:ring-inset focus:ring-blue-600 dark:focus:ring-blue-500 bg-white dark:bg-slate-800 sm:text-sm sm:leading-6"
                     >
@@ -629,7 +631,7 @@ export function Register() {
                         if (val && !formData.hospital_ids.includes(val)) {
                           setFormData(prev => ({ ...prev, hospital_ids: [...prev.hospital_ids, val] }));
                         }
-                        e.target.value = "";
+                        e.target.value = '';
                       }}
                       className="block w-full rounded-md border-0 py-1.5 text-slate-900 dark:text-white shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 focus:ring-2 focus:ring-inset focus:ring-blue-600 dark:focus:ring-blue-500 bg-white dark:bg-slate-800 sm:text-sm sm:leading-6"
                     >

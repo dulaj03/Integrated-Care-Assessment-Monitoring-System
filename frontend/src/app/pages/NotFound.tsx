@@ -1,16 +1,16 @@
-import { Link, useRouteError, isRouteErrorResponse } from "react-router";
-import { ArrowLeft, FileQuestion, AlertTriangle } from "lucide-react";
+import { Link, useRouteError, isRouteErrorResponse } from 'react-router';
+import { ArrowLeft, FileQuestion, AlertTriangle } from 'lucide-react';
 
 export function NotFound() {
   const error = useRouteError();
   let errorMessage = "Sorry, we couldn't find the page you're looking for.";
-  let title = "Page not found";
+  let title = 'Page not found';
   let Icon = FileQuestion;
 
   if (isRouteErrorResponse(error)) {
     // 404 or other status code errors
     if (error.status === 404) {
-      title = "Page not found";
+      title = 'Page not found';
       errorMessage = "Sorry, we couldn't find the page you're looking for.";
     } else {
       title = `Error ${error.status}`;
@@ -19,13 +19,13 @@ export function NotFound() {
     }
   } else if (error instanceof Error) {
     // Runtime errors
-    title = "Application Error";
+    title = 'Application Error';
     errorMessage = error.message;
     Icon = AlertTriangle;
   } else if (error) {
     // Unknown errors
-    title = "Unknown Error";
-    errorMessage = "An unexpected error occurred.";
+    title = 'Unknown Error';
+    errorMessage = 'An unexpected error occurred.';
     Icon = AlertTriangle;
   }
 

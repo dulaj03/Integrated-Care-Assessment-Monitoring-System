@@ -60,7 +60,7 @@ export function Appointments() {
       <div className={`rounded-lg border p-6 ${isUpcoming
         ? 'border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20'
         : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800'
-        }`}>
+      }`}>
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1">
             <h3 className="text-lg font-semibold text-slate-900 dark:text-white">

@@ -92,6 +92,6 @@ export const getHealthStatusDescription = (log: HealthLog): string => {
   } else if (severity <= 7) {
     return `Patient requires monitoring - ${log.symptoms.length > 0 ? `${log.symptoms.length} symptom(s) reported` : 'vital changes noted'}`;
   } else {
-    return `Critical condition - Immediate attention required`;
+    return 'Critical condition - Immediate attention required';
   }
 };

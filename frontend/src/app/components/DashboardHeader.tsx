@@ -5,20 +5,20 @@
  * with professional features like user menu, theme switcher, and notifications.
  */
 
-import { useState } from "react";
-import { Bell, Settings, LogOut, User } from "lucide-react";
-import { NotificationBell } from "./NotificationBell";
-import { ThemeSwitcher } from "./ThemeSwitcher";
-import { mockNotifications, Notification } from "../lib/mockNotifications";
-import { Button } from "./ui/button";
+import { useState } from 'react';
+import { Bell, Settings, LogOut, User } from 'lucide-react';
+import { NotificationBell } from './NotificationBell';
+import { ThemeSwitcher } from './ThemeSwitcher';
+import { mockNotifications, Notification } from '../lib/mockNotifications';
+import { Button } from './ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+} from './ui/dropdown-menu';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 
 interface ProfessionalHeaderProps {
   userName?: string;
@@ -40,8 +40,8 @@ interface ProfessionalHeaderProps {
  * />
  */
 export function ProfessionalDashboardHeader({
-  userName = "Professional",
-  userEmail = "user@icams.com",
+  userName = 'Professional',
+  userEmail = 'user@icams.com',
   userAvatar,
   onLogout,
   onSettings,
@@ -58,16 +58,16 @@ export function ProfessionalDashboardHeader({
   };
 
   const handleNotificationClick = (notification: Notification) => {
-    console.log("Notification clicked:", notification);
+    console.log('Notification clicked:', notification);
     // You can add navigation or action handling here
     // e.g., navigate to patient detail, open alert dialog, etc.
   };
 
   const getInitials = (name: string) => {
     return name
-      .split(" ")
+      .split(' ')
       .map((n) => n[0])
-      .join("")
+      .join('')
       .toUpperCase()
       .slice(0, 2);
   };
@@ -131,7 +131,7 @@ export function ProfessionalDashboardHeader({
               <DropdownMenuSeparator />
 
               {/* Menu Items */}
-              <DropdownMenuItem onClick={() => console.log("Profile")}>
+              <DropdownMenuItem onClick={() => console.log('Profile')}>
                 <User className="mr-2 h-4 w-4" />
                 <span>View Profile</span>
               </DropdownMenuItem>

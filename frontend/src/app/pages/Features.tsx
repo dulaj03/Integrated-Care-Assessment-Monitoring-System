@@ -1,14 +1,14 @@
-import { Link } from "react-router";
+import { Link } from 'react-router';
 import {
   ArrowLeft, Activity, Building2, FlaskConical, Pill, MessageSquare, BarChart3, BellRing,
   UserSquare2, Stethoscope, Heart, Clipboard, ShieldCheck, Smartphone, Clock, Globe,
   CheckCircle2, ArrowRight, Zap, TrendingUp, FileText, Users,
-} from "lucide-react";
-import { Navbar } from "../components/Navbar";
+} from 'lucide-react';
+import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/footer';
-import { motion } from "motion/react";
-import { useTranslation } from "react-i18next";
-import { useState } from "react";
+import { motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
+import { useState } from 'react';
 
 const TABS = ['All Features', 'Patient', 'Nurse', 'Doctor', 'Hospital Admin'] as const;
 type Tab = typeof TABS[number];

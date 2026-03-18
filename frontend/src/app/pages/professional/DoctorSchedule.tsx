@@ -121,27 +121,27 @@ export function DoctorSchedule() {
 
   const getAppointmentTypeIcon = (type: string) => {
     switch (type) {
-      case 'video':
-        return <Video className="h-5 w-5" />;
-      case 'phone':
-        return <Phone className="h-5 w-5" />;
-      default:
-        return <Users className="h-5 w-5" />;
+    case 'video':
+      return <Video className="h-5 w-5" />;
+    case 'phone':
+      return <Phone className="h-5 w-5" />;
+    default:
+      return <Users className="h-5 w-5" />;
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed':
-        return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300';
-      case 'in-progress':
-        return 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300';
-      case 'scheduled':
-        return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300';
-      case 'cancelled':
-        return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300';
-      default:
-        return 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300';
+    case 'completed':
+      return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300';
+    case 'in-progress':
+      return 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300';
+    case 'scheduled':
+      return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300';
+    case 'cancelled':
+      return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300';
+    default:
+      return 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300';
     }
   };
 
@@ -288,27 +288,27 @@ export function DoctorSchedule() {
         <button
           onClick={() => setViewType('today')}
           className={`px-4 py-2 rounded-lg font-medium transition-colors ${viewType === 'today'
-              ? 'bg-blue-600 dark:bg-blue-700 text-white'
-              : 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100 hover:bg-slate-300 dark:hover:bg-slate-600'
-            }`}
+            ? 'bg-blue-600 dark:bg-blue-700 text-white'
+            : 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100 hover:bg-slate-300 dark:hover:bg-slate-600'
+          }`}
         >
           Today
         </button>
         <button
           onClick={() => setViewType('week')}
           className={`px-4 py-2 rounded-lg font-medium transition-colors ${viewType === 'week'
-              ? 'bg-blue-600 dark:bg-blue-700 text-white'
-              : 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100 hover:bg-slate-300 dark:hover:bg-slate-600'
-            }`}
+            ? 'bg-blue-600 dark:bg-blue-700 text-white'
+            : 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100 hover:bg-slate-300 dark:hover:bg-slate-600'
+          }`}
         >
           This Week
         </button>
         <button
           onClick={() => setViewType('all')}
           className={`px-4 py-2 rounded-lg font-medium transition-colors ${viewType === 'all'
-              ? 'bg-blue-600 dark:bg-blue-700 text-white'
-              : 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100 hover:bg-slate-300 dark:hover:bg-slate-600'
-            }`}
+            ? 'bg-blue-600 dark:bg-blue-700 text-white'
+            : 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100 hover:bg-slate-300 dark:hover:bg-slate-600'
+          }`}
         >
           All
         </button>

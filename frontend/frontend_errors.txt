@@ -1,0 +1,45 @@
+﻿
+F:\NSBM New\3rd Year\Final Project\I-CAMS\frontend\src\app\components\DashboardLayout.tsx
+  46:39  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+F:\NSBM New\3rd Year\Final Project\I-CAMS\frontend\src\app\pages\LoginForm.tsx
+  76:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+F:\NSBM New\3rd Year\Final Project\I-CAMS\frontend\src\app\pages\Register.tsx
+   31:46  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   32:58  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  218:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+F:\NSBM New\3rd Year\Final Project\I-CAMS\frontend\src\app\pages\patient\Dashboard.tsx
+  38:40  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+F:\NSBM New\3rd Year\Final Project\I-CAMS\frontend\src\app\pages\patient\HospitalFinder.tsx
+   22:60   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   23:56   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   28:50   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   29:46   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   84:33   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  197:91   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  286:105  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+F:\NSBM New\3rd Year\Final Project\I-CAMS\frontend\src\app\pages\patient\LabResults.tsx
+  16:39  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  33:34  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+F:\NSBM New\3rd Year\Final Project\I-CAMS\frontend\src\app\pages\patient\Profile.tsx
+  36:59  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+F:\NSBM New\3rd Year\Final Project\I-CAMS\frontend\src\app\pages\professional\Dashboard.tsx
+   14:58  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  212:60  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+F:\NSBM New\3rd Year\Final Project\I-CAMS\frontend\src\app\pages\professional\NursePatientCare.tsx
+  122:53  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  466:45  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  825:87  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  837:83  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  858:60  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  861:64  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+Γ£û 24 problems (24 errors, 0 warnings)
+

@@ -69,8 +69,10 @@ export const AddHospitalModal = ({ isOpen, onClose, onSuccess }: AddHospitalModa
         type: 'Private',
         specialties: [],
       });
-    } catch (err: any) {
-      toast.error(err.message);
+    } catch (err) {
+      if (err instanceof Error) {
+        toast.error(err.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -201,7 +203,7 @@ export const AddHospitalModal = ({ isOpen, onClose, onSuccess }: AddHospitalModa
                   <select
                     className="w-full bg-slate-900 border border-white/10 rounded-xl py-2.5 px-4 text-sm focus:outline-none focus:border-blue-500/50 text-white"
                     value={formData.type}
-                    onChange={e => setFormData({ ...formData, type: e.target.value as any })}
+                    onChange={e => setFormData({ ...formData, type: e.target.value as 'Government' | 'Private' })}
                   >
                     <option value="Government">Government</option>
                     <option value="Private">Private</option>
