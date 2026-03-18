@@ -73,8 +73,9 @@
     "vaul": "1.1.2"
   },
   "devDependencies": {
-    "@tailwindcss/vite": "4.1.12",
     "@eslint/js": "^9.39.1",
+    "@tailwindcss/vite": "4.1.12",
+    "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.5.0",
     "@testing-library/react": "^16.3.2",
     "@types/react": "^19.2.7",

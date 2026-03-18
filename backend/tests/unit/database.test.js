@@ -1,51 +1,46 @@
-describe('Database Connection', () => {
+// Database mock is set up globally in tests/setup.js
+const pool = require('../../config/db');
+
+describe('Database Connection (Mocked)', () => {
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('should have connection pool configured', () => {
-    const pool = require('../../config/db');
+  it('should have connection pool defined', () => {
     expect(pool).toBeDefined();
   });
 
-  it('should handle query execution', async () => {
-    const pool = require('../../config/db');
+  it('should execute a query and return rows', async () => {
     pool.query.mockResolvedValueOnce({
       rows: [{ id: 1, name: 'Test Hospital' }],
     });
 
     const result = await pool.query('SELECT * FROM hospitals LIMIT 1');
+
     expect(result.rows).toHaveLength(1);
-    expect(result.rows[0]).toHaveProperty('id', 1);
+    expect(result.rows[0]).toHaveProperty('name', 'Test Hospital');
   });
 
   it('should handle query errors gracefully', async () => {
-    const pool = require('../../config/db');
-    const error = new Error('Connection failed');
-    pool.query.mockRejectedValueOnce(error);
+    pool.query.mockRejectedValueOnce(new Error('Connection failed'));
 
-    try {
-      await pool.query('SELECT * FROM hospitals');
-    } catch (err) {
-      expect(err.message).toBe('Connection failed');
-    }
+    await expect(
+      pool.query('SELECT * FROM hospitals')
+    ).rejects.toThrow('Connection failed');
   });
 
   it('should support parameterized queries', async () => {
-    const pool = require('../../config/db');
     pool.query.mockResolvedValueOnce({
-      rows: [{ id: 1, name: 'Test User' }],
+      rows: [{ id: 1, full_name: 'John Doe' }],
     });
 
-    const result = await pool.query(
-      'SELECT * FROM users WHERE id = $1',
-      [1]
-    );
+    const result = await pool.query('SELECT * FROM patients WHERE id = $1', [1]);
 
     expect(pool.query).toHaveBeenCalledWith(
-      'SELECT * FROM users WHERE id = $1',
+      'SELECT * FROM patients WHERE id = $1',
       [1]
     );
-    expect(result.rows).toHaveLength(1);
+    expect(result.rows[0]).toHaveProperty('full_name', 'John Doe');
   });
 });
