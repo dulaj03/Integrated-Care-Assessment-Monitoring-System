@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Activity, Calendar, Droplet, Heart, Thermometer, TrendingUp, AlertCircle, Plus, FlaskConical, Pill, ClipboardList, ChevronRight, Building2, CheckCircle2, Clock, User, History as HistoryIcon } from 'lucide-react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Activity, Calendar, Droplet, Heart, Thermometer, AlertCircle, Plus, FlaskConical, Pill, ClipboardList, ChevronRight, Building2, CheckCircle2, Clock, User, History as HistoryIcon } from 'lucide-react';
 import { CURRENT_USER_PATIENT } from '../../lib/mockData';
 import {
   getPatientLabTests,
@@ -13,6 +12,8 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'motion/react';
+import { HealthTrendChart } from '../../components/HealthTrendChart';
+import { HealthLog } from '../../lib/mockData';
 
 interface DbHealthLog {
   id: string | number;
@@ -71,16 +72,29 @@ export function PatientDashboard() {
     fetchHealthLogs();
   }, [patientId]);
 
-  const recentLogs: DbHealthLog[] = dbLogs.length > 0
-    ? [...dbLogs].slice(0, 7).reverse()
-    : (patient.logs.slice(0, 7).reverse() as unknown as DbHealthLog[]);
+  // Prepare all logs for the HealthTrendChart
+  const allLogsForChart: HealthLog[] = (dbLogs.length > 0 ? dbLogs : patient.logs).map((log: any) => {
+    let symptoms: string[] = [];
+    try {
+      symptoms = Array.isArray(log.symptoms) ? log.symptoms : (typeof log.symptoms === 'string' ? JSON.parse(log.symptoms) : []);
+    } catch (e) {
+      symptoms = [];
+    }
 
-  const chartData = recentLogs.map(log => ({
-    name: new Date(log.created_at || log.date || '').toLocaleDateString('en-US', { weekday: 'short' }),
-    systolic: log.systolic_bp || (log.vitals?.bloodPressure ? parseInt(log.vitals.bloodPressure.split('/')[0]) : 0),
-    diastolic: log.diastolic_bp || (log.vitals?.bloodPressure ? parseInt(log.vitals.bloodPressure.split('/')[1]) : 0),
-    heartRate: log.heart_rate || (log.vitals?.heartRate || 0),
-  }));
+    return {
+      id: String(log.id || Math.random()),
+      date: log.created_at || log.date || new Date().toISOString(),
+      symptoms,
+      notes: log.notes || '',
+      vitals: {
+        bloodPressure: log.systolic_bp ? `${log.systolic_bp}/${log.diastolic_bp}` : log.vitals?.bloodPressure,
+        heartRate: log.heart_rate || log.vitals?.heartRate,
+        temperature: log.temperature || log.vitals?.temperature,
+        oxygenLevel: log.oxygen_level || (log.vitals?.oxygenLevel || log.vitals?.oxygen_level),
+      },
+      mood: log.mood as any,
+    };
+  });
 
   const latestLog: DbHealthLog = dbLogs.length > 0 ? dbLogs[0] : (patient.logs[0] as unknown as DbHealthLog);
 
@@ -484,35 +498,13 @@ export function PatientDashboard() {
       </div>
 
       {/* Charts + Appointments */}
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Health Trends chart */}
-        <div className="bg-white dark:bg-slate-900 shadow dark:shadow-xl rounded-lg p-6">
-          <h3 className="text-lg leading-6 font-medium text-slate-900 dark:text-white mb-4 flex items-center">
-            <TrendingUp className="h-5 w-5 mr-2 text-blue-500" />
-            Health Trends (Last 7 Days)
-          </h3>
-          <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorBP" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8} />
-                    <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="colorHR" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#EF4444" stopOpacity={0.8} />
-                    <stop offset="95%" stopColor="#EF4444" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <XAxis dataKey="name" stroke="#8a92a1" />
-                <YAxis stroke="#8a92a1" />
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#4b5563" />
-                <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569', borderRadius: '0.5rem', color: '#e2e8f0' }} />
-                <Area type="monotone" dataKey="systolic" stroke="#3B82F6" fillOpacity={1} fill="url(#colorBP)" name="Systolic BP" />
-                <Area type="monotone" dataKey="heartRate" stroke="#EF4444" fillOpacity={1} fill="url(#colorHR)" name="Heart Rate" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
+        <div className="lg:col-span-2">
+          <HealthTrendChart 
+            logs={allLogsForChart} 
+            title={t('patient_dashboard.healthTrends') || "Health Trends"}
+          />
         </div>
 
         {/* Appointments + Medications */}

@@ -185,6 +185,13 @@ export function HealthTrendChart({ logs, title = 'Health Trends', height = 320 }
               stroke="#8a92a1"
               style={{ fontSize: '12px' }}
             />
+            <YAxis
+              yAxisId="temp"
+              orientation="right"
+              domain={[34, 42]}
+              stroke="#F59E0B"
+              hide={true} // Hide the axis to keep it clean, but use it for scaling
+            />
             <Tooltip
               contentStyle={{
                 backgroundColor: '#1e293b',
@@ -193,8 +200,10 @@ export function HealthTrendChart({ logs, title = 'Health Trends', height = 320 }
                 color: '#e2e8f0',
                 fontSize: '12px'
               }}
-              formatter={(value) => {
+              formatter={(value, name) => {
                 if (typeof value === 'number') {
+                  if (name === 'Temperature') return `${value.toFixed(1)}°C`;
+                  if (name === 'SpO2 %') return `${value}%`;
                   return value.toFixed(0);
                 }
                 return value;
@@ -245,6 +254,16 @@ export function HealthTrendChart({ logs, title = 'Health Trends', height = 320 }
               name="SpO2 %"
               strokeWidth={2}
               strokeDasharray="5 5"
+              dot={{ r: 3 }}
+              activeDot={{ r: 6 }}
+            />
+            <Line
+              yAxisId="temp"
+              type="monotone"
+              dataKey="temperature"
+              stroke="#F59E0B"
+              name="Temperature"
+              strokeWidth={2}
               dot={{ r: 3 }}
               activeDot={{ r: 6 }}
             />
