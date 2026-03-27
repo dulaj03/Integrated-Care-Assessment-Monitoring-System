@@ -1,4 +1,4 @@
-import { addDays, subDays, format } from 'date-fns';
+import { addDays, subDays } from 'date-fns';
 
 export type UserRole = 'patient' | 'nurse' | 'doctor' | 'hospital';
 
@@ -30,7 +30,7 @@ export interface Patient extends User {
   age: number;
   gender: string;
   condition: string;
-  status: 'stable' | 'monitoring' | 'critical' | 'recovered' | 'pending_approval';
+  status: 'stable' | 'monitoring' | 'critical' | 'recovered' | 'pending_approval' | 'pendingdoctorapproval';
   assignedDoctorId: string;
   assignedNurseId?: string;
   hospitalId: string;

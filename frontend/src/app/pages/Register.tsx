@@ -52,8 +52,11 @@ export function Register() {
     if (formData.hospitalId) {
       fetch(`http://localhost:5000/api/hospitals/${formData.hospitalId}/doctors`)
         .then(res => res.json())
-        .then(data => setFilteredDoctors(data))
-        .catch(err => console.error('Error fetching doctors:', err));
+        .then(data => setFilteredDoctors(Array.isArray(data) ? data : []))
+        .catch(err => {
+          console.error('Error fetching doctors:', err);
+          setFilteredDoctors([]);
+        });
     } else {
       setFilteredDoctors([]);
     }
@@ -160,7 +163,7 @@ export function Register() {
         data.append('license_number', formData.licenseNumber);
         data.append('specialization', formData.specialization);
         data.append('years_of_experience', formData.yearsOfExperience);
-        data.append('institution_name', formData.hospital_ids.map(id => hospitals.find(h => h.id === id)?.name).filter(Boolean).join(', '));
+        data.append('institution_name', formData.hospital_ids.map(id => hospitals.find(h => String(h.id) === String(id))?.name).filter(Boolean).join(', '));
         data.append('hospital_ids', JSON.stringify(formData.hospital_ids));
         data.append('registration_number', formData.registrationNumber);
         if (formData.licenseDocument) {
@@ -204,7 +207,7 @@ export function Register() {
       sessionStorage.setItem('userName', formData.name);
 
       if (formData.role === 'patient') {
-        sessionStorage.setItem('registrationStatus', 'active');
+        sessionStorage.setItem('registrationStatus', 'pendingdoctorapproval');
         sessionStorage.setItem('hospitalId', formData.hospitalId);
         sessionStorage.setItem('doctorId', formData.doctorId);
         navigate('/patient/dashboard');
@@ -366,7 +369,7 @@ export function Register() {
                       >
                         <option value="">{formData.hospitalId ? 'Choose a doctor' : 'Select a hospital first'}</option>
                         {filteredDoctors.map(d => (
-                          <option key={d.id} value={d.id}>{d.full_name || d.name}</option>
+                          <option key={d.id} value={d.id}>{(d as any).full_name || d.name}</option>
                         ))}
                       </select>
                     </div>
@@ -474,7 +477,7 @@ export function Register() {
                     </label>
                     <div className="flex flex-wrap gap-2 mb-2">
                       {formData.hospital_ids.map(id => {
-                        const h = hospitals.find(h => h.id === id);
+                        const h = hospitals.find(h => String(h.id) === String(id));
                         return h ? (
                           <span key={id} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs font-medium border border-blue-200 dark:border-blue-800">
                             {h.name}
@@ -501,7 +504,7 @@ export function Register() {
                     >
                       <option value="">Add a hospital...</option>
                       {hospitals
-                        .filter(h => !formData.hospital_ids.includes(h.id))
+                        .filter(h => !formData.hospital_ids.map(String).includes(String(h.id)))
                         .map(h => <option key={h.id} value={h.id}>{h.name}</option>)
                       }
                     </select>
@@ -610,7 +613,7 @@ export function Register() {
                     </label>
                     <div className="flex flex-wrap gap-2 mb-2">
                       {formData.hospital_ids.map(id => {
-                        const h = hospitals.find(h => h.id === id);
+                        const h = hospitals.find(h => String(h.id) === String(id));
                         return h ? (
                           <span key={id} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs font-medium border border-blue-200 dark:border-blue-800">
                             {h.name}
@@ -637,7 +640,7 @@ export function Register() {
                     >
                       <option value="">Add a hospital...</option>
                       {hospitals
-                        .filter(h => !formData.hospital_ids.includes(h.id))
+                        .filter(h => !formData.hospital_ids.map(String).includes(String(h.id)))
                         .map(h => <option key={h.id} value={h.id}>{h.name}</option>)
                       }
                     </select>

@@ -1,40 +1,99 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router';
-import { Search, AlertCircle, Clock, ChevronRight, User } from 'lucide-react';
-import { MOCK_PATIENTS, Patient, MOCK_PENDING_PATIENTS } from '../../lib/mockData';
+import { Search, AlertCircle, Clock, ChevronRight, User, Loader2 } from 'lucide-react';
+import { Patient } from '../../lib/mockData';
 import { clsx } from 'clsx';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'motion/react';
+import { toast } from 'sonner';
 
 export function ProfessionalDashboard({ role }: { role?: 'doctor' | 'nurse' }) {
   const { t } = useTranslation();
   const [filter, setFilter] = useState<'all' | 'critical' | 'monitoring' | 'stable'>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [pendingPatients, setPendingPatients] = useState<Partial<Patient>[]>(MOCK_PENDING_PATIENTS);
+  const [pendingPatients, setPendingPatients] = useState<Partial<Patient>[]>([]);
+  const [assignedPatients, setAssignedPatients] = useState<Patient[]>([]);
+  const [loading, setLoading] = useState(true);
+
   const userRole = role || (sessionStorage.getItem('userRole') as 'doctor' | 'nurse') || 'doctor';
-  const userId = sessionStorage.getItem('userId') || (userRole === 'doctor' ? 'd1' : 'n1');
+  const token = sessionStorage.getItem('token');
 
-  const handleApprove = (id: string) => {
-    setPendingPatients(prev => prev.filter(p => p.id !== id));
-    // Implementation for real approval would go here
+  const fetchData = useCallback(async () => {
+    if (!token) return;
+    try {
+      // Fetch assigned patients
+      const assignedRes = await fetch(`http://localhost:5000/api/${userRole}/patients`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (assignedRes.ok) {
+        const data = await assignedRes.json();
+        setAssignedPatients(data);
+      }
+
+      // Fetch pending patients (only for doctors)
+      if (userRole === 'doctor') {
+        const pendingRes = await fetch('http://localhost:5000/api/doctor/patients/pending', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (pendingRes.ok) {
+          const data = await pendingRes.json();
+          setPendingPatients(data);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [token, userRole]);
+
+  useEffect(() => {
+    fetchData();
+    const interval = setInterval(fetchData, 30000);
+    return () => clearInterval(interval);
+  }, [fetchData]);
+
+  const handleApprove = async (id: string) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/doctor/patients/approve/${id}`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        toast.success('Patient approved successfully');
+        fetchData();
+      } else {
+        const data = await res.json();
+        toast.error(data.error || 'Failed to approve patient');
+      }
+    } catch (error) {
+      toast.error('Network error');
+    }
   };
 
-  const handleReject = (id: string) => {
-    setPendingPatients(prev => prev.filter(p => p.id !== id));
+  const handleReject = async (id: string) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/doctor/patients/reject/${id}`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        toast.success('Patient rejected');
+        fetchData();
+      }
+    } catch (error) {
+      toast.error('Network error');
+    }
   };
 
-  const filteredPatients = MOCK_PATIENTS.filter(patient => {
-    const isAssigned = userRole === 'doctor'
-      ? patient.assignedDoctorId === userId
-      : patient.assignedNurseId === userId;
-
+  const filteredPatients = assignedPatients.filter(patient => {
     const matchesFilter = filter === 'all' || patient.status === filter;
-    const matchesSearch = patient.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      patient.condition.toLowerCase().includes(searchQuery.toLowerCase());
-    return isAssigned && matchesFilter && matchesSearch;
+    const nameMatch = patient.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                      (patient as any).full_name?.toLowerCase().includes(searchQuery.toLowerCase());
+    const conditionMatch = patient.condition?.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    return matchesFilter && (nameMatch || conditionMatch);
   });
-
-  const pendingCount = pendingPatients.filter(p => p.assignedDoctorId === userId).length;
 
   const getStatusColor = (status: Patient['status']) => {
     switch (status) {
@@ -45,19 +104,23 @@ export function ProfessionalDashboard({ role }: { role?: 'doctor' | 'nurse' }) {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+        <Loader2 className="h-12 w-12 text-blue-500 animate-spin" />
+        <p className="text-slate-500 animate-pulse">Loading patient data...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{t('professional_dashboard.patientOverview')}</h1>
-        <div className="mt-4 sm:mt-0">
-          <button className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-900 focus:ring-blue-500 transition-colors duration-200">
-            {t('professional_dashboard.addNewPatient')}
-          </button>
-        </div>
       </div>
 
-      {/* Critical Alerts Banner */}
-      {MOCK_PATIENTS.filter(p => (userRole === 'doctor' ? p.assignedDoctorId === userId : true) && p.status === 'critical').length > 0 && (
+      {/* Critical Alerts Banner (FR19) */}
+      {assignedPatients.filter(p => p.condition === 'critical').length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -70,14 +133,14 @@ export function ProfessionalDashboard({ role }: { role?: 'doctor' | 'nurse' }) {
             <div>
               <p className="font-bold text-white text-lg">Critical Monitoring Alerts</p>
               <p className="text-white/80 text-sm">
-                {MOCK_PATIENTS.filter(p => (userRole === 'doctor' ? p.assignedDoctorId === userId : true) && p.status === 'critical').length} patient(s) require immediate attention.
+                {assignedPatients.filter(p => p.condition === 'critical').length} patient(s) require immediate attention.
               </p>
             </div>
           </div>
           <div className="flex gap-2">
-            {MOCK_PATIENTS.filter(p => (userRole === 'doctor' ? p.assignedDoctorId === userId : p.assignedNurseId === userId) && p.status === 'critical').slice(0, 2).map(p => (
+            {assignedPatients.filter(p => p.condition === 'critical').slice(0, 2).map(p => (
               <Link key={p.id} to={userRole === 'doctor' ? `/doctor/patient/${p.id}` : `/nurse/patient/${p.id}`} className="px-4 py-2 bg-white text-red-600 font-bold rounded-lg hover:bg-red-50 transition-colors text-sm">
-                View {p.name.split(' ')[0]}
+                View {(p as any).full_name?.split(' ')[0] || p.name?.split(' ')[0]}
               </Link>
             ))}
           </div>
@@ -86,17 +149,17 @@ export function ProfessionalDashboard({ role }: { role?: 'doctor' | 'nurse' }) {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        <div className="bg-white dark:bg-slate-900 overflow-hidden shadow dark:shadow-xl rounded-lg">
+        <div className="bg-white dark:bg-slate-900 overflow-hidden shadow dark:shadow-xl rounded-lg border border-slate-200 dark:border-slate-800">
           <div className="p-5">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <User className="h-6 w-6 text-slate-400 dark:text-slate-500" />
+                <User className="h-6 w-6 text-blue-500" />
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-slate-500 dark:text-slate-400 truncate">{t('professional_dashboard.totalPatients')}</dt>
                   <dd>
-                    <div className="text-lg font-medium text-slate-900 dark:text-white">{filteredPatients.length}</div>
+                    <div className="text-lg font-medium text-slate-900 dark:text-white">{assignedPatients.length}</div>
                   </dd>
                 </dl>
               </div>
@@ -104,18 +167,18 @@ export function ProfessionalDashboard({ role }: { role?: 'doctor' | 'nurse' }) {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 overflow-hidden shadow dark:shadow-xl rounded-lg">
+        <div className="bg-white dark:bg-slate-900 overflow-hidden shadow dark:shadow-xl rounded-lg border border-slate-200 dark:border-slate-800">
           <div className="p-5">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <AlertCircle className="h-6 w-6 text-red-400" />
+                <AlertCircle className="h-6 w-6 text-red-500" />
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-slate-500 dark:text-slate-400 truncate">{t('professional_dashboard.criticalAlerts')}</dt>
                   <dd>
                     <div className="text-lg font-medium text-slate-900 dark:text-white">
-                      {filteredPatients.filter(p => p.status === 'critical').length}
+                      {assignedPatients.filter(p => p.condition === 'critical').length}
                     </div>
                   </dd>
                 </dl>
@@ -124,20 +187,20 @@ export function ProfessionalDashboard({ role }: { role?: 'doctor' | 'nurse' }) {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 overflow-hidden shadow dark:shadow-xl rounded-lg">
+        <div className="bg-white dark:bg-slate-900 overflow-hidden shadow dark:shadow-xl rounded-lg border border-slate-200 dark:border-slate-800">
           <div className="p-5">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <Clock className="h-6 w-6 text-blue-400" />
+                <Clock className="h-6 w-6 text-orange-400" />
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-slate-500 dark:text-slate-400 truncate">
-                    {userRole === 'doctor' ? 'Pending Reviews' : 'Recent Rounds'}
+                    {userRole === 'doctor' ? 'Pending Approvals' : 'Assigned Total'}
                   </dt>
                   <dd>
                     <div className="text-lg font-medium text-slate-900 dark:text-white">
-                      {userRole === 'doctor' ? pendingCount : '12'}
+                      {userRole === 'doctor' ? pendingPatients.length : assignedPatients.length}
                     </div>
                   </dd>
                 </dl>
@@ -165,7 +228,7 @@ export function ProfessionalDashboard({ role }: { role?: 'doctor' | 'nurse' }) {
                       <User className="h-6 w-6 text-slate-500" />
                     </div>
                     <div className="ml-4">
-                      <p className="text-sm font-semibold text-slate-900 dark:text-white">{patient.name}</p>
+                      <p className="text-sm font-semibold text-slate-900 dark:text-white">{(patient as any).full_name || patient.name}</p>
                       <p className="text-sm text-slate-500 dark:text-slate-400">Condition: {patient.condition}</p>
                     </div>
                   </div>
@@ -230,33 +293,36 @@ export function ProfessionalDashboard({ role }: { role?: 'doctor' | 'nurse' }) {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-10 w-10">
-                        <img className="h-10 w-10 rounded-full object-cover" src={patient.avatar} alt="" />
+                        <div className="h-10 w-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
+                          <User className="h-6 w-6 text-slate-500" />
+                        </div>
                       </div>
                       <div className="ml-4">
-                        <p className="text-sm font-medium text-blue-600 dark:text-blue-500 truncate">{patient.name}</p>
+                        <p className="text-sm font-medium text-blue-600 dark:text-blue-500 truncate">
+                          {(patient as any).full_name || patient.name}
+                        </p>
                         <p className="text-sm text-slate-500 dark:text-slate-400 truncate">{patient.condition}</p>
                       </div>
                     </div>
                     <div className="ml-2 flex-shrink-0 flex">
                       <span className={clsx(
-                        'px-2 inline-flex text-xs leading-5 font-semibold rounded-full',
-                        getStatusColor(patient.status)
+                        'px-2 inline-flex text-xs leading-5 font-semibold rounded-full capitalize',
+                        getStatusColor(patient.condition as any)
                       )}>
-                        {patient.status}
+                        {patient.condition}
                       </span>
                     </div>
                   </div>
                   <div className="mt-2 sm:flex sm:justify-between">
                     <div className="sm:flex">
                       <p className="flex items-center text-sm text-slate-500 dark:text-slate-400">
-                        <User className="flex-shrink-0 mr-1.5 h-5 w-5 text-slate-400 dark:text-slate-500" />
-                        {patient.age} yrs, {patient.gender}
+                        <Clock className="flex-shrink-0 mr-1.5 h-5 w-5 text-slate-400 dark:text-slate-500" />
+                        Registered: {new Date((patient as any).created_at).toLocaleDateString()}
                       </p>
                     </div>
                     <div className="mt-2 flex items-center text-sm text-slate-500 dark:text-slate-400 sm:mt-0">
-                      <Clock className="flex-shrink-0 mr-1.5 h-5 w-5 text-slate-400 dark:text-slate-500" />
                       <p>
-                        Last update: {new Date(patient.lastUpdate).toLocaleDateString()}
+                        Status: {(patient as any).status}
                       </p>
                       <ChevronRight className="ml-2 h-5 w-5 text-slate-400 dark:text-slate-500" />
                     </div>

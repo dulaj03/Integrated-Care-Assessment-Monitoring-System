@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Activity, Calendar, Droplet, Heart, Thermometer, AlertCircle, Plus, FlaskConical, Pill, ClipboardList, ChevronRight, Building2, CheckCircle2, Clock, User, History as HistoryIcon } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Activity, Calendar, Droplet, Heart, Thermometer, AlertCircle, Plus, FlaskConical, Pill, ClipboardList, ChevronRight, Building2, CheckCircle2, Clock, User, History as HistoryIcon, Loader2, Bell } from 'lucide-react';
 import { CURRENT_USER_PATIENT } from '../../lib/mockData';
 import {
   getPatientLabTests,
@@ -51,12 +51,13 @@ export function PatientDashboard() {
   };
 
   const [dbLogs, setDbLogs] = useState<DbHealthLog[]>([]);
-  const isPending = false;
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [patientStatus, setPatientStatus] = useState(patient.status);
+  const [patientCondition, setPatientCondition] = useState(patient.condition || 'stable');
+  const [loading, setLoading] = useState(true);
 
   const fetchHealthLogs = async () => {
-    if (!patientId || isNaN(parseInt(patientId))) {
-      return;
-    }
+    if (!patientId || isNaN(parseInt(patientId))) return;
     try {
       const res = await fetch(`http://localhost:5000/api/health/all/${patientId}`);
       if (res.ok) {
@@ -68,12 +69,66 @@ export function PatientDashboard() {
     }
   };
 
-  useEffect(() => {
-    fetchHealthLogs();
+  const fetchNotifications = async () => {
+    const token = sessionStorage.getItem('token');
+    if (!token) return;
+    try {
+      const res = await fetch('http://localhost:5000/api/notifications', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setNotifications(data);
+      }
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    }
+  };
+
+  const fetchPatientInfo = async () => {
+    const token = sessionStorage.getItem('token');
+    if (!token) return;
+    try {
+      const res = await fetch('http://localhost:5000/api/auth/me', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const { user } = await res.json();
+        setPatientStatus(user.status);
+        setPatientCondition(user.condition);
+      }
+    } catch (error) {
+      console.error('Error fetching patient info:', error);
+    }
+  };
+
+  const refreshAll = useCallback(async () => {
+    await Promise.all([
+      fetchHealthLogs(),
+      fetchNotifications(),
+      fetchPatientInfo()
+    ]);
+    setLoading(false);
   }, [patientId]);
 
+  useEffect(() => {
+    refreshAll();
+    // FR34: Dashboard polling every 30 seconds
+    const interval = setInterval(refreshAll, 30000);
+    return () => clearInterval(interval);
+  }, [refreshAll]);
+
+  const markNotificationRead = async (id: number) => {
+    const token = sessionStorage.getItem('token');
+    await fetch(`http://localhost:5000/api/notifications/mark-read/${id}`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    fetchNotifications();
+  };
+
   // Prepare all logs for the HealthTrendChart
-  const allLogsForChart: HealthLog[] = (dbLogs.length > 0 ? dbLogs : patient.logs).map((log: any) => {
+  const allLogsForChart: HealthLog[] = (dbLogs.length > 0 ? dbLogs : (patient as any).logs || []).map((log: any) => {
     let symptoms: string[] = [];
     try {
       symptoms = Array.isArray(log.symptoms) ? log.symptoms : (typeof log.symptoms === 'string' ? JSON.parse(log.symptoms) : []);
@@ -211,8 +266,42 @@ export function PatientDashboard() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+        <Loader2 className="h-12 w-12 text-blue-500 animate-spin" />
+        <p className="text-slate-500 animate-pulse">Loading your dashboard...</p>
+      </div>
+    );
+  }
+
+  const isPending = patientStatus === 'pendingdoctorapproval';
+
   return (
     <div className="space-y-6">
+      {/* Notifications Panel (FR35) */}
+      {notifications.filter(n => !n.is_read).length > 0 && (
+        <div className="bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-blue-100 dark:border-blue-900 overflow-hidden">
+          <div className="px-4 py-2 bg-blue-50 dark:bg-blue-900/40 border-b border-blue-100 dark:border-blue-800 flex items-center justify-between">
+            <h3 className="text-sm font-bold text-blue-800 dark:text-blue-300 flex items-center gap-2">
+              <Bell className="h-4 w-4" /> New Notifications
+            </h3>
+          </div>
+          <div className="divide-y divide-slate-100 dark:divide-slate-800">
+            {notifications.filter(n => !n.is_read).map(n => (
+              <div key={n.id} className="p-3 flex items-start gap-3 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                <div className={`mt-1 h-2 w-2 rounded-full flex-shrink-0 ${n.type === 'critical' ? 'bg-red-500' : 'bg-blue-500'}`} />
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">{n.title}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">{n.message}</p>
+                </div>
+                <button onClick={() => markNotificationRead(n.id)} className="text-[10px] font-bold text-blue-600 hover:text-blue-800 uppercase">Mark Read</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Welcome Header */}
       <div className="md:flex md:items-center md:justify-between">
         <div className="flex-1 min-w-0">
@@ -220,7 +309,7 @@ export function PatientDashboard() {
             {t('patient_dashboard.greeting')}, {patient.name.split(' ')[0]}!
           </h2>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            {t('patient_dashboard.healthOverview')}
+            Current Status: <span className="font-bold uppercase text-blue-600">{patientStatus}</span> | Condition: <span className={`font-bold uppercase ${patientCondition === 'critical' ? 'text-red-500' : 'text-green-500'}`}>{patientCondition}</span>
           </p>
         </div>
         <div className="mt-4 flex gap-3 md:mt-0 md:ml-4">
@@ -270,14 +359,14 @@ export function PatientDashboard() {
       )}
 
       {/* Alert Banner */}
-      {patient.status !== 'stable' && (
-        <div className="rounded-md bg-yellow-50 dark:bg-yellow-900/30 p-4 border border-yellow-200 dark:border-yellow-800">
+      {patientCondition !== 'stable' && (
+        <div className={`rounded-md p-4 border ${patientCondition === 'critical' ? 'bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800' : 'bg-yellow-50 dark:bg-yellow-900/30 border-yellow-200 dark:border-yellow-800'}`}>
           <div className="flex">
-            <AlertCircle className="h-5 w-5 text-yellow-400 flex-shrink-0" />
+            <AlertCircle className={`h-5 w-5 flex-shrink-0 ${patientCondition === 'critical' ? 'text-red-400' : 'text-yellow-400'}`} />
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-yellow-800 dark:text-yellow-300">{t('patient_dashboard.attentionNeeded')}</h3>
-              <p className="mt-1 text-sm text-yellow-700 dark:text-yellow-400">
-                {t('patient_dashboard.statusWarning')} <strong>{patient.status}</strong>. {t('patient_dashboard.pleaseEnsure')}
+              <h3 className={`text-sm font-medium ${patientCondition === 'critical' ? 'text-red-800 dark:text-red-300' : 'text-yellow-800 dark:text-yellow-300'}`}>Attention Needed</h3>
+              <p className={`mt-1 text-sm ${patientCondition === 'critical' ? 'text-red-700 dark:text-red-400' : 'text-yellow-700 dark:text-yellow-400'}`}>
+                Your current health status is marked as <strong>{patientCondition}</strong>. Please monitor your vitals closely.
               </p>
             </div>
           </div>

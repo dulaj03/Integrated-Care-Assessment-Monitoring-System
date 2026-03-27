@@ -19,7 +19,7 @@ class PatientModel {
 
   static async findById(id) {
     const result = await pool.query(
-      'SELECT id, full_name, email, hospital_id, doctor_id, status, created_at FROM patients WHERE id = $1',
+      'SELECT id, full_name, email, hospital_id, doctor_id, status, condition, created_at FROM patients WHERE id = $1',
       [id]
     );
     return result.rows[0];
@@ -27,7 +27,15 @@ class PatientModel {
 
   static async findAll() {
     const result = await pool.query(
-      'SELECT id, full_name, email, hospital_id, doctor_id, status, created_at FROM patients ORDER BY created_at DESC'
+      'SELECT id, full_name, email, hospital_id, doctor_id, status, condition, created_at FROM patients ORDER BY created_at DESC'
+    );
+    return result.rows;
+  }
+
+  static async findByDoctorId(doctorId) {
+    const result = await pool.query(
+      'SELECT id, full_name, email, hospital_id, status, condition, created_at FROM patients WHERE doctor_id = $1 ORDER BY created_at DESC',
+      [doctorId]
     );
     return result.rows;
   }
@@ -36,6 +44,14 @@ class PatientModel {
     const result = await pool.query(
       'UPDATE patients SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING id, full_name, status',
       [status, id]
+    );
+    return result.rows[0];
+  }
+
+  static async updateCondition(id, condition) {
+    const result = await pool.query(
+      'UPDATE patients SET condition = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING id, full_name, condition',
+      [condition, id]
     );
     return result.rows[0];
   }

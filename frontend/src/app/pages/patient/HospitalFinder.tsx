@@ -101,8 +101,36 @@ export function HospitalFinder() {
     setStep('confirm');
   };
 
-  const handleFinalBook = () => {
-    setStep('booked');
+  const handleFinalBook = async () => {
+    const token = sessionStorage.getItem('token');
+    if (!token || !selectedHospital || !selectedDoctor) return;
+
+    try {
+      const res = await fetch('http://localhost:5000/api/appointments/book', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          doctor_id: selectedDoctor.id,
+          hospital_id: selectedHospital.id,
+          appointment_date: selectedDate,
+          appointment_time: selectedSlot,
+          reason: reason
+        })
+      });
+
+      if (res.ok) {
+        setStep('booked');
+      } else {
+        const err = await res.json();
+        alert(err.error || 'Booking failed');
+      }
+    } catch (error) {
+      console.error('Error booking appointment:', error);
+      alert('Network error. Please try again.');
+    }
   };
 
   const resetFlow = () => {

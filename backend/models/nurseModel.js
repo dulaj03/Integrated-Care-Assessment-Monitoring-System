@@ -50,6 +50,17 @@ class NurseModel {
     return result.rows;
   }
 
+  static async findActiveNursesByHospitalId(hospitalId) {
+    const result = await pool.query(
+      `SELECT id, full_name, email, qualification, years_of_experience, institution_name, status, hospital_ids
+       FROM nurses
+       WHERE ($1 = ANY(hospital_ids)) 
+       AND status = 'ACTIVE'`,
+      [hospitalId]
+    );
+    return result.rows;
+  }
+
   static async delete(id) {
     const result = await pool.query(
       'DELETE FROM nurses WHERE id = $1 RETURNING id',

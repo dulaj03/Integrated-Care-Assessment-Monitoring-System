@@ -16,12 +16,24 @@ export interface Message {
 
 export interface Conversation {
   id: string;
-  participantIds: [string, string]; // [patient_id, professional_id]
+  participantIds: [string, string];
   participantNames: [string, string];
   participantRoles: ['patient', 'professional'];
   messages: Message[];
   lastMessage?: string;
   lastMessageTime?: string;
+  // Backend additions
+  other_id?: string;
+  other_role?: string;
+}
+
+export interface BackendMessage {
+  id: number;
+  sender_id: string;
+  receiver_id: string;
+  message_text: string;
+  sent_at: string;
+  is_read: boolean;
 }
 
 // Mock conversations between patients and doctors/nurses

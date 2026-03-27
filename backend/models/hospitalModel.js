@@ -7,7 +7,7 @@ class HospitalModel {
       `INSERT INTO hospitals (name, email, password, registration_number, address, phone, type, specialties)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        RETURNING id, name, email, type, specialties, status`,
-      [name, email, password, registration_number, address, phone, type || 'Private', JSON.stringify(specialties || [])]
+      [name, email, password, registration_number, address, phone, type || 'Private', (specialties || [])]
     );
     return result.rows[0];
   }

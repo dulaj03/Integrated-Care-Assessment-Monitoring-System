@@ -6,7 +6,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Send } from 'lucide-react';
-import { Message, Conversation, formatMessageTime, getOtherParticipant } from '../lib/mockMessages';
+import { Conversation, formatMessageTime } from '../lib/mockMessages';
 
 interface MessagingUIProps {
   conversation: Conversation;
@@ -15,13 +15,34 @@ interface MessagingUIProps {
 }
 
 export function MessagingUI({ conversation, currentUserId, onSendMessage }: MessagingUIProps) {
-  const [messages, setMessages] = useState<Message[]>(conversation.messages);
+  const [messages, setMessages] = useState<any[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isSending, setIsSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom when new messages arrive
+  const fetchMessages = async () => {
+    const token = sessionStorage.getItem('token');
+    if (!token || !conversation) return;
+    try {
+      const res = await fetch(`http://localhost:5000/api/messages/${conversation.other_role}/${conversation.other_id}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setMessages(data);
+      }
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchMessages();
+    const interval = setInterval(fetchMessages, 5000); // Poll every 5 seconds
+    return () => clearInterval(interval);
+  }, [conversation]);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -30,45 +51,37 @@ export function MessagingUI({ conversation, currentUserId, onSendMessage }: Mess
     scrollToBottom();
   }, [messages]);
 
-  // Get the other participant
-  const otherParticipant = getOtherParticipant(conversation, currentUserId);
-
-  // Determine if current user is a patient or professional
-  const currentUserRole = conversation.participantIds[0] === currentUserId
-    ? conversation.participantRoles[0]
-    : conversation.participantRoles[1];
-
-  // Get current user's name
-  const currentUserName = conversation.participantIds[0] === currentUserId
-    ? conversation.participantNames[0]
-    : conversation.participantNames[1];
-
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!inputValue.trim()) return;
 
     setIsSending(true);
+    const token = sessionStorage.getItem('token');
+    
+    try {
+      const res = await fetch('http://localhost:5000/api/messages/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          receiver_id: conversation.other_id,
+          receiver_role: conversation.other_role,
+          message_text: inputValue
+        })
+      });
 
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 300));
-
-    const newMessage: Message = {
-      id: `msg-${Date.now()}`,
-      senderId: currentUserId,
-      senderName: currentUserName,
-      senderRole: currentUserRole as 'patient' | 'professional',
-      content: inputValue,
-      timestamp: new Date().toISOString(),
-      isRead: false,
-    };
-
-    setMessages([...messages, newMessage]);
-    setInputValue('');
-    setIsSending(false);
-
-    // Call optional callback
-    onSendMessage?.(inputValue);
+      if (res.ok) {
+        setInputValue('');
+        fetchMessages();
+        onSendMessage?.(inputValue);
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+    } finally {
+      setIsSending(false);
+    }
   };
 
   return (
@@ -76,8 +89,8 @@ export function MessagingUI({ conversation, currentUserId, onSendMessage }: Mess
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-500 to-blue-600 dark:from-blue-700 dark:to-blue-800 px-6 py-4 border-b border-blue-700">
         <div>
-          <h2 className="text-lg font-semibold text-white">{otherParticipant.name}</h2>
-          <p className="text-sm text-blue-100 capitalize">{otherParticipant.role}</p>
+          <h2 className="text-lg font-semibold text-white capitalize">{conversation.other_role}: {conversation.other_id}</h2>
+          <p className="text-sm text-blue-100 italic">Active conversation</p>
         </div>
       </div>
 
@@ -91,12 +104,12 @@ export function MessagingUI({ conversation, currentUserId, onSendMessage }: Mess
             <p>No messages yet. Start the conversation!</p>
           </div>
         ) : (
-          messages.map((message) => {
-            const isSender = message.senderId === currentUserId;
+          messages.map((message, idx) => {
+            const isSender = message.sender_id === currentUserId;
 
             return (
               <div
-                key={message.id}
+                key={message.id || idx}
                 className={`flex ${isSender ? 'justify-end' : 'justify-start'} animate-fade-in`}
               >
                 {/* Message Bubble */}
@@ -106,14 +119,14 @@ export function MessagingUI({ conversation, currentUserId, onSendMessage }: Mess
                     : 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white rounded-bl-none'
                   }`}
                 >
-                  <p className="text-sm leading-relaxed break-words">{message.content}</p>
+                  <p className="text-sm leading-relaxed break-words">{message.message_text}</p>
                   <p
                     className={`text-xs mt-1 ${isSender
                       ? 'text-blue-100'
                       : 'text-slate-600 dark:text-slate-400'
                     }`}
                   >
-                    {formatMessageTime(message.timestamp)}
+                    {formatMessageTime(message.sent_at || new Date().toISOString())}
                   </p>
                 </div>
               </div>

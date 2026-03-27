@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { Save, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 export function HealthLog() {
@@ -45,10 +44,12 @@ export function HealthLog() {
     setLoading(true);
 
     try {
+      const token = sessionStorage.getItem('token');
       const res = await fetch('http://localhost:5000/api/health/log', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           patient_id: patientId,

@@ -29,8 +29,14 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // ─── Routes (add more as we build them) ───────────────────────
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/admin', require('./routes/admin'));
+app.use('/api/doctor', require('./routes/doctor'));
+app.use('/api/nurse', require('./routes/nurse'));
 app.use('/api/health', require('./routes/health'));
 app.use('/api/hospitals', require('./routes/hospitals'));
+app.use('/api/notifications', require('./routes/notifications'));
+app.use('/api/appointments', require('./routes/appointment'));
+app.use('/api/lab', require('./routes/lab'));
+app.use('/api/messages', require('./routes/message'));
 
 // ─── Health Check ─────────────────────────────────────────────
 app.get('/', (req, res) => {

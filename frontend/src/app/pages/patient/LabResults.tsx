@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { FlaskConical, Clock, CheckCircle2, AlertTriangle, ChevronDown, ChevronUp, TrendingUp, TrendingDown, Minus, Microscope, Scan, Zap, Droplet } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { FlaskConical, Clock, CheckCircle2, AlertTriangle, ChevronDown, ChevronUp, TrendingUp, TrendingDown, Minus, Microscope, Scan, Zap, Droplet, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { format } from 'date-fns';
 import {
@@ -190,14 +190,55 @@ function LabTestCard({ test }: { test: LabTest }) {
 }
 
 export function LabResults() {
-  const patientId = 'p1';
-  const tests = MOCK_LAB_TESTS.filter(t => t.patientId === patientId);
+  const [dbTests, setDbTests] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState<string>('all');
+
+  useEffect(() => {
+    fetchLabResults();
+  }, []);
+
+  const fetchLabResults = async () => {
+    const token = sessionStorage.getItem('token');
+    if (!token) return;
+    try {
+      const res = await fetch('http://localhost:5000/api/lab/my', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setDbTests(data);
+      }
+    } catch (error) {
+      console.error('Error fetching lab results:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Map backend to frontend LabTest interface
+  const tests: LabTest[] = dbTests.length > 0 ? dbTests.map(t => ({
+    id: String(t.id),
+    patientId: String(t.patient_id),
+    hospitalId: String(t.hospital_id),
+    orderedByDoctorId: String(t.doctor_id),
+    testName: t.test_name,
+    testType: t.test_type,
+    status: t.status,
+    orderedDate: t.created_at,
+    priority: t.priority || 'routine',
+    result: t.result_data || (t.result_summary ? { summary: t.result_summary } : null),
+    steps: t.steps || []
+  })) : MOCK_LAB_TESTS.filter(t => t.patientId === 'p1');
 
   const filtered = filterStatus === 'all' ? tests : tests.filter(t => t.status === filterStatus);
 
   const pendingCount = tests.filter(t => !['results_ready', 'reviewed_by_doctor'].includes(t.status)).length;
   const readyCount = tests.filter(t => t.status === 'results_ready' || t.status === 'reviewed_by_doctor').length;
+
+  if (loading) {
+     return <div className="flex items-center justify-center p-20"><Loader2 className="h-8 w-8 animate-spin text-blue-600" /></div>;
+  }
 
   return (
     <div className="space-y-6">

@@ -28,4 +28,51 @@ const verifyAdminToken = (req, res, next) => {
   });
 };
 
-module.exports = { verifyToken, verifyAdminToken };
+// Middleware: Verify patient only
+const verifyPatientToken = (req, res, next) => {
+  verifyToken(req, res, () => {
+    if (req.user.role !== 'patient') {
+      return res.status(403).json({ error: 'Access denied. Patients only.' });
+    }
+    next();
+  });
+};
+
+// Middleware: Verify doctor only
+const verifyDoctorToken = (req, res, next) => {
+  verifyToken(req, res, () => {
+    if (req.user.role !== 'doctor') {
+      return res.status(403).json({ error: 'Access denied. Doctors only.' });
+    }
+    next();
+  });
+};
+
+// Middleware: Verify nurse only
+const verifyNurseToken = (req, res, next) => {
+  verifyToken(req, res, () => {
+    if (req.user.role !== 'nurse') {
+      return res.status(403).json({ error: 'Access denied. Nurses only.' });
+    }
+    next();
+  });
+};
+
+// Middleware: Verify hospital only
+const verifyHospitalToken = (req, res, next) => {
+  verifyToken(req, res, () => {
+    if (req.user.role !== 'hospital') {
+      return res.status(403).json({ error: 'Access denied. Hospitals only.' });
+    }
+    next();
+  });
+};
+
+module.exports = { 
+  verifyToken, 
+  verifyAdminToken,
+  verifyPatientToken,
+  verifyDoctorToken,
+  verifyNurseToken,
+  verifyHospitalToken
+};

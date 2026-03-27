@@ -1,78 +1,95 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FlaskConical, CheckCircle2, ChevronDown, ChevronUp, Upload, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'motion/react';
 import {
-  MOCK_LAB_TESTS,
-  LabTest,
-  LabTestStatus,
   LAB_STATUS_STEPS,
   getLabStatusLabel,
   getLabStatusColor,
+  LabTestStatus
 } from '../../lib/hospitalData';
-import { MOCK_PATIENTS } from '../../lib/mockData';
 
 export function LabManagement() {
-  const [tests, setTests] = useState<LabTest[]>(MOCK_LAB_TESTS);
+  const [tests, setTests] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [resultInputs, setResultInputs] = useState<Record<string, string>>({});
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [uploadNote, setUploadNote] = useState<Record<string, string>>({});
 
-  const getPatientName = (id: string) => MOCK_PATIENTS.find(p => p.id === id)?.name || id;
+  const fetchTests = async () => {
+    const token = sessionStorage.getItem('token');
+    if (!token) return;
+    try {
+      const res = await fetch('http://localhost:5000/api/lab/my', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setTests(data);
+      }
+    } catch (error) {
+      console.error('Error fetching lab tests:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTests();
+  }, []);
+
+  const getPatientName = (id: string, test?: any) => test?.patient_name || id;
 
   const filtered = filterStatus === 'all' ? tests : tests.filter(t => t.status === filterStatus);
 
-  const advanceStatus = (testId: string) => {
+  const updateTestStatus = async (testId: string, newStatus: string, payload: any = {}) => {
     setUpdatingId(testId);
-    setTimeout(() => {
-      setTests(prev => prev.map(t => {
-        if (t.id !== testId) return t;
-        const currentIdx = LAB_STATUS_STEPS.indexOf(t.status);
-        if (currentIdx >= LAB_STATUS_STEPS.length - 2) return t; // don't auto-advance to 'reviewed'
-        const nextStatus = LAB_STATUS_STEPS[currentIdx + 1];
-        const newStep = {
-          step: getLabStatusLabel(nextStatus),
-          completedAt: new Date().toISOString(),
-          note: uploadNote[testId] || undefined,
-        };
-        return {
-          ...t,
-          status: nextStatus,
-          steps: [...t.steps, newStep],
-        };
-      }));
+    const token = sessionStorage.getItem('token');
+    try {
+      const res = await fetch(`http://localhost:5000/api/lab/${testId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ status: newStatus, ...payload })
+      });
+      if (res.ok) {
+        fetchTests();
+      }
+    } catch (error) {
+      console.error('Error updating status:', error);
+    } finally {
       setUpdatingId(null);
-      setUploadNote(prev => ({ ...prev, [testId]: '' }));
-    }, 800);
+    }
+  };
+
+  const advanceStatus = (testId: string) => {
+    const test = tests.find(t => t.id === testId);
+    if (!test) return;
+    const currentIdx = LAB_STATUS_STEPS.indexOf(test.status as any);
+    if (currentIdx >= LAB_STATUS_STEPS.length - 2) return;
+    const nextStatus = LAB_STATUS_STEPS[currentIdx + 1];
+    updateTestStatus(testId, nextStatus);
   };
 
   const uploadResult = (testId: string) => {
     const summary = resultInputs[testId];
     if (!summary) return;
-    setUpdatingId(testId);
-    setTimeout(() => {
-      setTests(prev => prev.map(t => {
-        if (t.id !== testId) return t;
-        return {
-          ...t,
-          status: 'results_ready',
-          completedDate: new Date().toISOString(),
-          result: {
-            summary,
-            reviewNote: undefined,
-          },
-          steps: [...t.steps, {
-            step: 'Results reviewed and released to patient',
-            completedAt: new Date().toISOString(),
-          }],
-        };
-      }));
-      setResultInputs(prev => ({ ...prev, [testId]: '' }));
-      setUpdatingId(null);
-    }, 1000);
+    updateTestStatus(testId, 'results_ready', { result_summary: summary });
+    setResultInputs(prev => ({ ...prev, [testId]: '' }));
   };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center p-20 space-y-4">
+        <Loader2 className="h-10 w-10 text-blue-500 animate-spin" />
+        <p className="text-slate-500 italic">Synchronizing with lab database...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -114,7 +131,7 @@ export function LabManagement() {
       {/* Test Cards */}
       <div className="space-y-4">
         {filtered.map(test => {
-          const currentStepIdx = LAB_STATUS_STEPS.indexOf(test.status);
+          const currentStepIdx = LAB_STATUS_STEPS.indexOf(test.status as any);
           const isExpanded = expandedId === test.id;
           const canAdvance = currentStepIdx < LAB_STATUS_STEPS.length - 2 && test.status !== 'results_ready';
           const isUpdating = updatingId === test.id;
@@ -126,7 +143,7 @@ export function LabManagement() {
                 <div className="flex items-start justify-between mb-4">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-bold text-slate-900 dark:text-white">{test.testName}</h3>
+                      <h3 className="font-bold text-slate-900 dark:text-white">{test.test_name}</h3>
                       <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${test.priority === 'stat' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' :
                         test.priority === 'urgent' ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300' :
                           'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
@@ -135,12 +152,12 @@ export function LabManagement() {
                       </span>
                     </div>
                     <p className="text-sm text-slate-500 dark:text-slate-400">
-                      Patient: <span className="font-medium text-slate-700 dark:text-slate-300">{getPatientName(test.patientId)}</span>
-                      · Ordered: {format(new Date(test.orderedDate), 'MMM d, yyyy')}
+                      Patient: <span className="font-medium text-slate-700 dark:text-slate-300">{getPatientName(test.patient_id, test)}</span>
+                      · Ordered: {format(new Date(test.created_at), 'MMM d, yyyy')}
                     </p>
                   </div>
-                  <span className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-tight ${getLabStatusColor(test.status)}`}>
-                    {getLabStatusLabel(test.status)}
+                  <span className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-tight ${getLabStatusColor(test.status as any)}`}>
+                    {getLabStatusLabel(test.status as any)}
                   </span>
                 </div>
 
@@ -211,13 +228,13 @@ export function LabManagement() {
                   <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }} className="overflow-hidden">
                     <div className="border-t border-slate-200 dark:border-slate-700 px-5 py-4 space-y-3">
                       <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">Progress Timeline</p>
-                      {test.steps.map((step, i) => (
+                      {(test.steps || []).map((step: any, i: number) => (
                         <div key={i} className="flex gap-3 items-start">
                           <div className="flex flex-col items-center">
                             <div className="h-6 w-6 rounded-full bg-blue-600 dark:bg-blue-500 flex items-center justify-center flex-shrink-0">
                               <CheckCircle2 className="h-4 w-4 text-white" />
                             </div>
-                            {i < test.steps.length - 1 && <div className="w-px h-full min-h-[16px] bg-slate-200 dark:bg-slate-700 mt-1" />}
+                            {i < (test.steps || []).length - 1 && <div className="w-px h-full min-h-[16px] bg-slate-200 dark:bg-slate-700 mt-1" />}
                           </div>
                           <div className="pb-3">
                             <p className="text-sm font-medium text-slate-900 dark:text-white">{step.step}</p>

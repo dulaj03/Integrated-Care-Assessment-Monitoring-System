@@ -1,5 +1,5 @@
-import { Calendar, Clock, MapPin, Phone, User, Plus, CheckCircle, AlertCircle, X } from 'lucide-react';
-import { useState } from 'react';
+import { Calendar, Clock, MapPin, Phone, User, Plus, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { CURRENT_USER_PATIENT, MOCK_DOCTORS } from '../../lib/mockData';
 import { format, isPast } from 'date-fns';
 import { useTranslation } from 'react-i18next';
@@ -12,45 +12,71 @@ interface Appointment {
   doctorId?: string;
   status?: 'upcoming' | 'completed' | 'cancelled';
   notes?: string;
+  doctorName?: string;
 }
 
 export function Appointments() {
   const { t } = useTranslation();
   const patient = CURRENT_USER_PATIENT;
-  const [appointments, setAppointments] = useState<Appointment[]>([
+  const [dbAppointments, setDbAppointments] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchAppointments();
+  }, []);
+
+  const fetchAppointments = async () => {
+    const token = sessionStorage.getItem('token');
+    if (!token) return;
+    try {
+      const res = await fetch('http://localhost:5000/api/appointments/my', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setDbAppointments(data);
+      }
+    } catch (error) {
+      console.error('Error fetching appointments:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const appointments: Appointment[] = dbAppointments.length > 0 ? dbAppointments.map(a => ({
+    id: String(a.id),
+    date: `${a.appointment_date.split('T')[0]}T${a.appointment_time}`,
+    title: a.reason || 'Medical Consultation',
+    location: a.hospital_name || 'Hospital',
+    doctorId: a.doctor_id,
+    doctorName: a.doctor_name,
+    status: a.status === 'completed' ? 'completed' : (a.status === 'cancelled' ? 'cancelled' : 'upcoming'),
+    notes: a.doctor_notes
+  })) : [
     ...patient.upcomingAppointments.map(apt => ({
       ...apt,
       status: isPast(new Date(apt.date)) ? ('completed' as const) : ('upcoming' as const),
       doctorId: patient.assignedDoctorId,
-    })),
-    {
-      id: 'a-past-1',
-      date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-      title: 'Follow-up Consultation',
-      location: 'General Hospital, Colombo',
-      status: 'completed' as const,
-      doctorId: 'd1',
-      notes: 'Blood pressure readings normal. Continue current medications.',
-    },
-    {
-      id: 'a-past-2',
-      date: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
-      title: 'Routine Checkup',
-      location: 'General Hospital, Colombo',
-      status: 'completed' as const,
-      doctorId: 'd1',
-      notes: 'All tests normal. Encouraged to increase physical activity.',
-    },
-  ]);
+    }))
+  ];
 
   const upcomingAppointments = appointments.filter(apt => !isPast(new Date(apt.date)));
   const pastAppointments = appointments.filter(apt => isPast(new Date(apt.date)));
 
-  const getDoctorName = (doctorId?: string) => {
-    if (!doctorId) return 'Dr. Sarah Perera';
-    const doctor = MOCK_DOCTORS.find(d => d.id === doctorId);
+  const getDoctorName = (appointment: Appointment) => {
+    if (appointment.doctorName) return appointment.doctorName;
+    const doctor = MOCK_DOCTORS.find(d => d.id === appointment.doctorId);
     return doctor?.name || 'General Doctor';
   };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center p-20 gap-4">
+        <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
+        <p className="text-slate-500 animate-pulse">Loading appointments...</p>
+      </div>
+    );
+  }
 
   const AppointmentCard = ({ appointment }: { appointment: Appointment }) => {
     const appointmentDate = new Date(appointment.date);
@@ -67,7 +93,7 @@ export function Appointments() {
               {appointment.title}
             </h3>
             <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-              {t('patient_appointments.with')} {getDoctorName(appointment.doctorId)}
+              {t('patient_appointments.with')} {getDoctorName(appointment)}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -217,7 +243,7 @@ export function Appointments() {
                 Your Doctor
               </p>
               <p className="text-sm text-slate-600 dark:text-slate-400">
-                {getDoctorName(patient.assignedDoctorId)}
+                {appointments[0]?.doctorName || 'Dr. Sarah Perera'}
               </p>
             </div>
           </div>

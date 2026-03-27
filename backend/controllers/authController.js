@@ -64,10 +64,26 @@ const login = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(401).json({ error: 'Invalid email or password' });
 
-    // For non-patient and non-hospital roles (Doctor/Nurse), check if they are active
-    if ((role === 'doctor' || role === 'nurse')) {
-      if (user.status?.toUpperCase() !== 'ACTIVE') {
-        return res.status(403).json({ error: 'Your account is pending verification or has been rejected. Please contact administrator.' });
+    // Status checks according to FR3, FR4, FR5
+    const status = user.status?.toUpperCase();
+    
+    if (role === 'doctor' || role === 'nurse') {
+      if (status === 'PENDINGADMINAPPROVAL') {
+        return res.status(403).json({ error: 'Your account is pending administrator approval. Please wait for verification.' });
+      }
+      if (status !== 'ACTIVE') {
+        return res.status(403).json({ error: 'Your account is not active. Please contact administrator.' });
+      }
+    } else if (role === 'patient') {
+      if (status === 'PENDINGDOCTORAPPROVAL') {
+        return res.status(403).json({ error: 'Your registration is pending approval from your selected doctor.' });
+      }
+      if (status !== 'ACTIVE' && status !== 'MONITORING' && status !== 'CRITICAL') {
+        return res.status(403).json({ error: 'Your account is not active. Please contact support.' });
+      }
+    } else if (role === 'hospital') {
+      if (status !== 'ACTIVE') {
+        return res.status(403).json({ error: 'This hospital account is currently inactive.' });
       }
     }
 
@@ -96,7 +112,10 @@ const registerPatient = async (req, res) => {
       full_name, email, password: hashedPassword, hospital_id, doctor_id
     });
 
-    res.status(201).json({ message: 'Registration successful! You can now log in.', user: patient });
+    res.status(201).json({ 
+      message: 'Registration submitted! Your account is pending approval from Dr. ' + (doctor_id || 'your assigned doctor'), 
+      user: { ...patient, status: 'pendingdoctorapproval' } 
+    });
   } catch (err) {
     res.status(500).json({ error: 'Server error during registration' });
   }

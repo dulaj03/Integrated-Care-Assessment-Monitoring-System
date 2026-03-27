@@ -1,22 +1,51 @@
 import { Mail, Phone, Calendar, Heart, Pill, AlertCircle, Edit, Shield, MapPin, User as UserIcon } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { CURRENT_USER_PATIENT, MOCK_DOCTORS } from '../../lib/mockData';
 import { useTranslation } from 'react-i18next';
 
 export function Profile() {
   const { t } = useTranslation();
-  const patient = CURRENT_USER_PATIENT;
+  const [patient, setPatient] = useState<any>(CURRENT_USER_PATIENT);
+  const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    name: patient.name,
-    email: patient.email,
-    age: patient.age,
-    gender: patient.gender,
+    name: '',
+    email: '',
+    age: '',
+    gender: 'Male',
     phone: '+94 71 234 5678',
     address: '123 Main Street, Colombo 3, Sri Lanka',
   });
 
-  const assignedDoctor = MOCK_DOCTORS.find(d => d.id === patient.assignedDoctorId);
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const token = sessionStorage.getItem('token');
+      if (!token) return;
+      try {
+        const res = await fetch('http://localhost:5000/api/auth/me', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const { user } = await res.json();
+          setPatient(user);
+          setFormData(prev => ({
+            ...prev,
+            name: user.full_name || user.name,
+            email: user.email,
+          }));
+        }
+      } catch (err) {
+        console.error('Error fetching profile:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProfile();
+  }, []);
+
+  const assignedDoctor = MOCK_DOCTORS.find(d => d.id === patient.doctor_id || d.id === (patient as any).assignedDoctorId);
+
+  if (loading) return <div className="p-8 text-center text-slate-500">Loading profile...</div>;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -260,7 +289,7 @@ export function Profile() {
 
         {patient.medications && patient.medications.length > 0 ? (
           <div className="space-y-3">
-            {patient.medications.map((med, index) => (
+            {patient.medications.map((med: any, index: number) => (
               <div
                 key={index}
                 className="p-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-700/50"
