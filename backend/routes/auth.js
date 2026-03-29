@@ -7,9 +7,10 @@ const {
   registerDoctor,
   registerNurse,
   registerHospital,
-  getMe
+  getMe,
+  updateAdminProfile
 } = require('../controllers/authController');
-const { verifyToken } = require('../middleware/authMiddleware');
+const { verifyToken, verifyAdminToken } = require('../middleware/authMiddleware');
 const upload = require('../utils/upload');
 
 // Public endpoints
@@ -23,5 +24,6 @@ router.post('/register/nurse', upload.single('licenseDocument'), registerNurse);
 
 // Protected endpoints
 router.get('/me', verifyToken, getMe);
+router.put('/admin/profile', verifyAdminToken, updateAdminProfile);
 
 module.exports = router;

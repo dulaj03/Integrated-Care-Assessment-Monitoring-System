@@ -5,10 +5,14 @@ const {
   getLatestHealthLog,
   getAllHealthLogs
 } = require('../controllers/healthController');
+const { verifyToken } = require('../middleware/authMiddleware');
 
-// All health log routes
+// All health log routes — protected
+router.use(verifyToken);
 router.post('/log', createHealthLog);
 router.get('/latest/:patient_id', getLatestHealthLog);
 router.get('/all/:patient_id', getAllHealthLogs);
+// Alias used by PatientWorkspace (frontend calls /api/health/logs/:id)
+router.get('/logs/:patient_id', getAllHealthLogs);
 
 module.exports = router;

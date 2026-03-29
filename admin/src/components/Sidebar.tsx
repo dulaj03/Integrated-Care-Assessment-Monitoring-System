@@ -5,12 +5,14 @@ import {
   Building2,
   LayoutDashboard,
   Settings,
-  LogOut
+  LogOut,
+  ShieldCheck
 } from 'lucide-react';
 import { motion } from 'motion/react';
 
 const navItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { id: 'pending', label: 'Pending Approvals', icon: ShieldCheck },
   { id: 'patients', label: 'Patients', icon: Activity },
   { id: 'doctors', label: 'Doctors', icon: Stethoscope },
   { id: 'nurses', label: 'Nurses', icon: Users },
@@ -57,9 +59,21 @@ export const Sidebar = ({ activeTab, onTabChange, onLogout }: {
       </nav>
 
       <div className="pt-6 border-t border-white/5 space-y-2">
-        <button className="w-full flex items-center gap-3 px-4 py-3 text-slate-400 hover:bg-white/5 hover:text-white rounded-xl transition-all">
-          <Settings className="w-5 h-5" />
+        <button
+          onClick={() => onTabChange('settings')}
+          className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group ${activeTab === 'settings'
+            ? 'bg-blue-600/10 text-blue-400 border border-blue-600/20'
+            : 'text-slate-400 hover:bg-white/5 hover:text-white border border-transparent'
+            }`}
+        >
+          <Settings className={`w-5 h-5 transition-transform duration-300 ${activeTab === 'settings' ? 'scale-110' : 'group-hover:scale-110'}`} />
           <span className="font-medium">Settings</span>
+          {activeTab === 'settings' && (
+            <motion.div
+              layoutId="activeTab"
+              className="ml-auto w-1.5 h-1.5 bg-blue-500 rounded-full"
+            />
+          )}
         </button>
         <button
           onClick={onLogout}

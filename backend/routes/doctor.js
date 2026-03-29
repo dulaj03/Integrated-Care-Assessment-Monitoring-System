@@ -5,7 +5,14 @@ const {
   approvePatient,
   rejectPatient,
   getMyPatients,
-  assignNurse
+  assignNurse,
+  getNursesForAssignment,
+  createClinicalOrder,
+  getPatientOrders,
+  createClinicalNote,
+  getPatientNotes,
+  updatePatientCondition,
+  getPatientReportsByDoctor
 } = require('../controllers/doctorController');
 const { verifyDoctorToken } = require('../middleware/authMiddleware');
 
@@ -15,6 +22,18 @@ router.get('/patients/pending', getPendingPatients);
 router.post('/patients/approve/:id', approvePatient);
 router.post('/patients/reject/:id', rejectPatient);
 router.get('/patients', getMyPatients);
+router.patch('/patients/condition/:id', updatePatientCondition);
+
+router.get('/nurses', getNursesForAssignment);
 router.post('/patients/assign-nurse', assignNurse);
+
+router.post('/orders', createClinicalOrder);
+router.get('/orders/:patientId', getPatientOrders);
+
+router.post('/notes', createClinicalNote);
+router.get('/notes/:patientId', getPatientNotes);
+
+// Read nurse reports (doctor read-only access)
+router.get('/nurse-reports/:patientId', getPatientReportsByDoctor);
 
 module.exports = router;

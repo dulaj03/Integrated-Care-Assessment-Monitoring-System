@@ -7,16 +7,16 @@ import {
   MOCK_HOSPITAL_DOCTORS,
   MOCK_HOSPITALS,
   getAppointmentStatusColor,
-  getDoctorById,
 } from '../../lib/hospitalData';
-import { MOCK_PATIENTS } from '../../lib/mockData';
 
 export function HospitalDashboard() {
   const storedUserName = sessionStorage.getItem('userName');
   const storedRole = sessionStorage.getItem('userRole');
   const token = sessionStorage.getItem('token');
+  const hospitalId = sessionStorage.getItem('userId') || '1';
   
   const [appointments, setAppointments] = useState<any[]>([]);
+  const [patients, setPatients] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Use stored hospital from session if available, otherwise fallback to mock
@@ -34,12 +34,20 @@ export function HospitalDashboard() {
         const data = await res.json();
         setAppointments(data);
       }
+
+      const patientsRes = await fetch(`http://localhost:5000/api/hospitals/${hospitalId}/patients`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (patientsRes.ok) {
+        const pData = await patientsRes.json();
+        setPatients(pData);
+      }
     } catch (error) {
-      console.error('Error fetching appointments:', error);
+      console.error('Error fetching dashboard data:', error);
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, [token, hospitalId]);
 
   useEffect(() => {
     fetchAppointments();
@@ -184,32 +192,29 @@ export function HospitalDashboard() {
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
             <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
-              {MOCK_PATIENTS.filter(p => p.hospitalId === hospital.id).map((patient) => {
-                const doc = getDoctorById(patient.assignedDoctorId);
-                return (
+              {patients.map((patient) => (
                   <tr key={patient.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="h-8 w-8 rounded-full overflow-hidden mr-3 bg-slate-100 flex items-center justify-center">
                           <Users className="h-4 w-4 text-slate-400" />
                         </div>
-                        <div className="text-sm font-medium text-slate-900 dark:text-white">{patient.name}</div>
+                        <div className="text-sm font-medium text-slate-900 dark:text-white">{patient.name || patient.full_name}</div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
-                      {patient.condition}
+                      {patient.condition || 'N/A'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-[10px] leading-5 font-bold rounded-full uppercase ${patient.status === 'critical' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
-                        {patient.status}
+                      <span className={`px-2 inline-flex text-[10px] leading-5 font-bold rounded-full uppercase ${patient.status === 'ciritical' || patient.status === 'CRITICAL' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+                        {patient.status || 'ACTIVE'}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
-                      {doc?.name}
+                      {patient.doctor_name || 'Unassigned'}
                     </td>
                   </tr>
-                );
-              })}
+              ))}
             </tbody>
           </table>
         </div>

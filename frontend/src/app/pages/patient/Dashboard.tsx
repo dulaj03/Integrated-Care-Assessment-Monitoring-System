@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Activity, Calendar, Droplet, Heart, Thermometer, AlertCircle, Plus, FlaskConical, Pill, ClipboardList, ChevronRight, Building2, CheckCircle2, Clock, User, History as HistoryIcon, Loader2, Bell } from 'lucide-react';
+import { Activity, Calendar, Droplet, Heart, Thermometer, AlertCircle, Plus, FlaskConical, Pill, ClipboardList, ChevronRight, Building2, CheckCircle2, Clock, User, History as HistoryIcon, Loader2, Bell, Send, Stethoscope, MapPin, FileText } from 'lucide-react';
 import { CURRENT_USER_PATIENT } from '../../lib/mockData';
 import {
   getPatientLabTests,
@@ -52,6 +52,7 @@ export function PatientDashboard() {
 
   const [dbLogs, setDbLogs] = useState<DbHealthLog[]>([]);
   const [notifications, setNotifications] = useState<any[]>([]);
+  const [liveAppointments, setLiveAppointments] = useState<any[]>([]);
   const [patientStatus, setPatientStatus] = useState(patient.status);
   const [patientCondition, setPatientCondition] = useState(patient.condition || 'stable');
   const [loading, setLoading] = useState(true);
@@ -66,6 +67,22 @@ export function PatientDashboard() {
       }
     } catch (error) {
       console.error('Error fetching health logs:', error);
+    }
+  };
+
+  const fetchLiveAppointments = async () => {
+    const token = sessionStorage.getItem('token');
+    if (!token) return;
+    try {
+      const res = await fetch('http://localhost:5000/api/appointments/my', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setLiveAppointments(data.filter((a: any) => a.status !== 'completed' && a.status !== 'cancelled'));
+      }
+    } catch (error) {
+      console.error('Error fetching appointments:', error);
     }
   };
 
@@ -106,7 +123,8 @@ export function PatientDashboard() {
     await Promise.all([
       fetchHealthLogs(),
       fetchNotifications(),
-      fetchPatientInfo()
+      fetchPatientInfo(),
+      fetchLiveAppointments()
     ]);
     setLoading(false);
   }, [patientId]);
@@ -597,35 +615,165 @@ export function PatientDashboard() {
         </div>
 
         {/* Appointments + Medications */}
-        <div className="bg-white dark:bg-slate-900 shadow dark:shadow-xl rounded-lg p-6">
-          <h3 className="text-lg leading-6 font-medium text-slate-900 dark:text-white mb-4 flex items-center">
-            <Calendar className="h-5 w-5 mr-2 text-blue-500" />
-            Upcoming Appointments
-          </h3>
-          {patient.upcomingAppointments.length > 0 ? (
-            <ul className="divide-y divide-slate-200 dark:divide-slate-800">
-              {patient.upcomingAppointments.map((appt) => (
-                <li key={appt.id} className="py-4">
-                  <div className="flex space-x-3">
-                    <div className="flex-1 space-y-1">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-sm font-medium text-slate-900 dark:text-white">{appt.title}</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">{new Date(appt.date).toLocaleDateString()}</p>
+        <div className="bg-white dark:bg-slate-900 shadow dark:shadow-xl rounded-xl p-6 space-y-5">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-blue-500" />
+              My Appointments
+            </h3>
+            <Link to="/patient/appointments" className="text-xs font-black text-blue-600 hover:underline flex items-center gap-1">
+              View all <ChevronRight className="h-3 w-3" />
+            </Link>
+          </div>
+
+          {liveAppointments.length > 0 ? (
+            <div className="space-y-4">
+              {liveAppointments.slice(0, 3).map((appt: any) => {
+                // Pipeline steps definition (same as Appointments.tsx)
+                const STEPS = [
+                  { key: 'requested',         label: 'Requested',    icon: Send,        activeColor: 'text-orange-500', bg: 'bg-orange-500',  ring: 'ring-orange-200', inactive: 'bg-slate-100 dark:bg-slate-800 text-slate-400' },
+                  { key: 'hospital_approved', label: 'Hosp. OK',     icon: Building2,   activeColor: 'text-blue-500',   bg: 'bg-blue-500',    ring: 'ring-blue-200',   inactive: 'bg-slate-100 dark:bg-slate-800 text-slate-400' },
+                  { key: 'confirmed',         label: 'Confirmed',    icon: Stethoscope, activeColor: 'text-emerald-500', bg: 'bg-emerald-500', ring: 'ring-emerald-200', inactive: 'bg-slate-100 dark:bg-slate-800 text-slate-400' },
+                ];
+                const currentStepIdx = STEPS.findIndex(s => s.key === appt.status);
+                const isConfirmed = appt.status === 'confirmed';
+                const isCancelled = appt.status === 'cancelled';
+
+                const cardBorder = isCancelled
+                  ? 'border-red-200 dark:border-red-900/30'
+                  : isConfirmed
+                  ? 'border-emerald-200 dark:border-emerald-900/30 bg-emerald-50/30 dark:bg-emerald-900/10'
+                  : 'border-slate-200 dark:border-slate-700';
+
+                return (
+                  <div
+                    key={appt.id}
+                    className={`rounded-2xl border-2 ${cardBorder} p-4 space-y-3 transition-all`}
+                  >
+                    {/* Top: doctor + date */}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="text-sm font-black text-slate-900 dark:text-white truncate">
+                          Dr. {appt.doctor_name}
+                        </p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="flex items-center gap-1 text-[10px] font-bold text-slate-400">
+                            <Clock className="h-3 w-3" />
+                            {format(new Date(appt.appointment_date), 'MMM d')} · {appt.appointment_time?.slice(0, 5)}
+                          </span>
+                          {appt.hospital_name && (
+                            <span className="flex items-center gap-1 text-[10px] font-bold text-slate-400 truncate">
+                              <MapPin className="h-3 w-3 shrink-0" />
+                              <span className="truncate">{appt.hospital_name}</span>
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      <p className="text-sm text-slate-500 dark:text-slate-400">{appt.location}</p>
+                      {/* Date badge */}
+                      <div className={`shrink-0 text-center px-3 py-1.5 rounded-xl
+                        ${isConfirmed ? 'bg-emerald-100 dark:bg-emerald-900/30' : 'bg-slate-100 dark:bg-slate-800'}`}>
+                        <p className={`text-lg font-black leading-none ${isConfirmed ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-700 dark:text-white'}`}>
+                          {format(new Date(appt.appointment_date), 'dd')}
+                        </p>
+                        <p className={`text-[8px] font-black uppercase tracking-widest ${isConfirmed ? 'text-emerald-400' : 'text-slate-400'}`}>
+                          {format(new Date(appt.appointment_date), 'MMM')}
+                        </p>
+                      </div>
                     </div>
+
+                    {/* Reason */}
+                    {appt.reason && (
+                      <div className="flex items-start gap-1.5">
+                        <FileText className="h-3 w-3 text-slate-400 mt-0.5 shrink-0" />
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400 italic leading-snug line-clamp-2">{appt.reason}</p>
+                      </div>
+                    )}
+
+                    {/* Inline 3-step pipeline */}
+                    {isCancelled ? (
+                      <div className="flex items-center gap-2 py-1.5 px-3 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-100 dark:border-red-900/30">
+                        <AlertCircle className="h-3.5 w-3.5 text-red-500 shrink-0" />
+                        <p className="text-[9px] font-black text-red-600 dark:text-red-400 uppercase tracking-widest">Cancelled</p>
+                      </div>
+                    ) : (
+                      <div className="relative pt-1 pb-0.5">
+                        {/* Track */}
+                        <div className="absolute top-[18px] left-[16px] right-[16px] h-0.5 bg-slate-200 dark:bg-slate-700 z-0" />
+                        {/* Progress fill */}
+                        <div
+                          className="absolute top-[18px] left-[16px] h-0.5 bg-emerald-400 z-0 transition-all duration-700"
+                          style={{
+                            width: isConfirmed
+                              ? 'calc(100% - 32px)'
+                              : currentStepIdx === 0
+                              ? '0%'
+                              : currentStepIdx === 1
+                              ? 'calc(50% - 16px)'
+                              : 'calc(100% - 32px)',
+                          }}
+                        />
+                        {/* Steps */}
+                        <div className="relative z-10 flex justify-between items-start">
+                          {STEPS.map((step, idx) => {
+                            const isDone = isConfirmed || currentStepIdx > idx;
+                            const isActive = currentStepIdx === idx && !isConfirmed;
+                            const StepIcon = step.icon;
+                            return (
+                              <div key={step.key} className="flex flex-col items-center gap-1 w-1/3">
+                                <div
+                                  className={`h-9 w-9 rounded-xl flex items-center justify-center transition-all duration-300 shadow-sm
+                                    ${isDone ? `${step.bg} text-white shadow-md` : ''}
+                                    ${isActive ? `bg-white dark:bg-slate-900 ${step.activeColor} ring-4 ${step.ring} dark:ring-opacity-30 shadow-md` : ''}
+                                    ${!isDone && !isActive ? step.inactive : ''}
+                                  `}
+                                >
+                                  {isDone
+                                    ? <CheckCircle2 className="h-4 w-4" />
+                                    : <StepIcon className="h-4 w-4" />
+                                  }
+                                </div>
+                                <p className={`text-[8px] font-black uppercase tracking-wider text-center leading-tight
+                                  ${isDone ? step.activeColor : isActive ? step.activeColor : 'text-slate-400 dark:text-slate-600'}
+                                `}>
+                                  {step.label}
+                                </p>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Doctor notes if confirmed */}
+                    {appt.doctor_notes && isConfirmed && (
+                      <div className="p-2.5 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-900/30 flex gap-2">
+                        <FileText className="h-3 w-3 text-blue-500 shrink-0 mt-0.5" />
+                        <p className="text-[9px] font-bold text-blue-700 dark:text-blue-300 italic line-clamp-2">"{appt.doctor_notes}"</p>
+                      </div>
+                    )}
                   </div>
-                </li>
-              ))}
-            </ul>
+                );
+              })}
+            </div>
           ) : (
-            <p className="text-slate-500 dark:text-slate-400 text-sm">No upcoming appointments scheduled.</p>
+            <div className="text-center py-8 space-y-2">
+              <Calendar className="mx-auto h-10 w-10 text-slate-200 dark:text-slate-700" />
+              <p className="text-slate-500 dark:text-slate-400 text-sm font-bold">No active appointments.</p>
+              <Link
+                to="/patient/appointments"
+                className="inline-flex items-center gap-1 text-xs font-black text-blue-600 hover:underline"
+              >
+                <Plus className="h-3 w-3" /> Book one now
+              </Link>
+            </div>
           )}
 
-          <div className="mt-6 border-t border-slate-200 dark:border-slate-800 pt-4">
-            <div className="flex items-center gap-2 mb-2">
+          {/* Medications */}
+          <div className="border-t border-slate-200 dark:border-slate-800 pt-4">
+            <div className="flex items-center gap-2 mb-3">
               <Pill className="h-4 w-4 text-green-500" />
-              <h4 className="text-sm font-medium text-slate-900 dark:text-white">My Medications</h4>
+              <h4 className="text-sm font-black text-slate-900 dark:text-white">My Medications</h4>
             </div>
             <ul className="space-y-2">
               {patient.medications.map((med, idx) => (

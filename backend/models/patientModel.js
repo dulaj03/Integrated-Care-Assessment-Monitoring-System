@@ -56,6 +56,14 @@ class PatientModel {
     return result.rows[0];
   }
 
+  static async updateDoctor(id, doctorId) {
+    const result = await pool.query(
+      'UPDATE patients SET doctor_id = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING id, full_name, doctor_id',
+      [doctorId, id]
+    );
+    return result.rows[0];
+  }
+
   static async delete(id) {
     const result = await pool.query(
       'DELETE FROM patients WHERE id = $1 RETURNING id',

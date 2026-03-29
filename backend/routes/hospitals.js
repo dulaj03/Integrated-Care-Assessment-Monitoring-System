@@ -4,5 +4,6 @@ const hospitalController = require('../controllers/hospitalController');
 
 router.get('/', hospitalController.getAllHospitals);
 router.get('/:hospital_id/doctors', hospitalController.getDoctorsByHospital);
+router.get('/:hospital_id/patients', hospitalController.getPatientsByHospital);
 
 module.exports = router;

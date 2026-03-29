@@ -24,7 +24,10 @@ app.use(express.json());                    // Parse JSON bodies
 app.use(express.urlencoded({ extended: true }));
 
 // Serve uploaded files (license documents, etc.)
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', (req, res, next) => {
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  next();
+}, express.static(path.join(__dirname, 'uploads')));
 
 // ─── Routes (add more as we build them) ───────────────────────
 app.use('/api/auth', require('./routes/auth'));

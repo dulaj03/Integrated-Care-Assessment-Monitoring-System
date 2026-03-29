@@ -1,5 +1,5 @@
 const pool = require('../config/db');
-const notificationModel = require('../models/notificationModel');
+const NotificationModel = require('../models/notificationModel');
 
 const appointmentController = {
     // Patient: Book an appointment
@@ -37,7 +37,7 @@ const appointmentController = {
 
             const results = await pool.query(
                 `UPDATE appointments SET status = $1, doctor_notes = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3 RETURNING *`,
-                [status, doctor_notes, id]
+                [status, doctor_notes || null, id]
             );
 
             if (results.rows.length === 0) return res.status(404).json({ error: 'Appointment not found' });
@@ -65,6 +65,7 @@ const appointmentController = {
 
             res.json(appt);
         } catch (error) {
+            console.error('[Update Status Error]', error);
             res.status(500).json({ error: 'Update failed' });
         }
     },

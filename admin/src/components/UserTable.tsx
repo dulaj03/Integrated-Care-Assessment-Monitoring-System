@@ -20,10 +20,11 @@ interface UserTableProps {
   onDelete?: (id: string, role: string) => void;
   onActivate?: (id: string, role: string) => void;
   onDeactivate?: (id: string, role: string) => void;
+  onReview?: (user: AdminUser) => void;
   title: string;
 }
 
-export const UserTable = ({ users, onApprove, onReject, onEdit, onDelete, onActivate, onDeactivate, title }: UserTableProps) => {
+export const UserTable = ({ users, onApprove, onReject, onEdit, onDelete, onActivate, onDeactivate, onReview, title }: UserTableProps) => {
   return (
     <div className="glass-card overflow-hidden">
       <div className="p-6 border-b border-white/5 flex items-center justify-between">
@@ -140,7 +141,11 @@ export const UserTable = ({ users, onApprove, onReject, onEdit, onDelete, onActi
                         <Trash2 className="w-4 h-4" />
                       </button>
                     )}
-                    <button className="p-2 hover:bg-white/5 rounded-lg text-slate-400 hover:text-white transition-all" title="View details">
+                    <button 
+                      onClick={() => onReview ? onReview(user) : onEdit?.(user)}
+                      className={`p-2 hover:bg-white/5 rounded-lg text-slate-400 hover:text-white transition-all ${(user.status.toUpperCase() === 'PENDING' || user.status.toUpperCase() === 'PENDINGADMINAPPROVAL') ? 'text-blue-400 hover:text-blue-300 animate-pulse' : ''}`} 
+                      title="View details"
+                    >
                       <ExternalLink className="w-4 h-4" />
                     </button>
                   </div>

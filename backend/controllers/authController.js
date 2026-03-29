@@ -226,6 +226,31 @@ const getMe = async (req, res) => {
   }
 };
 
+const updateAdminProfile = async (req, res) => {
+  const { username, email, full_name, password } = req.body;
+  const { id } = req.user;
+
+  try {
+    let hashedPassword = null;
+    if (password) {
+      hashedPassword = await bcrypt.hash(password, 10);
+    }
+
+    const updated = await AdminModel.update(id, {
+      username,
+      email,
+      fullName: full_name,
+      password: hashedPassword,
+    });
+
+    if (!updated) return res.status(404).json({ error: 'User not found' });
+
+    res.json({ message: 'Profile updated successfully', user: { ...updated, role: 'admin' } });
+  } catch (err) {
+    res.status(500).json({ error: 'Server error updating profile' });
+  }
+};
+
 module.exports = {
   adminLogin,
   login,
@@ -233,5 +258,6 @@ module.exports = {
   registerDoctor,
   registerNurse,
   registerHospital,
-  getMe
+  getMe,
+  updateAdminProfile
 };
