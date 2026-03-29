@@ -2,6 +2,9 @@ const PatientModel = require('../models/patientModel');
 const CareTeamModel = require('../models/careTeamModel');
 const NurseModel = require('../models/nurseModel');
 const NotificationModel = require('../models/notificationModel');
+const pool = require('../config/db');
+const HospitalModel = require('../models/hospitalModel');
+const DoctorModel = require('../models/doctorModel');
 
 // FR12: Get registration requests of patients pending approval
 const getPendingPatients = async (req, res) => {
@@ -106,10 +109,43 @@ const assignNurse = async (req, res) => {
   }
 };
 
+const getAllDoctors = async (req, res) => {
+  try {
+    const results = await pool.query(
+      `SELECT id, full_name, email, specialization, years_of_experience, institution_name, hospital_ids 
+       FROM doctors WHERE status = 'ACTIVE' ORDER BY full_name ASC`
+    );
+    res.json(results.rows);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch doctors' });
+  }
+};
+
+const getDoctorHospitals = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const doctor = await pool.query('SELECT hospital_ids FROM doctors WHERE id = $1', [id]);
+    if (doctor.rows.length === 0) return res.status(404).json({ error: 'Doctor not found' });
+    
+    const hospitalIds = doctor.rows[0].hospital_ids;
+    if (!hospitalIds || hospitalIds.length === 0) return res.json([]);
+
+    const hospitals = await pool.query(
+      'SELECT id, name, address, phone FROM hospitals WHERE id = ANY($1::int[])',
+      [hospitalIds]
+    );
+    res.json(hospitals.rows);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch doctor hospitals' });
+  }
+};
+
 module.exports = {
   getPendingPatients,
   approvePatient,
   rejectPatient,
   getMyPatients,
-  assignNurse
+  assignNurse,
+  getAllDoctors,
+  getDoctorHospitals
 };

@@ -1,5 +1,5 @@
 const pool = require('../config/db');
-const NotificationModel = require('../models/NotificationModel');
+const notificationModel = require('../models/notificationModel');
 
 const appointmentController = {
     // Patient: Book an appointment
@@ -9,17 +9,17 @@ const appointmentController = {
             const patient_id = req.user.id; // From verifyToken
 
             const results = await pool.query(
-                `INSERT INTO appointments (patient_id, doctor_id, hospital_id, appointment_date, appointment_time, reason)
-                 VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-                [patient_id, doctor_id, hospital_id, appointment_date, appointment_time, reason]
+                `INSERT INTO appointments (patient_id, doctor_id, hospital_id, appointment_date, appointment_time, reason, status)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+                [patient_id, doctor_id, hospital_id, appointment_date, appointment_time, reason, 'requested']
             );
 
-            // Notify Doctor
+            // Notify Hospital
             await NotificationModel.create({
-                user_id: doctor_id,
-                user_role: 'doctor',
-                title: 'New Appointment Request',
-                message: `Patient has requested an appointment on ${appointment_date} at ${appointment_time}.`
+                user_id: hospital_id,
+                user_role: 'hospital',
+                title: 'New Appointment Booking',
+                message: `Patient has requested a consultation at your facility for ${appointment_date}.`
             });
 
             res.status(201).json(results.rows[0]);
@@ -44,13 +44,24 @@ const appointmentController = {
 
             const appt = results.rows[0];
 
-            // Notify Patient
-            await NotificationModel.create({
-                user_id: appt.patient_id,
-                user_role: 'patient',
-                title: `Appointment ${status}`,
-                message: `Your appointment with Dr. ${req.user.full_name || 'Sarah'} has been ${status}.`
-            });
+            // Specialized Notifications
+            if (status === 'hospital_approved') {
+                // Notify Doctor
+                await NotificationModel.create({
+                    user_id: appt.doctor_id,
+                    user_role: 'doctor',
+                    title: 'Appointment Pending Your Confirmation',
+                    message: `Hospital has approved a request for ${appt.appointment_date}. Please confirm.`
+                });
+            } else if (status === 'confirmed') {
+                // Notify Patient
+                await NotificationModel.create({
+                    user_id: appt.patient_id,
+                    user_role: 'patient',
+                    title: 'Appointment Fully Confirmed',
+                    message: `Dr. ${req.user.full_name || 'Sarah'} has confirmed your meeting on ${appt.appointment_date}.`
+                });
+            }
 
             res.json(appt);
         } catch (error) {
@@ -68,19 +79,21 @@ const appointmentController = {
                          FROM appointments a 
                          JOIN doctors d ON a.doctor_id = d.id 
                          JOIN hospitals h ON a.hospital_id = h.id 
-                         WHERE a.patient_id = $1 ORDER BY a.appointment_date ASC`;
+                         WHERE a.patient_id = $1 ORDER BY a.appointment_date DESC`;
             } else if (role === 'doctor') {
                 query = `SELECT a.*, p.full_name as patient_name, h.name as hospital_name 
                          FROM appointments a 
                          JOIN patients p ON a.patient_id = p.id 
                          JOIN hospitals h ON a.hospital_id = h.id 
-                         WHERE a.doctor_id = $1 ORDER BY a.appointment_date ASC`;
-            } else {
+                         WHERE a.doctor_id = $1 ORDER BY a.appointment_date DESC`;
+            } else if (role === 'hospital') {
                 query = `SELECT a.*, p.full_name as patient_name, d.full_name as doctor_name 
                          FROM appointments a 
                          JOIN patients p ON a.patient_id = p.id 
                          JOIN doctors d ON a.doctor_id = d.id 
-                         WHERE a.hospital_id = $1 ORDER BY a.appointment_date ASC`;
+                         WHERE a.hospital_id = $1 ORDER BY a.appointment_date DESC`;
+            } else {
+                return res.status(403).json({ error: 'Unauthorized role' });
             }
             const results = await pool.query(query, [id]);
             res.json(results.rows);

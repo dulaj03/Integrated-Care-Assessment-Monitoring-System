@@ -109,7 +109,7 @@ CREATE TABLE patients (
     password        VARCHAR(255) NOT NULL,
     hospital_id     INTEGER REFERENCES hospitals(id) ON DELETE SET NULL, 
     doctor_id       INTEGER REFERENCES doctors(id) ON DELETE SET NULL, 
-    status          VARCHAR(30) DEFAULT 'pendingdoctorapproval',
+    status          VARCHAR(30) DEFAULT 'ACTIVE',
     condition       VARCHAR(50) DEFAULT 'stable', -- stable, monitoring, critical
     created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -155,7 +155,7 @@ CREATE TABLE appointments (
     appointment_date DATE NOT NULL,
     appointment_time TIME NOT NULL,
     reason          TEXT NOT NULL,
-    status          VARCHAR(30) DEFAULT 'requested', -- requested, confirmed, completed, cancelled
+    status          VARCHAR(30) DEFAULT 'requested', -- requested, hospital_approved, confirmed, completed, cancelled
     doctor_notes    TEXT,
     created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP

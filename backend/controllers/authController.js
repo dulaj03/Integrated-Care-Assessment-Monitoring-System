@@ -75,9 +75,6 @@ const login = async (req, res) => {
         return res.status(403).json({ error: 'Your account is not active. Please contact administrator.' });
       }
     } else if (role === 'patient') {
-      if (status === 'PENDINGDOCTORAPPROVAL') {
-        return res.status(403).json({ error: 'Your registration is pending approval from your selected doctor.' });
-      }
       if (status !== 'ACTIVE' && status !== 'MONITORING' && status !== 'CRITICAL') {
         return res.status(403).json({ error: 'Your account is not active. Please contact support.' });
       }
@@ -113,8 +110,8 @@ const registerPatient = async (req, res) => {
     });
 
     res.status(201).json({ 
-      message: 'Registration submitted! Your account is pending approval from Dr. ' + (doctor_id || 'your assigned doctor'), 
-      user: { ...patient, status: 'pendingdoctorapproval' } 
+      message: 'Registration successful! You can now log in to the dashboard.', 
+      user: { ...patient, status: 'ACTIVE' } 
     });
   } catch (err) {
     res.status(500).json({ error: 'Server error during registration' });

@@ -25,15 +25,16 @@ export type UserRole = 'patient' | 'nurse' | 'doctor' | 'hospital';
 
 interface DashboardLayoutProps {
   role: UserRole;
-  userName: string;
+  userName?: string;
 }
 
-export function DashboardLayout({ role, userName }: DashboardLayoutProps) {
+export function DashboardLayout({ role, userName: initialUserName = '' }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [userName, setUserName] = useState(initialUserName);
   const location = useLocation();
 
-  // Initialize notifications from localStorage or mock data
+  // Initialize notifications and user info from sessionStorage
   useEffect(() => {
     const savedNotifications = localStorage.getItem('notifications');
     if (savedNotifications) {
@@ -55,6 +56,12 @@ export function DashboardLayout({ role, userName }: DashboardLayoutProps) {
       // Generate initial alerts from health logs with mock notifications
       const initialNotifications = checkAllPatientAlerts(MOCK_PATIENTS, mockNotifications);
       setNotifications(initialNotifications);
+    }
+
+    // Load actual user name from session
+    const storedName = sessionStorage.getItem('userName');
+    if (storedName) {
+      setUserName(storedName);
     }
   }, []);
 

@@ -1,18 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router';
-import { Search, AlertCircle, Clock, ChevronRight, User, Loader2 } from 'lucide-react';
+import { Clock, ChevronRight, User, Loader2, Calendar, CheckCircle, PlusCircle } from 'lucide-react';
 import { Patient } from '../../lib/mockData';
-import { clsx } from 'clsx';
-import { useTranslation } from 'react-i18next';
-import { motion } from 'motion/react';
 import { toast } from 'sonner';
 
 export function ProfessionalDashboard({ role }: { role?: 'doctor' | 'nurse' }) {
-  const { t } = useTranslation();
-  const [filter, setFilter] = useState<'all' | 'critical' | 'monitoring' | 'stable'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [pendingPatients, setPendingPatients] = useState<Partial<Patient>[]>([]);
   const [assignedPatients, setAssignedPatients] = useState<Patient[]>([]);
+  const [appointments, setAppointments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const userRole = role || (sessionStorage.getItem('userRole') as 'doctor' | 'nurse') || 'doctor';
@@ -30,7 +26,7 @@ export function ProfessionalDashboard({ role }: { role?: 'doctor' | 'nurse' }) {
         setAssignedPatients(data);
       }
 
-      // Fetch pending patients (only for doctors)
+      // Fetch pending items (only for doctors)
       if (userRole === 'doctor') {
         const pendingRes = await fetch('http://localhost:5000/api/doctor/patients/pending', {
           headers: { 'Authorization': `Bearer ${token}` }
@@ -38,6 +34,15 @@ export function ProfessionalDashboard({ role }: { role?: 'doctor' | 'nurse' }) {
         if (pendingRes.ok) {
           const data = await pendingRes.json();
           setPendingPatients(data);
+        }
+
+        // Fetch appointments for approval
+        const apptRes = await fetch('http://localhost:5000/api/appointments/my', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (apptRes.ok) {
+          const data = await apptRes.json();
+          setAppointments(data);
         }
       }
     } catch (error) {
@@ -53,290 +58,189 @@ export function ProfessionalDashboard({ role }: { role?: 'doctor' | 'nurse' }) {
     return () => clearInterval(interval);
   }, [fetchData]);
 
-  const handleApprove = async (id: string) => {
+  const handleApprovePatient = async (id: string | number) => {
     try {
       const res = await fetch(`http://localhost:5000/api/doctor/patients/approve/${id}`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
-        toast.success('Patient approved successfully');
+        toast.success('Patient added to your roster');
         fetchData();
-      } else {
-        const data = await res.json();
-        toast.error(data.error || 'Failed to approve patient');
       }
     } catch (error) {
-      toast.error('Network error');
+      toast.error('Failed to approve');
     }
   };
 
-  const handleReject = async (id: string) => {
+  const handleConfirmAppointment = async (id: number) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/doctor/patients/reject/${id}`, {
+      const res = await fetch(`http://localhost:5000/api/appointments/status/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ status: 'confirmed' })
+      });
+      if (res.ok) {
+        toast.success('Appointment confirmed');
+        fetchData();
+      }
+    } catch (error) {
+      toast.error('Update failed');
+    }
+  };
+
+  const handleAddToMyPatients = async (patientId: number, appointmentId: number) => {
+    try {
+      // Logic to actually set doctor_id for the patient
+      // Assuming we can use the approvePatient endpoint or a new one
+      const res = await fetch(`http://localhost:5000/api/doctor/patients/approve/${patientId}`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
-        toast.success('Patient rejected');
+        // Also mark appointment as completed or update UI
+        await fetch(`http://localhost:5000/api/appointments/status/${appointmentId}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ status: 'completed', doctor_notes: 'Patient added to my regular list' })
+        });
+        toast.success('Patient successfully added to your list');
         fetchData();
       }
     } catch (error) {
-      toast.error('Network error');
+      toast.error('Action failed');
     }
   };
 
   const filteredPatients = assignedPatients.filter(patient => {
-    const matchesFilter = filter === 'all' || patient.status === filter;
     const nameMatch = patient.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
                       (patient as any).full_name?.toLowerCase().includes(searchQuery.toLowerCase());
-    const conditionMatch = patient.condition?.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    return matchesFilter && (nameMatch || conditionMatch);
+    return nameMatch;
   });
-
-  const getStatusColor = (status: Patient['status']) => {
-    switch (status) {
-    case 'critical': return 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400';
-    case 'monitoring': return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400';
-    case 'stable': return 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400';
-    default: return 'bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-400';
-    }
-  };
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+      <div className="flex flex-col items-center justify-center min-h-[400px]">
         <Loader2 className="h-12 w-12 text-blue-500 animate-spin" />
-        <p className="text-slate-500 animate-pulse">Loading patient data...</p>
       </div>
     );
   }
 
+  const pendingAppointments = appointments.filter(a => a.status === 'hospital_approved');
+  const confirmedAppointments = appointments.filter(a => a.status === 'confirmed');
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{t('professional_dashboard.patientOverview')}</h1>
-      </div>
+      <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Professional Dashboard</h1>
 
-      {/* Critical Alerts Banner (FR19) */}
-      {assignedPatients.filter(p => p.condition === 'critical').length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="rounded-xl bg-red-600 p-4 border border-red-500 shadow-xl shadow-red-500/20 flex items-center justify-between"
-        >
-          <div className="flex items-center gap-3">
-            <div className="bg-white/20 p-2 rounded-lg animate-pulse">
-              <AlertCircle className="h-6 w-6 text-white" />
-            </div>
-            <div>
-              <p className="font-bold text-white text-lg">Critical Monitoring Alerts</p>
-              <p className="text-white/80 text-sm">
-                {assignedPatients.filter(p => p.condition === 'critical').length} patient(s) require immediate attention.
-              </p>
-            </div>
-          </div>
-          <div className="flex gap-2">
-            {assignedPatients.filter(p => p.condition === 'critical').slice(0, 2).map(p => (
-              <Link key={p.id} to={userRole === 'doctor' ? `/doctor/patient/${p.id}` : `/nurse/patient/${p.id}`} className="px-4 py-2 bg-white text-red-600 font-bold rounded-lg hover:bg-red-50 transition-colors text-sm">
-                View {(p as any).full_name?.split(' ')[0] || p.name?.split(' ')[0]}
-              </Link>
-            ))}
-          </div>
-        </motion.div>
-      )}
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        <div className="bg-white dark:bg-slate-900 overflow-hidden shadow dark:shadow-xl rounded-lg border border-slate-200 dark:border-slate-800">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <User className="h-6 w-6 text-blue-500" />
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-slate-500 dark:text-slate-400 truncate">{t('professional_dashboard.totalPatients')}</dt>
-                  <dd>
-                    <div className="text-lg font-medium text-slate-900 dark:text-white">{assignedPatients.length}</div>
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-slate-900 overflow-hidden shadow dark:shadow-xl rounded-lg border border-slate-200 dark:border-slate-800">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <AlertCircle className="h-6 w-6 text-red-500" />
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-slate-500 dark:text-slate-400 truncate">{t('professional_dashboard.criticalAlerts')}</dt>
-                  <dd>
-                    <div className="text-lg font-medium text-slate-900 dark:text-white">
-                      {assignedPatients.filter(p => p.condition === 'critical').length}
-                    </div>
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-slate-900 overflow-hidden shadow dark:shadow-xl rounded-lg border border-slate-200 dark:border-slate-800">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <Clock className="h-6 w-6 text-orange-400" />
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-slate-500 dark:text-slate-400 truncate">
-                    {userRole === 'doctor' ? 'Pending Approvals' : 'Assigned Total'}
-                  </dt>
-                  <dd>
-                    <div className="text-lg font-medium text-slate-900 dark:text-white">
-                      {userRole === 'doctor' ? pendingPatients.length : assignedPatients.length}
-                    </div>
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Pending Patient Requests - DOCTOR ONLY */}
-      {userRole === 'doctor' && pendingPatients.length > 0 && (
-        <div className="bg-white dark:bg-slate-900 shadow dark:shadow-xl rounded-lg overflow-hidden border border-blue-500/20">
-          <div className="px-4 py-5 sm:px-6 bg-blue-50/50 dark:bg-blue-900/10 border-b border-blue-500/20">
-            <h3 className="text-lg font-medium leading-6 text-slate-900 dark:text-white flex items-center">
-              <Clock className="mr-2 h-5 w-5 text-blue-500" />
-              Pending Patient Requests
+      {/* Appointment Requests Section - DOCTOR ONLY */}
+      {userRole === 'doctor' && pendingAppointments.length > 0 && (
+        <section className="bg-orange-50/50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-900/30 rounded-xl overflow-hidden">
+          <div className="px-5 py-4 border-b border-orange-200 dark:border-orange-900/30">
+            <h3 className="font-bold text-orange-900 dark:text-orange-400 flex items-center gap-2">
+              <Calendar className="h-5 w-5" /> New Appointment Requests
             </h3>
           </div>
-          <ul className="divide-y divide-slate-200 dark:divide-slate-800">
-            {pendingPatients.map((patient) => (
-              <li key={patient.id} className="p-4 sm:px-6">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-                  <div className="flex items-center">
-                    <div className="h-10 w-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
-                      <User className="h-6 w-6 text-slate-500" />
-                    </div>
-                    <div className="ml-4">
-                      <p className="text-sm font-semibold text-slate-900 dark:text-white">{(patient as any).full_name || patient.name}</p>
-                      <p className="text-sm text-slate-500 dark:text-slate-400">Condition: {patient.condition}</p>
-                    </div>
-                  </div>
-                  <div className="flex space-x-3">
-                    <button
-                      onClick={() => handleApprove(patient.id || '')}
-                      className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition-colors"
-                    >
-                      Approve
-                    </button>
-                    <button
-                      onClick={() => handleReject(patient.id || '')}
-                      className="px-4 py-1.5 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-md text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-                    >
-                      Reject
-                    </button>
+          <div className="divide-y divide-orange-100 dark:divide-orange-900/20">
+            {pendingAppointments.map(appt => (
+              <div key={appt.id} className="p-4 flex items-center justify-between">
+                <div>
+                  <p className="font-bold text-slate-900 dark:text-white">{appt.patient_name}</p>
+                  <p className="text-xs text-slate-500">at {appt.hospital_name} - {appt.appointment_time}</p>
+                </div>
+                <button 
+                  onClick={() => handleConfirmAppointment(appt.id)}
+                  className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-xs font-bold transition-all shadow-lg shadow-orange-500/20"
+                >
+                  Confirm & Schedule
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Confirmed Meetings Section (First Time Meets) - DOCTOR ONLY */}
+      {userRole === 'doctor' && confirmedAppointments.length > 0 && (
+        <section className="bg-blue-50/50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-900/30 rounded-xl overflow-hidden">
+          <div className="px-5 py-4 border-b border-blue-200 dark:border-blue-900/30">
+            <h3 className="font-bold text-blue-900 dark:text-blue-400 flex items-center gap-2">
+              <CheckCircle className="h-5 w-5" /> Today's New Patient Consultations
+            </h3>
+          </div>
+          <div className="divide-y divide-blue-100 dark:divide-blue-900/20">
+            {confirmedAppointments.map(appt => (
+              <div key={appt.id} className="p-4 flex items-center justify-between bg-white dark:bg-slate-900/50">
+                <div className="flex items-center gap-3">
+                   <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-800 flex items-center justify-center text-blue-600">
+                     <User className="h-5 w-5" />
+                   </div>
+                   <div>
+                    <p className="font-bold text-slate-900 dark:text-white">{appt.patient_name}</p>
+                    <p className="text-xs text-slate-500 flex items-center gap-1">
+                      <Clock className="h-3 w-3" /> {appt.appointment_time} · First Consultation
+                    </p>
                   </div>
                 </div>
-              </li>
+                <button 
+                  onClick={() => handleAddToMyPatients(appt.patient_id, appt.id)}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold flex items-center gap-2 transition-all shadow-lg shadow-emerald-500/20"
+                >
+                  <PlusCircle className="h-4 w-4" /> Add to Patient List
+                </button>
+              </div>
             ))}
-          </ul>
-        </div>
+          </div>
+        </section>
       )}
-      <div className="bg-white dark:bg-slate-900 shadow dark:shadow-xl rounded-lg p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-        <div className="flex items-center space-x-4">
-          <div className="relative rounded-md shadow-sm max-w-xs">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-slate-400 dark:text-slate-500" aria-hidden="true" />
-            </div>
-            <input
-              type="text"
-              className="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm border-slate-300 dark:border-slate-600 rounded-md py-2 border bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 transition-colors duration-200"
-              placeholder="Search patients..."
+
+      {/* Main Patient List */}
+      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-bold dark:text-white">Active My Patients</h2>
+          <div className="flex gap-4">
+             <input 
+              type="text" 
+              placeholder="Search patients..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-slate-500 dark:text-slate-400">Filter by:</span>
-            <select
-              value={filter}
-              onChange={(e) => setFilter(e.target.value as 'all' | 'critical' | 'monitoring' | 'stable')}
-              className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md bg-white dark:bg-slate-800 text-slate-900 dark:text-white transition-colors duration-200"
-            >
-              <option value="all">All Statuses</option>
-              <option value="critical">Critical</option>
-              <option value="monitoring">Monitoring</option>
-              <option value="stable">Stable</option>
-            </select>
+              className="px-4 py-2 rounded-lg border dark:border-slate-700 dark:bg-slate-800 text-sm focus:ring-2 focus:ring-blue-500"
+             />
           </div>
         </div>
-      </div>
 
-      {/* Patient List */}
-      <div className="bg-white dark:bg-slate-900 shadow dark:shadow-xl overflow-hidden sm:rounded-md">
-        <ul className="divide-y divide-slate-200 dark:divide-slate-800">
-          {filteredPatients.map((patient) => (
-            <li key={patient.id}>
-              <Link to={userRole === 'doctor' ? `/doctor/patient/${patient.id}` : `/nurse/patient/${patient.id}`} className="block hover:bg-slate-50 dark:hover:bg-slate-800 transition duration-150 ease-in-out">
-                <div className="px-4 py-4 sm:px-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0 h-10 w-10">
-                        <div className="h-10 w-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
-                          <User className="h-6 w-6 text-slate-500" />
-                        </div>
-                      </div>
-                      <div className="ml-4">
-                        <p className="text-sm font-medium text-blue-600 dark:text-blue-500 truncate">
-                          {(patient as any).full_name || patient.name}
-                        </p>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 truncate">{patient.condition}</p>
-                      </div>
-                    </div>
-                    <div className="ml-2 flex-shrink-0 flex">
-                      <span className={clsx(
-                        'px-2 inline-flex text-xs leading-5 font-semibold rounded-full capitalize',
-                        getStatusColor(patient.condition as any)
-                      )}>
-                        {patient.condition}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="mt-2 sm:flex sm:justify-between">
-                    <div className="sm:flex">
-                      <p className="flex items-center text-sm text-slate-500 dark:text-slate-400">
-                        <Clock className="flex-shrink-0 mr-1.5 h-5 w-5 text-slate-400 dark:text-slate-500" />
-                        Registered: {new Date((patient as any).created_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <div className="mt-2 flex items-center text-sm text-slate-500 dark:text-slate-400 sm:mt-0">
-                      <p>
-                        Status: {(patient as any).status}
-                      </p>
-                      <ChevronRight className="ml-2 h-5 w-5 text-slate-400 dark:text-slate-500" />
-                    </div>
-                  </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredPatients.map(patient => (
+            <Link 
+              key={patient.id} 
+              to={userRole === 'doctor' ? `/doctor/patient/${patient.id}` : `/nurse/patient/${patient.id}`}
+              className="p-4 rounded-xl border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all group"
+            >
+              <div className="flex items-center gap-4">
+                <div className="h-12 w-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400">
+                  <User className="h-6 w-6" />
                 </div>
-              </Link>
-            </li>
+                <div>
+                  <h4 className="font-bold text-slate-900 dark:text-white group-hover:text-blue-600 transition-colors">
+                    {(patient as any).full_name || patient.name}
+                  </h4>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${
+                    patient.condition === 'critical' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+                  }`}>
+                    {patient.condition}
+                  </span>
+                </div>
+                <ChevronRight className="ml-auto h-5 w-5 text-slate-300" />
+              </div>
+            </Link>
           ))}
-          {filteredPatients.length === 0 && (
-            <li className="px-4 py-8 text-center text-slate-500 dark:text-slate-400">
-              No patients found matching your criteria.
-            </li>
-          )}
-        </ul>
+        </div>
       </div>
     </div>
   );

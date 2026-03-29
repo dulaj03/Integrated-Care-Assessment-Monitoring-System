@@ -1,5 +1,5 @@
 const pool = require('../config/db');
-const NotificationModel = require('../models/NotificationModel');
+const notificationModel = require('../models/notificationModel');
 
 const labController = {
     // Hospital: Upload Lab Result
@@ -15,7 +15,7 @@ const labController = {
             );
 
             // Notify Patient
-            await NotificationModel.create({
+            await notificationModel.create({
                 user_id: patient_id,
                 user_role: 'patient',
                 title: 'Lab Result Ready!',
@@ -24,7 +24,7 @@ const labController = {
 
             // Notify Doctor if assigned
             if (doctor_id) {
-                await NotificationModel.create({
+                await notificationModel.create({
                     user_id: doctor_id,
                     user_role: 'doctor',
                     title: 'New Lab result for patient',

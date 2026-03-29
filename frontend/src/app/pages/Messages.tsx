@@ -3,7 +3,8 @@ import { MessagingUI } from '../components/MessagingUI';
 import { ScrollArea } from '../components/ui/scroll-area';
 import { MessageCircle } from 'lucide-react';
 
-export function Messages({ userId }: { userId: string }) {
+export function Messages() {
+  const userId = sessionStorage.getItem('userId') || 'p1';
   const [conversations, setConversations] = useState<any[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<any>(null);
 

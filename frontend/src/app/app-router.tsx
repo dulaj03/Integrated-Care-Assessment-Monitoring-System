@@ -29,7 +29,6 @@ import { HospitalDashboard } from './pages/hospital/HospitalDashboard';
 import { LabManagement } from './pages/hospital/LabManagement';
 import { NotFound } from './pages/NotFound';
 import { ScrollToTopOnNavigate } from './components/ScrollToTopOnNavigate';
-import { CURRENT_USER_PATIENT, CURRENT_USER_DOCTOR } from './lib/mockData';
 
 function RootLayout() {
   return (
@@ -59,7 +58,7 @@ export const router = createBrowserRouter([
       // ─── Patient ───────────────────────────────────────────────────────────
       {
         path: 'patient',
-        element: <DashboardLayout role="patient" userName={CURRENT_USER_PATIENT.name} />,
+        element: <DashboardLayout role="patient" />,
         children: [
           { index: true, Component: PatientDashboard },
           { path: 'dashboard', Component: PatientDashboard },
@@ -68,14 +67,14 @@ export const router = createBrowserRouter([
           { path: 'hospitals', Component: HospitalFinder },
           { path: 'lab-results', Component: LabResults },
           { path: 'profile', Component: Profile },
-          { path: 'messages', element: <Messages userRole="patient" userId="p1" /> },
+          { path: 'messages', Component: Messages },
         ],
       },
 
       // ─── Doctor ────────────────────────────────────────────────────────────
       {
         path: 'doctor',
-        element: <DashboardLayout role="doctor" userName={CURRENT_USER_DOCTOR.name} />,
+        element: <DashboardLayout role="doctor" />,
         children: [
           { index: true, element: <ProfessionalDashboard role="doctor" /> },
           { path: 'dashboard', element: <ProfessionalDashboard role="doctor" /> },
@@ -83,14 +82,14 @@ export const router = createBrowserRouter([
           { path: 'patient/:id', Component: PatientWorkspace },
           { path: 'schedule', Component: DoctorSchedule },
           { path: 'reports', Component: DoctorReports },
-          { path: 'messages', element: <Messages userRole="professional" userId="d1" /> },
+          { path: 'messages', Component: Messages },
         ],
       },
 
       // ─── Nurse ─────────────────────────────────────────────────────────────
       {
         path: 'nurse',
-        element: <DashboardLayout role="nurse" userName="Nurse Anjali" />,
+        element: <DashboardLayout role="nurse" />,
         children: [
           { index: true, element: <ProfessionalDashboard role="nurse" /> },
           { path: 'dashboard', element: <ProfessionalDashboard role="nurse" /> },
@@ -98,19 +97,19 @@ export const router = createBrowserRouter([
           { path: 'care', Component: NursePatientCare },
           { path: 'rounds', Component: NurseRounds },
           { path: 'patient/:id', Component: PatientDetail },
-          { path: 'messages', element: <Messages userRole="professional" userId="n1" /> },
+          { path: 'messages', Component: Messages },
         ],
       },
 
       // ─── Hospital ──────────────────────────────────────────────────────────
       {
         path: 'hospital',
-        element: <DashboardLayout role="hospital" userName="Nawaloka Hospital" />,
+        element: <DashboardLayout role="hospital" />,
         children: [
           { index: true, Component: HospitalDashboard },
           { path: 'dashboard', Component: HospitalDashboard },
           { path: 'lab', Component: LabManagement },
-          { path: 'messages', element: <Messages userRole="professional" userId="h1" /> },
+          { path: 'messages', Component: Messages },
         ],
       },
 
