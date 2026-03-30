@@ -1,20 +1,24 @@
-/**
- * Messaging UI Component
- * 
- * Chat interface for patient-professional communication
- */
-
 import { useState, useRef, useEffect } from 'react';
-import { Send } from 'lucide-react';
-import { Conversation, formatMessageTime } from '../lib/mockMessages';
+import { Send, User as UserIcon, Building2 } from 'lucide-react';
+import { initSocket } from '../lib/socket';
+
+export interface Conversation {
+  other_id: string | number;
+  other_role: string;
+  other_name?: string;
+  last_message?: string;
+  is_read?: boolean;
+  active?: boolean;
+}
 
 interface MessagingUIProps {
   conversation: Conversation;
-  currentUserId: string;
+  currentUserId: string | number;
+  currentUserRole: string;
   onSendMessage?: (message: string) => void;
 }
 
-export function MessagingUI({ conversation, currentUserId, onSendMessage }: MessagingUIProps) {
+export function MessagingUI({ conversation, currentUserId, currentUserRole, onSendMessage }: MessagingUIProps) {
   const [messages, setMessages] = useState<any[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -38,10 +42,29 @@ export function MessagingUI({ conversation, currentUserId, onSendMessage }: Mess
   };
 
   useEffect(() => {
+    // Initial fetch
     fetchMessages();
-    const interval = setInterval(fetchMessages, 5000); // Poll every 5 seconds
-    return () => clearInterval(interval);
-  }, [conversation]);
+
+    // Init socket
+    const socket = initSocket(String(currentUserId), currentUserRole);
+
+    // Listen for new messages
+    const handleNewMessage = (newMessage: any) => {
+      // Check if message belongs to current conversation
+      if (
+        (String(newMessage.sender_id) === String(conversation.other_id) && newMessage.sender_role === conversation.other_role) ||
+        (String(newMessage.receiver_id) === String(conversation.other_id) && newMessage.receiver_role === conversation.other_role)
+      ) {
+        setMessages(prev => [...prev, newMessage]);
+      }
+    };
+
+    socket?.on('new_message', handleNewMessage);
+
+    return () => {
+      socket?.off('new_message', handleNewMessage);
+    };
+  }, [conversation, currentUserId, currentUserRole]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -73,9 +96,13 @@ export function MessagingUI({ conversation, currentUserId, onSendMessage }: Mess
       });
 
       if (res.ok) {
+        const newMessage = await res.json();
+        setMessages(prev => [...prev, newMessage]);
         setInputValue('');
-        fetchMessages();
         onSendMessage?.(inputValue);
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Failed to send message');
       }
     } catch (error) {
       console.error('Error sending message:', error);
@@ -84,49 +111,71 @@ export function MessagingUI({ conversation, currentUserId, onSendMessage }: Mess
     }
   };
 
+  const formatMessageTime = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } catch (e) {
+      return '';
+    }
+  };
+
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-slate-900 rounded-lg shadow dark:shadow-xl overflow-hidden">
+    <div className="flex flex-col h-full bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-800 overflow-hidden">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-500 to-blue-600 dark:from-blue-700 dark:to-blue-800 px-6 py-4 border-b border-blue-700">
+      <div className="bg-white dark:bg-slate-900 px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center gap-4">
+        <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center text-blue-600 dark:text-blue-400">
+          {conversation.other_role === 'hospital' ? <Building2 className="h-5 w-5" /> : <UserIcon className="h-5 w-5" />}
+        </div>
         <div>
-          <h2 className="text-lg font-semibold text-white capitalize">{conversation.other_role}: {conversation.other_id}</h2>
-          <p className="text-sm text-blue-100 italic">Active conversation</p>
+          <h2 className="text-sm font-bold text-slate-900 dark:text-white capitalize">
+            {conversation.other_name || `${conversation.other_role} #${conversation.other_id}`}
+          </h2>
+          <div className="flex items-center gap-1.5">
+            <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Online</p>
+          </div>
         </div>
       </div>
 
-      {/* Messages Container */}
+      {/* Messages */}
       <div
         ref={scrollContainerRef}
-        className="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50 dark:bg-slate-950"
+        className="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50/50 dark:bg-slate-950/30"
       >
         {messages.length === 0 ? (
-          <div className="flex items-center justify-center h-full text-slate-500 dark:text-slate-400">
-            <p>No messages yet. Start the conversation!</p>
+          <div className="flex flex-col items-center justify-center h-full text-center space-y-3">
+             <div className="h-16 w-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                <Send className="h-6 w-6 text-slate-300 dark:text-slate-600" />
+             </div>
+             <div className="space-y-1">
+                <p className="text-sm font-bold text-slate-900 dark:text-white">Start a Conversation</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Your messages are encrypted and secure.</p>
+             </div>
           </div>
         ) : (
           messages.map((message, idx) => {
-            const isSender = message.sender_id === currentUserId;
+            const isSender = String(message.sender_id) === String(currentUserId);
 
             return (
               <div
                 key={message.id || idx}
-                className={`flex ${isSender ? 'justify-end' : 'justify-start'} animate-fade-in`}
+                className={`flex ${isSender ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`}
               >
-                {/* Message Bubble */}
                 <div
-                  className={`max-w-xs lg:max-w-md xl:max-w-lg px-4 py-2 rounded-lg transition-all duration-200 ${isSender
-                    ? 'bg-blue-500 dark:bg-blue-600 text-white rounded-br-none'
-                    : 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white rounded-bl-none'
+                  className={`max-w-[75%] px-4 py-2.5 rounded-2xl shadow-sm transition-all duration-200 ${isSender
+                    ? 'bg-blue-600 text-white rounded-br-none'
+                    : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-100 dark:border-slate-700/50 rounded-bl-none'
                   }`}
                 >
                   <p className="text-sm leading-relaxed break-words">{message.message_text}</p>
                   <p
-                    className={`text-xs mt-1 ${isSender
+                    className={`text-[9px] mt-1.5 font-bold uppercase tracking-wider ${isSender
                       ? 'text-blue-100'
-                      : 'text-slate-600 dark:text-slate-400'
+                      : 'text-slate-400 dark:text-slate-500'
                     }`}
                   >
-                    {formatMessageTime(message.sent_at || new Date().toISOString())}
+                    {formatMessageTime(message.created_at)}
                   </p>
                 </div>
               </div>
@@ -136,24 +185,23 @@ export function MessagingUI({ conversation, currentUserId, onSendMessage }: Mess
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Area */}
-      <div className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4">
-        <form onSubmit={handleSendMessage} className="flex gap-3">
+      {/* Input */}
+      <div className="bg-white dark:bg-slate-900 p-4 border-t border-slate-100 dark:border-slate-800">
+        <form onSubmit={handleSendMessage} className="flex gap-2">
           <input
             type="text"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            placeholder="Type a message..."
+            placeholder="Write a message..."
             disabled={isSending}
-            className="flex-1 px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-ring duration-200 disabled:opacity-50"
+            className="flex-1 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 border-none rounded-xl text-sm text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-500 transition-all duration-200 disabled:opacity-50"
           />
           <button
             type="submit"
             disabled={!inputValue.trim() || isSending}
-            className="px-4 py-2 bg-blue-500 dark:bg-blue-600 hover:bg-blue-600 dark:hover:bg-blue-700 text-white rounded-lg font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="h-10 w-10 flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg shadow-blue-600/20 transition-all duration-200 disabled:opacity-50 active:scale-95"
           >
-            <Send className="h-4 w-4" />
-            <span className="hidden sm:inline">Send</span>
+            <Send className="h-5 w-5" />
           </button>
         </form>
       </div>
@@ -162,3 +210,4 @@ export function MessagingUI({ conversation, currentUserId, onSendMessage }: Mess
 }
 
 export default MessagingUI;
+

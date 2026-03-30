@@ -13,6 +13,7 @@ import { Link } from 'react-router';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'motion/react';
 import { HealthTrendChart } from '../../components/HealthTrendChart';
+import { MessagingSection } from '../../components/MessagingSection';
 import { HealthLog } from '../../lib/mockData';
 
 interface DbHealthLog {
@@ -51,6 +52,8 @@ export function PatientDashboard() {
   };
 
   const [dbLogs, setDbLogs] = useState<DbHealthLog[]>([]);
+  const [dbOrders, setDbOrders] = useState<any[]>([]);
+  const [dbReports, setDbReports] = useState<any[]>([]);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [liveAppointments, setLiveAppointments] = useState<any[]>([]);
   const [patientStatus, setPatientStatus] = useState(patient.status);
@@ -59,8 +62,12 @@ export function PatientDashboard() {
 
   const fetchHealthLogs = async () => {
     if (!patientId || isNaN(parseInt(patientId))) return;
+    const token = sessionStorage.getItem('token');
+    if (!token) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/health/all/${patientId}`);
+      const res = await fetch(`http://localhost:5000/api/health/all/${patientId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       if (res.ok) {
         const data = await res.json();
         setDbLogs(data);
@@ -102,6 +109,28 @@ export function PatientDashboard() {
     }
   };
 
+  const fetchPatientOrders = async () => {
+    if (!patientId) return;
+    const token = sessionStorage.getItem('token');
+    try {
+      const res = await fetch(`http://localhost:5000/api/health/orders/${patientId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) setDbOrders(await res.json());
+    } catch (e) { console.error(e); }
+  };
+
+  const fetchNurseReports = async () => {
+    if (!patientId) return;
+    const token = sessionStorage.getItem('token');
+    try {
+      const res = await fetch(`http://localhost:5000/api/health/nurse-reports/${patientId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) setDbReports(await res.json());
+    } catch (e) { console.error(e); }
+  };
+
   const fetchPatientInfo = async () => {
     const token = sessionStorage.getItem('token');
     if (!token) return;
@@ -124,7 +153,9 @@ export function PatientDashboard() {
       fetchHealthLogs(),
       fetchNotifications(),
       fetchPatientInfo(),
-      fetchLiveAppointments()
+      fetchLiveAppointments(),
+      fetchPatientOrders(),
+      fetchNurseReports()
     ]);
     setLoading(false);
   }, [patientId]);
@@ -171,13 +202,13 @@ export function PatientDashboard() {
 
   const latestLog: DbHealthLog = dbLogs.length > 0 ? dbLogs[0] : (patient.logs[0] as unknown as DbHealthLog);
 
-  // Hospital data
+  // Hospital data - Prefer DB over Mock
   const labTests = getPatientLabTests(patient.id);
-  const orders = getPatientOrders(patient.id);
-  const nurseReports = getPatientNurseReports(patient.id);
+  const liveOrders = dbOrders.length > 0 ? dbOrders : getPatientOrders(patient.id);
+  const nurseReports = dbReports.length > 0 ? dbReports : getPatientNurseReports(patient.id);
 
   const readyTests = labTests.filter(t => t.status === 'results_ready');
-  const activeOrders = orders.filter(o => o.status === 'active');
+  const activeOrders = liveOrders;
 
   const [isLogFormOpen, setIsLogFormOpen] = useState(false);
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
@@ -242,10 +273,12 @@ export function PatientDashboard() {
     }
 
     try {
+      const token = sessionStorage.getItem('token');
       const res = await fetch('http://localhost:5000/api/health/log', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           patient_id: patientId,
@@ -565,9 +598,9 @@ export function PatientDashboard() {
             <div className="space-y-2 flex-1">
               {activeOrders.slice(0, 3).map(order => (
                 <div key={order.id} className="flex items-start gap-2">
-                  <span className={`mt-0.5 h-2 w-2 rounded-full flex-shrink-0 ${order.type === 'lab_test' ? 'bg-purple-500' :
-                    order.type === 'medication' ? 'bg-green-500' :
-                      order.type === 'scan' ? 'bg-blue-500' : 'bg-orange-500'}`} />
+                  <span className={`mt-0.5 h-2 w-2 rounded-full flex-shrink-0 ${order.order_type === 'lab_test' ? 'bg-purple-500' :
+                    order.order_type === 'medication' ? 'bg-green-500' :
+                      order.order_type === 'scan' ? 'bg-blue-500' : 'bg-orange-500'}`} />
                   <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">{order.description}</p>
                 </div>
               ))}
@@ -594,8 +627,8 @@ export function PatientDashboard() {
                   <p className="text-xs font-bold text-slate-900 dark:text-white mb-1 line-clamp-1">{report.title}</p>
                   <p className="text-[10px] text-slate-500 dark:text-slate-400 line-clamp-1 mb-1">{report.summary}</p>
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] text-blue-600 dark:text-blue-400 font-medium">✓ {report.steps.filter(s => s.completed).length} items</span>
-                    <span className="text-[10px] text-slate-400">{format(new Date(report.date), 'MMM d')}</span>
+                    <span className="text-[10px] text-blue-600 dark:text-blue-400 font-medium">Synced</span>
+                    <span className="text-[10px] text-slate-400">{format(new Date(report.created_at || report.date), 'MMM d')}</span>
                   </div>
                 </div>
               ))}
@@ -776,15 +809,32 @@ export function PatientDashboard() {
               <h4 className="text-sm font-black text-slate-900 dark:text-white">My Medications</h4>
             </div>
             <ul className="space-y-2">
-              {patient.medications.map((med, idx) => (
-                <li key={idx} className="text-sm text-slate-600 dark:text-slate-400 flex justify-between">
-                  <span>{med.name}</span>
-                  <span className="text-slate-400 dark:text-slate-500">{med.dosage} - {med.frequency}</span>
-                </li>
-              ))}
+              {liveOrders.filter(o => o.order_type === 'medication').length > 0 ? (
+                liveOrders.filter(o => o.order_type === 'medication').map((med, idx) => (
+                  <li key={idx} className="text-sm text-slate-600 dark:text-slate-400 flex justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+                    <div className="flex flex-col">
+                       <span className="font-bold text-slate-800 dark:text-white">{med.description}</span>
+                       <span className="text-[10px] text-slate-400 dark:text-slate-500">{med.details || 'As prescribed by doctor'}</span>
+                    </div>
+                    <span className="text-[10px] bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 px-2 py-1 rounded-md self-center capitalize">Active</span>
+                  </li>
+                ))
+              ) : (
+                patient.medications.map((med, idx) => (
+                  <li key={idx} className="text-sm text-slate-600 dark:text-slate-400 flex justify-between">
+                    <span>{med.name}</span>
+                    <span className="text-slate-400 dark:text-slate-500">{med.dosage} - {med.frequency}</span>
+                  </li>
+                ))
+              )}
             </ul>
           </div>
         </div>
+      </div>
+
+      {/* Messaging Section (New) */}
+      <div className="mb-6">
+        <MessagingSection />
       </div>
 
       {/* Report Detail Modal */}
@@ -803,14 +853,14 @@ export function PatientDashboard() {
                     <div className="flex justify-between items-start">
                       <div>
                         <h4 className="font-bold text-xl text-slate-900 dark:text-white">{report.title}</h4>
-                        <p className="text-sm text-slate-500">{format(new Date(report.date), 'MMMM d, yyyy · p')}</p>
+                        <p className="text-sm text-slate-500">{format(new Date(report.created_at || report.date), 'MMMM d, yyyy · p')}</p>
                       </div>
                       <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold uppercase">Completed</span>
                     </div>
 
                     <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800 space-y-3 border border-slate-200 dark:border-slate-700">
                       <p className="text-xs font-bold text-blue-600 uppercase">Shift Tasks</p>
-                      {report.steps.map((s, i) => (
+                      {(report.steps || []).map((s: any, i: number) => (
                         <div key={i} className="flex gap-3">
                           <CheckCircle2 className={`h-4 w-4 flex-shrink-0 ${s.completed ? 'text-green-500' : 'text-slate-300'}`} />
                           <div>

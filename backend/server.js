@@ -3,13 +3,19 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const path = require('path');
+const http = require('http');
 require('dotenv').config();
 
 // Import DB connection (runs the test on startup)
 const pool = require('./config/db');
+const { initSocket } = require('./utils/socket');
 
 const app = express();
+const server = http.createServer(app);
 const PORT = process.env.PORT || 5000;
+
+// Initialize socket.io with the HTTP server
+initSocket(server);
 
 // ─── Middleware ───────────────────────────────────────────────
 app.use(helmet());                          // Security headers
@@ -65,6 +71,6 @@ app.use((err, req, res, next) => {
 });
 
 // ─── Start Server ─────────────────────────────────────────────
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`🚀 I-CAMS Backend running on http://localhost:${PORT}`);
 });

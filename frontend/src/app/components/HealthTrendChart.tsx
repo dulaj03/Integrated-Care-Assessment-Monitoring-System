@@ -51,9 +51,9 @@ const transformLogsToChartData = (logs: HealthLog[], period: ViewPeriod) => {
     fullDate: new Date(log.date).toLocaleString(),
     systolic: log.vitals.bloodPressure ? parseInt(log.vitals.bloodPressure.split('/')[0]) : 0,
     diastolic: log.vitals.bloodPressure ? parseInt(log.vitals.bloodPressure.split('/')[1]) : 0,
-    heartRate: log.vitals.heartRate || 0,
-    oxygen: log.vitals.oxygenLevel || 0,
-    temperature: log.vitals.temperature || 0,
+    heartRate: parseInt(String(log.vitals.heartRate || 0)) || 0,
+    oxygen: parseFloat(String(log.vitals.oxygenLevel || 0)) || 0,
+    temperature: parseFloat(String(log.vitals.temperature || 0)) || 0,
   }));
 };
 
@@ -80,11 +80,12 @@ const formatDateForChart = (dateString: string, period: ViewPeriod): string => {
 const getChartStatistics = (chartData: ReturnType<typeof transformLogsToChartData>) => {
   if (chartData.length === 0) return null;
 
-  const avgHR = Math.round(chartData.reduce((sum, d) => sum + d.heartRate, 0) / chartData.length);
-  const avgO2 = Math.round(chartData.reduce((sum, d) => sum + d.oxygen, 0) / chartData.length);
-  const avgSystolic = Math.round(chartData.reduce((sum, d) => sum + d.systolic, 0) / chartData.length);
+  const avgHR = Math.round(chartData.reduce((sum, d) => sum + (Number(d.heartRate) || 0), 0) / chartData.length);
+  const avgO2 = Math.round(chartData.reduce((sum, d) => sum + (Number(d.oxygen) || 0), 0) / chartData.length);
+  const avgSystolic = Math.round(chartData.reduce((sum, d) => sum + (Number(d.systolic) || 0), 0) / chartData.length);
+  const avgTemp = parseFloat((chartData.reduce((sum, d) => sum + (Number(d.temperature) || 0), 0) / chartData.length).toFixed(1));
 
-  return { avgHR, avgO2, avgSystolic };
+  return { avgHR, avgO2, avgSystolic, avgTemp };
 };
 
 export function HealthTrendChart({ logs, title = 'Health Trends', height = 320 }: HealthTrendChartProps) {
@@ -147,7 +148,7 @@ export function HealthTrendChart({ logs, title = 'Health Trends', height = 320 }
 
       {/* Statistics Row */}
       {stats && (
-        <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-4 gap-3 mb-6">
           <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-100 dark:border-blue-800">
             <div className="text-xs text-slate-600 dark:text-slate-400 font-medium mb-1">Avg Systolic</div>
             <div className="text-xl font-bold text-blue-600 dark:text-blue-400">{stats.avgSystolic} mmHg</div>
@@ -159,6 +160,10 @@ export function HealthTrendChart({ logs, title = 'Health Trends', height = 320 }
           <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg border border-green-100 dark:border-green-800">
             <div className="text-xs text-slate-600 dark:text-slate-400 font-medium mb-1">Avg SpO2</div>
             <div className="text-xl font-bold text-green-600 dark:text-green-400">{stats.avgO2}%</div>
+          </div>
+          <div className="bg-amber-50 dark:bg-amber-900/20 p-3 rounded-lg border border-amber-100 dark:border-amber-800">
+            <div className="text-xs text-slate-600 dark:text-slate-400 font-medium mb-1">Avg Temp</div>
+            <div className="text-xl font-bold text-amber-500 dark:text-amber-400">{stats.avgTemp}°C</div>
           </div>
         </div>
       )}
@@ -176,21 +181,25 @@ export function HealthTrendChart({ logs, title = 'Health Trends', height = 320 }
             <YAxis
               yAxisId="left"
               stroke="#8a92a1"
-              style={{ fontSize: '12px' }}
+              style={{ fontSize: '11px' }}
+              label={{ value: 'BP (mmHg)', angle: -90, position: 'insideLeft', offset: 10, style: { fontSize: '10px', fill: '#8a92a1' } }}
             />
             <YAxis
               yAxisId="right"
               orientation="right"
-              domain={[60, 110]}
+              domain={[50, 120]}
               stroke="#8a92a1"
-              style={{ fontSize: '12px' }}
+              style={{ fontSize: '11px' }}
+              label={{ value: 'HR / SpO2', angle: 90, position: 'insideRight', offset: 10, style: { fontSize: '10px', fill: '#8a92a1' } }}
             />
             <YAxis
               yAxisId="temp"
               orientation="right"
               domain={[34, 42]}
               stroke="#F59E0B"
-              hide={true} // Hide the axis to keep it clean, but use it for scaling
+              style={{ fontSize: '11px' }}
+              tickFormatter={(v) => `${v}°`}
+              width={36}
             />
             <Tooltip
               contentStyle={{

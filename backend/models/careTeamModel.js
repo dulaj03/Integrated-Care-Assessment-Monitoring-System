@@ -25,10 +25,13 @@ class CareTeamModel {
 
   static async getPatientsByNurseId(nurseId) {
     const result = await pool.query(
-      `SELECT p.id, p.full_name, p.email, p.condition, p.status
+      `SELECT p.id, p.full_name, p.email, p.condition, p.status, p.hospital_id,
+              d.full_name AS doctor_name, pna.created_at AS assigned_at
        FROM patients p
        JOIN patient_nurse_assignments pna ON p.id = pna.patient_id
-       WHERE pna.nurse_id = $1`,
+       LEFT JOIN doctors d ON p.doctor_id = d.id
+       WHERE pna.nurse_id = $1
+       ORDER BY p.status DESC, pna.created_at DESC`,
       [nurseId]
     );
     return result.rows;

@@ -6,10 +6,8 @@ import {
   User, 
   Loader2, 
   Calendar, 
-  CheckCircle, 
   PlusCircle, 
   Search, 
-  Filter, 
   X,
   FileText,
   MapPin,
@@ -19,6 +17,7 @@ import { Patient } from '../../lib/mockData';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'motion/react';
 import { format, isSameDay, parseISO, isAfter, startOfDay } from 'date-fns';
+import { MessagingSection } from '../../components/MessagingSection';
 
 export function ProfessionalDashboard({ role }: { role?: 'doctor' | 'nurse' }) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -82,11 +81,12 @@ export function ProfessionalDashboard({ role }: { role?: 'doctor' | 'nurse' }) {
     }
   };
 
-  const handleAddToMyPatients = async (patientId: number, appointmentId: number) => {
+  const handleAddToMyPatients = async (patientId: number, appointmentId: number, hospitalId: number) => {
     try {
       const res = await fetch(`http://localhost:5000/api/doctor/patients/approve/${patientId}`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ hospital_id: hospitalId })
       });
       if (res.ok) {
         await fetch(`http://localhost:5000/api/appointments/status/${appointmentId}`, {
@@ -391,7 +391,7 @@ export function ProfessionalDashboard({ role }: { role?: 'doctor' | 'nurse' }) {
                       Close View
                     </button>
                     <button 
-                      onClick={() => handleAddToMyPatients(selectedAppointment.patient_id, selectedAppointment.id)}
+                      onClick={() => handleAddToMyPatients(selectedAppointment.patient_id, selectedAppointment.id, selectedAppointment.hospital_id)}
                       className="flex-[2] py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-black transition-all shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2"
                     >
                       <PlusCircle className="h-4 w-4" /> Add to My List
@@ -402,6 +402,11 @@ export function ProfessionalDashboard({ role }: { role?: 'doctor' | 'nurse' }) {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Messaging Section (New) */}
+      <div className="mt-8">
+        <MessagingSection />
+      </div>
     </div>
   );
 }

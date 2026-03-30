@@ -13,9 +13,11 @@ router.post('/upload', labController.uploadResult);
 router.get('/my', labController.getResults);
 
 // Update Status (Hospital/Doctor)
-router.put('/:id', (req, res, next) => {
+const authUpdate = (req, res, next) => {
     if (req.user.role === 'hospital' || req.user.role === 'doctor') next();
     else res.status(403).json({ error: 'Only hospitals or doctors can update results' });
-}, labController.updateStatus);
+};
+router.put('/:id', authUpdate, labController.updateStatus);
+router.patch('/:id', authUpdate, labController.updateStatus);
 
 module.exports = router;

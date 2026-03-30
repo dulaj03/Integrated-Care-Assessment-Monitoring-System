@@ -9,6 +9,9 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  optimizeDeps: {
+    include: ['socket.io-client'],
+  },
   resolve: {
     alias: {
       // Alias @ to the src directory

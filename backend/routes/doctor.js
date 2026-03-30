@@ -12,7 +12,8 @@ const {
   createClinicalNote,
   getPatientNotes,
   updatePatientCondition,
-  getPatientReportsByDoctor
+  getPatientReportsByDoctor,
+  getPatientLabResults
 } = require('../controllers/doctorController');
 const { verifyDoctorToken } = require('../middleware/authMiddleware');
 
@@ -35,5 +36,6 @@ router.get('/notes/:patientId', getPatientNotes);
 
 // Read nurse reports (doctor read-only access)
 router.get('/nurse-reports/:patientId', getPatientReportsByDoctor);
+router.get('/lab-results/:patientId', getPatientLabResults);
 
 module.exports = router;

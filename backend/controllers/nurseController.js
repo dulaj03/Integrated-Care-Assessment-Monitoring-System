@@ -10,6 +10,7 @@ const getAssignedPatients = async (req, res) => {
     const patients = await CareTeamModel.getPatientsByNurseId(nurseId);
     res.json(patients);
   } catch (error) {
+    console.error('[getAssignedPatients Error]', error);
     res.status(500).json({ error: 'Failed to fetch assigned patients' });
   }
 };
@@ -76,10 +77,75 @@ const getPatientReports = async (req, res) => {
     }
 };
 
+// Get clinical orders for a patient (nurse read-only view)
+const getPatientOrders = async (req, res) => {
+    const { patientId } = req.params;
+    try {
+        const result = await pool.query(
+            `SELECT co.*, d.full_name as doctor_name 
+             FROM clinical_orders co
+             LEFT JOIN doctors d ON co.doctor_id = d.id
+             WHERE co.patient_id = $1 
+             ORDER BY co.created_at DESC`,
+            [patientId]
+        );
+        res.json(result.rows);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch orders' });
+    }
+};
+
+// Get clinical notes for a patient (nurse read-only view)
+const getPatientNotes = async (req, res) => {
+    const { patientId } = req.params;
+    try {
+        const result = await pool.query(
+            `SELECT cn.*, d.full_name as doctor_name
+             FROM clinical_notes cn
+             LEFT JOIN doctors d ON cn.doctor_id = d.id
+             WHERE cn.patient_id = $1
+             ORDER BY cn.created_at DESC`,
+            [patientId]
+        );
+        res.json(result.rows);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch notes' });
+    }
+};
+
+// Get health logs for a patient (nurse view)
+const getPatientHealthLogs = async (req, res) => {
+    const { patientId } = req.params;
+    try {
+        const logs = await HealthLogModel.findAllByPatientId(patientId);
+        res.json(logs);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch health logs' });
+    }
+};
+
 module.exports = {
   getAssignedPatients,
   getPatientDetails,
   createHealthLog,
   createShiftReport,
-  getPatientReports
+  getPatientReports,
+  getPatientOrders,
+  getPatientNotes,
+  getPatientHealthLogs,
+  getPatientLabResults: async (req, res) => {
+      const { patientId } = req.params;
+      try {
+          const result = await pool.query(
+              `SELECT l.*, h.name as hospital_name 
+               FROM lab_results l 
+               JOIN hospitals h ON l.hospital_id = h.id 
+               WHERE l.patient_id = $1 ORDER BY l.created_at DESC`,
+              [patientId]
+          );
+          res.json(result.rows);
+      } catch (error) {
+          res.status(500).json({ error: 'Failed to fetch lab results' });
+      }
+  }
 };

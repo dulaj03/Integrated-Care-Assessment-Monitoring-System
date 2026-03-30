@@ -3,6 +3,7 @@ import { format, isToday } from 'date-fns';
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'motion/react';
 import { toast } from 'sonner';
+import { MessagingSection } from '../../components/MessagingSection';
 import {
   MOCK_HOSPITAL_DOCTORS,
   MOCK_HOSPITALS,
@@ -218,6 +219,11 @@ export function HospitalDashboard() {
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* Messaging Section (New) */}
+      <div className="mt-8">
+        <MessagingSection />
       </div>
     </div>
   );

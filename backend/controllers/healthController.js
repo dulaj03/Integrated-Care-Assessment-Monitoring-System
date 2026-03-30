@@ -2,6 +2,7 @@ const HealthLogModel = require('../models/healthLogModel');
 const PatientModel = require('../models/patientModel');
 const NotificationModel = require('../models/notificationModel');
 const CareTeamModel = require('../models/careTeamModel');
+const pool = require('../config/db');
 
 const createHealthLog = async (req, res) => {
   const { patient_id, systolic_bp, diastolic_bp, heart_rate, temperature, oxygen_level, mood, symptoms, notes } = req.body;
@@ -102,8 +103,56 @@ const getAllHealthLogs = async (req, res) => {
   }
 };
 
+const getPatientOrders = async (req, res) => {
+  const { patient_id } = req.params;
+  const { id: userId, role } = req.user;
+
+  // Security: Patients can only see their own orders
+  if (role === 'patient' && String(userId) !== String(patient_id)) {
+    return res.status(403).json({ error: 'Access denied: You can only view your own orders' });
+  }
+
+  try {
+    const result = await pool.query(
+      'SELECT * FROM clinical_orders WHERE patient_id = $1 ORDER BY created_at DESC',
+      [patient_id]
+    );
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching patient orders:', error);
+    res.status(500).json({ error: 'Failed to fetch orders' });
+  }
+};
+
+const getNurseReports = async (req, res) => {
+  const { patient_id } = req.params;
+  const { id: userId, role } = req.user;
+
+  // Security: Patients can only see their own reports
+  if (role === 'patient' && String(userId) !== String(patient_id)) {
+    return res.status(403).json({ error: 'Access denied: You can only view your own reports' });
+  }
+
+  try {
+    const result = await pool.query(
+      `SELECT nr.*, n.full_name as nurse_name
+       FROM nurse_reports nr
+       LEFT JOIN nurses n ON nr.nurse_id = n.id
+       WHERE nr.patient_id = $1
+       ORDER BY nr.created_at DESC`,
+      [patient_id]
+    );
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching nurse reports:', error);
+    res.status(500).json({ error: 'Failed to fetch nurse reports' });
+  }
+};
+
 module.exports = {
   createHealthLog,
   getLatestHealthLog,
-  getAllHealthLogs
+  getAllHealthLogs,
+  getPatientOrders,
+  getNurseReports
 };

@@ -98,17 +98,28 @@ export function PatientWorkspace() {
     fetchData();
   }, [fetchData]);
 
-  const fetchNurses = async () => {
-      if (!patient?.hospital_id) return;
+  const fetchNurses = useCallback(async () => {
+      // If no hospital_id, we still try to fetch (the backend will now fallback to general list)
       try {
-          const res = await fetch(`http://localhost:5000/api/doctor/nurses?hospital_id=${patient.hospital_id}`, {
+          const url = patient?.hospital_id 
+            ? `http://localhost:5000/api/doctor/nurses?hospital_id=${patient.hospital_id}`
+            : `http://localhost:5000/api/doctor/nurses`;
+            
+          const res = await fetch(url, {
               headers: { 'Authorization': `Bearer ${token}` }
           });
-          setAvailableNurses(await res.json());
+          const data = await res.json();
+          setAvailableNurses(Array.isArray(data) ? data : []);
       } catch (err) {
           toast.error('Could not load staff list');
       }
-  };
+  }, [patient?.hospital_id, token]);
+
+  useEffect(() => {
+    if (isNurseModalOpen) {
+      fetchNurses();
+    }
+  }, [isNurseModalOpen, fetchNurses]);
 
   const handleAssignNurse = async (nurseId: number) => {
     try {
@@ -228,7 +239,7 @@ export function PatientWorkspace() {
           </div>
           <div className="flex gap-3">
              <button 
-               onClick={() => { setIsNurseModalOpen(true); fetchNurses(); }}
+               onClick={() => setIsNurseModalOpen(true)}
                className="px-6 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl text-xs font-black hover:scale-105 transition-all shadow-xl shadow-slate-900/10 flex items-center gap-2"
              >
                <User className="h-4 w-4" /> {patient.nurses?.length > 0 ? 'Managed Care' : 'Assign Nurse'}
@@ -471,6 +482,39 @@ export function PatientWorkspace() {
                    )}
                 </div>
               ))}
+           </motion.div>
+        )}
+        {activeTab === 'orders' && (
+           <motion.div key="orders_tab" className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {orders.length === 0 ? (
+                <div className="md:col-span-2 p-20 text-center font-bold text-slate-400 uppercase tracking-widest bg-slate-50 dark:bg-slate-800/50 rounded-[2.5rem] border-2 border-dashed border-slate-200 dark:border-slate-800">
+                  No active clinical orders for this patient.
+                </div>
+              ) : (
+                orders.map(order => (
+                  <div key={order.id} className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group">
+                     <div className="flex items-center justify-between mb-4">
+                        <div className={`p-3 rounded-2xl ${
+                          ORDER_TYPES.find(ot => ot.value === order.order_type)?.color || 'bg-slate-100 text-slate-600'
+                        }`}>
+                          <Pill className="h-5 w-5" />
+                        </div>
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{format(new Date(order.created_at), 'MMM d, yyyy · HH:mm')}</span>
+                     </div>
+                     <h4 className="text-lg font-black text-slate-900 dark:text-white mb-1 capitalize">{order.order_type?.replace('_', ' ')}</h4>
+                     <p className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4">{order.description}</p>
+                     {order.details && (
+                       <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl">
+                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Directives</p>
+                          <p className="text-xs font-bold text-slate-500 italic">"{order.details}"</p>
+                       </div>
+                     )}
+                     <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-all">
+                        <div className="px-3 py-1 bg-emerald-500 text-white rounded-lg text-[9px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/20">Active</div>
+                     </div>
+                  </div>
+                ))
+              )}
            </motion.div>
         )}
 
