@@ -357,7 +357,7 @@ export function NursePatientCare() {
 
                            <div className="space-y-2">
                               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Observation Notes</p>
-                              <textarea className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl p-5 text-sm font-bold min-h-[120px]" placeholder="Record any visible symptoms, concerns or patient comments..." value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} />
+                              <textarea className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl p-5 text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 min-h-[120px] focus:ring-2 focus:ring-blue-500 transition-all outline-none" placeholder="Record any visible symptoms, concerns or patient comments..." value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} />
                            </div>
 
                            <button onClick={handleSubmitLog} className="w-full py-6 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-[2rem] font-black text-sm uppercase tracking-widest shadow-2xl hover:scale-[1.02] transition-all">
@@ -458,7 +458,7 @@ export function NursePatientCare() {
 
                                <div className="space-y-4">
                                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Supervision Summary</p>
-                                  <textarea className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-[2.5rem] p-8 text-sm font-bold min-h-[200px]" placeholder="Detailed overview of patient activity, behavior and care provided during your shift..." value={reportSummary} onChange={e => setReportSummary(e.target.value)} />
+                                  <textarea className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-[2.5rem] p-8 text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 min-h-[200px] focus:ring-2 focus:ring-blue-500 transition-all outline-none" placeholder="Detailed overview of patient activity, behavior and care provided during your shift..." value={reportSummary} onChange={e => setReportSummary(e.target.value)} />
                                </div>
 
                                <button onClick={handleSubmitReport} className="w-full py-8 bg-blue-600 text-white rounded-[2.5rem] font-black text-md uppercase tracking-[0.2em] shadow-2xl hover:scale-[1.02] transition-all">
@@ -560,7 +560,7 @@ export function NursePatientCare() {
                                                     <div className="space-y-2">
                                                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Result Summary / Text</p>
                                                         <textarea 
-                                                            className="w-full bg-white dark:bg-slate-900 border-none rounded-3xl p-6 text-sm font-bold min-h-[150px] shadow-sm"
+                                                            className="w-full bg-white dark:bg-slate-900 border-none rounded-3xl p-6 text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 min-h-[150px] shadow-sm focus:ring-2 focus:ring-purple-500 transition-all outline-none"
                                                             placeholder="Enter clinical summary of the findings..."
                                                             value={labUpload.summary}
                                                             onChange={e => setLabUpload({...labUpload, summary: e.target.value})}
@@ -600,8 +600,13 @@ export function NursePatientCare() {
                                     {labTests.filter(t => t.status === 'ready').map(test => (
                                         <div key={test.id} className="p-6 bg-slate-50 dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700">
                                             <p className="text-[9px] font-black text-emerald-500 uppercase tracking-widest mb-1">VERIFIED RESULT</p>
-                                            <p className="text-md font-black text-slate-900 dark:text-white">{test.test_name}</p>
-                                            <p className="text-[10px] font-bold text-slate-400 mt-2">Completed {format(new Date(test.collected_at || test.created_at), 'MMM d, h:mm a')}</p>
+                                            <p className="text-md font-black text-slate-900 dark:text-white mb-3">{test.test_name}</p>
+                                            {test.file_url && (
+                                                <div className="h-20 w-full mb-3 rounded-xl overflow-hidden cursor-pointer hover:opacity-80 transition-opacity" onClick={() => window.open(test.file_url, '_blank')}>
+                                                    <img src={test.file_url} className="w-full h-full object-cover" alt="Verified Link" />
+                                                </div>
+                                            )}
+                                            <p className="text-[10px] font-bold text-slate-400 mt-2 text-right">Completed {format(new Date(test.collected_at || test.created_at), 'MMM d, h:mm a')}</p>
                                         </div>
                                     ))}
                                 </div>

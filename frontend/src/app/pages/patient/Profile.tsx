@@ -57,7 +57,13 @@ export function Profile() {
   }, []);
 
 
-  if (loading) return <div className="p-8 text-center text-slate-500">Loading profile...</div>;
+  if (loading) return (
+    <div className="flex flex-col items-center justify-center p-20 gap-4">
+      <div className="h-10 w-10 border-4 border-blue-600/30 border-t-blue-600 rounded-full animate-spin" />
+      <p className="font-bold text-slate-500">Synchronizing Health Profile...</p>
+    </div>
+  );
+  if (!patient) return <div className="p-20 text-center font-bold text-slate-400">Profile synchronization failed. Please log in again.</div>;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -114,7 +120,6 @@ export function Profile() {
   };
 
   const handleDownloadRecords = async () => {
-    const token = sessionStorage.getItem('token');
     try {
       // First fetch all related data (vitals, reports, etc.) 
       // For now, we generate a JSON blob of the profile and basic summary

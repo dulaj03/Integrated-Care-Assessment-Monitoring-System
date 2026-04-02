@@ -113,6 +113,22 @@ function LabTestCard({ test }: { test: LabTest }) {
             </div>
             <p className="text-sm text-slate-700 dark:text-slate-300 mb-3">{test.result.summary}</p>
 
+            {test.fileUrl && (
+              <div 
+                className="mb-4 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 group/img relative cursor-pointer"
+                onClick={() => window.open(test.fileUrl, '_blank')}
+              >
+                <img 
+                  src={test.fileUrl} 
+                  alt="Clinical Attachment" 
+                  className="w-full h-auto max-h-[300px] object-contain hover:scale-[1.02] transition-transform"
+                />
+                <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center p-4">
+                  <span className="text-[10px] font-black text-white uppercase tracking-widest bg-slate-900/60 px-4 py-2 rounded-xl backdrop-blur-md">View Full Size Document</span>
+                </div>
+              </div>
+            )}
+
             {test.result.values && (
               <div className="space-y-2">
                 {test.result.values.map((v, i) => {
@@ -227,8 +243,9 @@ export function LabResults() {
     orderedDate: t.created_at,
     priority: t.priority || 'routine',
     result: t.result_data || (t.result_summary ? { summary: t.result_summary } : null),
-    steps: t.steps || []
-  })) : []; // Remove hardcoded mock fallback if empty to show "No tests found"
+    steps: t.steps || [],
+    fileUrl: t.file_url 
+  })) : [];
 
   const filtered = filterStatus === 'all' ? tests : tests.filter(t => t.status === filterStatus);
 

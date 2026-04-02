@@ -7,6 +7,7 @@ const upload = require('../utils/upload');
 // Doctor routes
 router.post('/order', verifyToken, labController.orderTest);
 router.get('/patient/:patient_id', verifyToken, labController.getResultsByPatient);
+router.put('/review/:id', verifyToken, labController.reviewResult);
 
 // Nurse routes
 router.get('/pending', verifyToken, labController.getNursePendingTests);

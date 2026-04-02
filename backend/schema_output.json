@@ -1,0 +1,87 @@
+{
+  "columns": [
+    {
+      "column_name": "id",
+      "data_type": "integer",
+      "is_nullable": "NO"
+    },
+    {
+      "column_name": "patient_id",
+      "data_type": "integer",
+      "is_nullable": "NO"
+    },
+    {
+      "column_name": "hospital_id",
+      "data_type": "integer",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "doctor_id",
+      "data_type": "integer",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "test_name",
+      "data_type": "character varying",
+      "is_nullable": "NO"
+    },
+    {
+      "column_name": "test_type",
+      "data_type": "character varying",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "result_summary",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "result_data",
+      "data_type": "jsonb",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "file_url",
+      "data_type": "character varying",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "status",
+      "data_type": "character varying",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "collected_at",
+      "data_type": "timestamp without time zone",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "created_at",
+      "data_type": "timestamp without time zone",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "nurse_id",
+      "data_type": "integer",
+      "is_nullable": "YES"
+    }
+  ],
+  "fks": [
+    {
+      "constraint_name": "lab_results_nurse_id_fkey",
+      "definition": "FOREIGN KEY (nurse_id) REFERENCES nurses(id) ON DELETE SET NULL"
+    },
+    {
+      "constraint_name": "lab_results_patient_id_fkey",
+      "definition": "FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE"
+    },
+    {
+      "constraint_name": "lab_results_hospital_id_fkey",
+      "definition": "FOREIGN KEY (hospital_id) REFERENCES hospitals(id) ON DELETE CASCADE"
+    },
+    {
+      "constraint_name": "lab_results_doctor_id_fkey",
+      "definition": "FOREIGN KEY (doctor_id) REFERENCES doctors(id) ON DELETE SET NULL"
+    }
+  ]
+}

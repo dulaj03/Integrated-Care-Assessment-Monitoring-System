@@ -6,8 +6,10 @@ export interface Conversation {
   other_id: string | number;
   other_role: string;
   other_name?: string;
-  last_message?: string;
+  message_text?: string;
   is_read?: boolean;
+  is_incoming_unread?: boolean;
+  created_at?: string;
   active?: boolean;
 }
 
@@ -16,9 +18,10 @@ interface MessagingUIProps {
   currentUserId: string | number;
   currentUserRole: string;
   onSendMessage?: (message: string) => void;
+  onBack?: () => void;
 }
 
-export function MessagingUI({ conversation, currentUserId, currentUserRole, onSendMessage }: MessagingUIProps) {
+export function MessagingUI({ conversation, currentUserId, currentUserRole, onSendMessage, onBack }: MessagingUIProps) {
   const [messages, setMessages] = useState<any[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -127,9 +130,19 @@ export function MessagingUI({ conversation, currentUserId, currentUserRole, onSe
   };
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-800 overflow-hidden">
+    <div className="flex flex-col h-full bg-white dark:bg-slate-900 shadow-2xl border border-slate-100 dark:border-slate-800 overflow-hidden relative">
       {/* Header */}
-      <div className="bg-white dark:bg-slate-900 px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center gap-4">
+      <div className="bg-white dark:bg-slate-900 px-4 md:px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3 md:gap-4">
+        {onBack && (
+          <button 
+            onClick={onBack} 
+            className="md:hidden p-2 -ml-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+        )}
         <div className={`h-10 w-10 rounded-full flex items-center justify-center ${
           conversation.other_role === 'hospital' ? 'bg-indigo-100 text-indigo-600' : 
           conversation.other_role === 'doctor' ? 'bg-purple-100 text-purple-600' :

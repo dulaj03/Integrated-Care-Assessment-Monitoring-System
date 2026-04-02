@@ -69,6 +69,7 @@ export interface LabTest {
   };
   steps: LabTestStep[];
   priority: 'routine' | 'urgent' | 'stat';
+  fileUrl?: string;
 }
 
 export interface ClinicalOrder {

@@ -9,6 +9,15 @@ class NotificationModel {
        RETURNING *`,
       [user_id, user_role, title, message, type || 'info']
     );
+
+    // Real-time emission
+    try {
+      const { sendToUser } = require('../utils/socket');
+      sendToUser(user_id, user_role, 'new_notification', result.rows[0]);
+    } catch (e) {
+      console.error('Socket emission failed for notification:', e.message);
+    }
+
     return result.rows[0];
   }
 

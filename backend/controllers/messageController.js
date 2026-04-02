@@ -44,13 +44,6 @@ const messageController = {
             const dId = user1_role === 'doctor' ? user1_id : user2_id;
             const nId = user1_role === 'nurse' ? user1_id : user2_id;
 
-            const result = await pool.query(
-                `SELECT d.id FROM doctors d
-                 JOIN nurses n ON $2 = ANY(n.hospital_ids::int[]) 
-                 WHERE d.id = $1 AND $3 = ANY(d.hospital_ids::int[])`,
-                [dId, nId, nId]
-            );
-            // wait, simpler: just check if any hospital_id is common
             const res = await pool.query(
                 `SELECT d.id FROM doctors d, nurses n
                  WHERE d.id = $1 AND n.id = $2
@@ -221,32 +214,41 @@ const messageController = {
             const my_id = req.user.id;
             const my_role = req.user.role;
 
-            const results = await pool.query(
-                `SELECT DISTINCT ON (m.other_id, m.other_role) 
-                        m.other_id,
-                        m.other_role,
-                        m.message_text,
-                        m.is_read,
-                        m.created_at,
-                        m.is_incoming_unread,
-                        COALESCE(p.full_name, h.name, d.full_name, n.full_name) as other_name
-                 FROM (
-                    SELECT 
-                        CASE WHEN sender_id = $1 AND sender_role = $2 THEN receiver_id ELSE sender_id END as other_id,
-                        CASE WHEN sender_id = $1 AND sender_role = $2 THEN receiver_role ELSE sender_role END as other_role,
-                        message_text, is_read, created_at,
-                        (receiver_id = $1 AND receiver_role = $2 AND is_read = FALSE) as is_incoming_unread
-                    FROM messages 
-                    WHERE (sender_id = $1 AND sender_role = $2) OR (receiver_id = $1 AND receiver_role = $2)
-                    ORDER BY created_at DESC
-                 ) m
-                 LEFT JOIN patients p ON m.other_role = 'patient' AND m.other_id = p.id
-                 LEFT JOIN hospitals h ON m.other_role = 'hospital' AND m.other_id = h.id
-                 LEFT JOIN doctors d ON m.other_role = 'doctor' AND m.other_id = d.id
-                 LEFT JOIN nurses n ON m.other_role = 'nurse' AND m.other_id = n.id
-                 ORDER BY m.other_id, m.other_role, m.created_at DESC`,
-                [my_id, my_role]
-            );
+             const results = await pool.query(
+                 `SELECT
+                         ranked.other_id,
+                         ranked.other_role,
+                         ranked.message_text,
+                         ranked.is_read,
+                         ranked.created_at,
+                         (
+                            SELECT COUNT(*) > 0 
+                            FROM messages m2 
+                            WHERE m2.receiver_id = $1 AND m2.receiver_role = $2 
+                            AND ((m2.sender_id = ranked.other_id AND m2.sender_role = ranked.other_role))
+                            AND m2.is_read = FALSE
+                         ) as is_incoming_unread,
+                         COALESCE(p.full_name, h.name, d.full_name, n.full_name) as other_name
+                  FROM (
+                     SELECT *,
+                         ROW_NUMBER() OVER (PARTITION BY other_id, other_role ORDER BY created_at DESC) as rn
+                     FROM (
+                         SELECT 
+                             CASE WHEN sender_id = $1 AND sender_role = $2 THEN receiver_id ELSE sender_id END as other_id,
+                             CASE WHEN sender_id = $1 AND sender_role = $2 THEN receiver_role ELSE sender_role END as other_role,
+                             message_text, is_read, created_at
+                         FROM messages 
+                         WHERE (sender_id = $1 AND sender_role = $2) OR (receiver_id = $1 AND receiver_role = $2)
+                     ) base
+                  ) ranked
+                  LEFT JOIN patients p ON ranked.other_role = 'patient' AND ranked.other_id = p.id
+                  LEFT JOIN hospitals h ON ranked.other_role = 'hospital' AND ranked.other_id = h.id
+                  LEFT JOIN doctors d ON ranked.other_role = 'doctor' AND ranked.other_id = d.id
+                  LEFT JOIN nurses n ON ranked.other_role = 'nurse' AND ranked.other_id = n.id
+                  WHERE ranked.rn = 1
+                  ORDER BY ranked.created_at DESC`,
+                 [my_id, my_role]
+             );
 
             res.json(results.rows);
         } catch (error) {

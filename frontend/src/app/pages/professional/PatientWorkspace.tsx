@@ -37,6 +37,8 @@ export function PatientWorkspace() {
   const [noteForm, setNoteForm] = useState({ assessment: '', plan: '', request: '' });
   const [orderForm, setOrderForm] = useState({ type: 'lab_test', desc: '', details: '' });
   const [isNurseModalOpen, setIsNurseModalOpen] = useState(false);
+  const [isLabModalOpen, setIsLabModalOpen] = useState(false);
+  const [labForm, setLabForm] = useState({ test_name: '', test_type: 'blood' });
 
   const token = sessionStorage.getItem('token');
 
@@ -72,12 +74,11 @@ export function PatientWorkspace() {
       if (nRes.ok) setNotes(await nRes.json());
 
       // 5. Fetch Labs
-      const lRes = await fetch(`http://localhost:5000/api/lab/my`, {
+      const lRes = await fetch(`http://localhost:5000/api/lab/patient/${id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (lRes.ok) {
-          const labs = await lRes.json();
-          setLabTests(labs.filter((l: any) => l.patient_id == id));
+          setLabTests(await lRes.json());
       }
 
       // 6. Fetch Reports (via doctor-accessible endpoint)
@@ -132,9 +133,12 @@ export function PatientWorkspace() {
         toast.success('Nurse assigned successfully');
         setIsNurseModalOpen(false);
         fetchData(); // refresh
+      } else {
+        const errorData = await res.json();
+        toast.error(`Assignment failed: ${errorData.error || 'System error'}`);
       }
     } catch (err) {
-      toast.error('Assignment failed');
+      toast.error('Assignment failed: Connection error');
     }
   };
 
@@ -155,9 +159,58 @@ export function PatientWorkspace() {
         toast.success('Order synchronized with hospital system');
         setOrderForm({ type: 'lab_test', desc: '', details: '' });
         fetchData();
+      } else {
+        toast.error('Order failed to synchronize. Please check data.');
       }
     } catch (err) {
-      toast.error('System error: Order failed');
+      toast.error('System error: Connection timeout');
+    }
+  };
+
+    const handleSignLab = async (id: string, note: string) => {
+        if (!token) return;
+        try {
+            const res = await fetch(`http://localhost:5000/api/lab/review/${id}`, {
+                method: 'PUT',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}` 
+                },
+                body: JSON.stringify({ review_note: note })
+            });
+            if (res.ok) {
+                toast.success('Report reviewed and signed');
+                fetchData();
+            }
+        } catch (err) {
+            toast.error('Signature failed');
+        }
+    };
+
+  const handleOrderLab = async () => {
+    if (!labForm.test_name) return;
+    try {
+        const res = await fetch('http://localhost:5000/api/lab/order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({
+                patient_id: id,
+                hospital_id: patient.hospital_id,
+                test_name: labForm.test_name,
+                test_type: labForm.test_type
+            })
+        });
+        if (res.ok) {
+            toast.success('Official lab diagnostics ordered');
+            setIsLabModalOpen(false);
+            setLabForm({ test_name: '', test_type: 'blood' });
+            fetchData();
+        } else {
+            const errorData = await res.json();
+            toast.error(`Lab Order Failed: ${errorData.error || 'Check hospital association'}`);
+        }
+    } catch (err) {
+        toast.error('Failed to initiate lab workflow - network error');
     }
   };
 
@@ -181,22 +234,6 @@ export function PatientWorkspace() {
       }
     } catch (err) {
       toast.error('Failed to save record');
-    }
-  };
-
-  const handleSignLab = async (testId: number, reviewNote: string) => {
-    try {
-        const res = await fetch(`http://localhost:5000/api/lab/${testId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-            body: JSON.stringify({ status: 'reviewed_by_doctor', result_summary: reviewNote })
-        });
-        if (res.ok) {
-            toast.success('Report reviewed and signed');
-            fetchData();
-        }
-    } catch (err) {
-        toast.error('Signature failed');
     }
   };
 
@@ -409,6 +446,14 @@ export function PatientWorkspace() {
                      <p className="text-xs font-bold text-slate-400 italic">No nursing staff assigned yet.</p>
                    )}
                 </div>
+
+                {/* Lab Order Quick Action */}
+                <button 
+                  onClick={() => setIsLabModalOpen(true)}
+                  className="w-full py-5 bg-purple-600 text-white rounded-[2rem] text-sm font-black flex items-center justify-center gap-3 hover:scale-[1.02] transition-all shadow-xl shadow-purple-500/20"
+                >
+                    <FlaskConical className="h-5 w-5" /> Formal Lab Requisition
+                </button>
             </div>
           </motion.div>
         )}
@@ -454,17 +499,33 @@ export function PatientWorkspace() {
                    {test.result_summary && (
                      <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl mb-4">
                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 underline decoration-indigo-500">Official Findings</p>
-                        <p className="text-sm font-bold text-slate-700 dark:text-slate-300 leading-relaxed">{test.result_summary}</p>
+                        <p className="text-sm font-bold text-slate-700 dark:text-slate-300 leading-relaxed mb-4">{test.result_summary}</p>
+                        
+                        {test.file_url && (
+                          <div 
+                            className="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 group/img relative cursor-pointer"
+                            onClick={() => window.open(test.file_url, '_blank')}
+                          >
+                             <img 
+                               src={test.file_url} 
+                               alt="Clinical Attachment" 
+                               className="w-full h-auto max-h-[200px] object-cover hover:scale-[1.02] transition-transform"
+                             />
+                             <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center p-4">
+                                <span className="text-[9px] font-black text-white uppercase tracking-widest bg-slate-900/60 px-3 py-1 rounded-lg backdrop-blur-sm">Click to Inspect Full Document</span>
+                             </div>
+                          </div>
+                        )}
                      </div>
                    )}
 
                    {test.status !== 'reviewed_by_doctor' ? (
                      <div className="pt-2">
-                        <textarea 
-                          id={`review-${test.id}`}
-                          className="w-full bg-slate-50 border-none rounded-xl p-3 text-xs font-bold placeholder-slate-400 mb-2"
-                          placeholder="Your clinical review & follow-up instructions..."
-                        />
+                         <textarea 
+                           id={`review-${test.id}`}
+                           className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl p-3 text-xs font-bold text-slate-900 dark:text-white placeholder-slate-400 mb-2 focus:ring-2 focus:ring-indigo-500 transition-all outline-none"
+                           placeholder="Your clinical review & follow-up instructions..."
+                         />
                         <button 
                           onClick={() => {
                               const note = (document.getElementById(`review-${test.id}`) as HTMLTextAreaElement).value;
@@ -526,7 +587,7 @@ export function PatientWorkspace() {
                      <div className="space-y-2">
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Assessment & Observations</p>
                         <textarea 
-                          className="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold min-h-[120px]" 
+                          className="w-full bg-slate-50 dark:bg-slate-800/50 border-none rounded-2xl p-4 text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 min-h-[120px] focus:ring-2 focus:ring-blue-500 transition-all outline-none" 
                           placeholder="What did you observe today?"
                           value={noteForm.assessment}
                           onChange={e => setNoteForm({...noteForm, assessment: e.target.value})}
@@ -535,7 +596,7 @@ export function PatientWorkspace() {
                      <div className="space-y-2">
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Clinical Plan & Follow-up</p>
                         <textarea 
-                          className="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold min-h-[120px]" 
+                          className="w-full bg-slate-50 dark:bg-slate-800/50 border-none rounded-2xl p-4 text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 min-h-[120px] focus:ring-2 focus:ring-blue-500 transition-all outline-none" 
                           placeholder="What are the next steps?"
                           value={noteForm.plan}
                           onChange={e => setNoteForm({...noteForm, plan: e.target.value})}
@@ -625,6 +686,49 @@ export function PatientWorkspace() {
                     </div>
                   ))
                 )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Lab Requisition Modal */}
+      <AnimatePresence>
+        {isLabModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/90 backdrop-blur-md">
+            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="bg-white dark:bg-slate-900 rounded-[3rem] p-10 w-full max-w-md shadow-2xl">
+              <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-6 tracking-tight flex items-center gap-3">
+                 <div className="p-2 bg-purple-600 rounded-xl text-white"><FlaskConical className="h-5 w-5" /></div>
+                 New Lab Requisition
+              </h3>
+              <div className="space-y-6">
+                 <div className="space-y-2">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Diagnostics Category</p>
+                    <select 
+                      className="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-2xl p-4 text-sm font-bold"
+                      value={labForm.test_type}
+                      onChange={e => setLabForm({...labForm, test_type: e.target.value})}
+                    >
+                       <option value="blood">Blood Analysis</option>
+                       <option value="urine">Urine Analysis</option>
+                       <option value="scan">Imaging / Scan</option>
+                       <option value="xray">X-Ray</option>
+                       <option value="ecg">Cardiology (ECG)</option>
+                    </select>
+                 </div>
+                 <div className="space-y-2">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Specific Test Name</p>
+                    <input 
+                      className="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-2xl p-4 text-sm font-bold"
+                      placeholder="e.g. FBS, HbA1c, Lipid Profile..."
+                      value={labForm.test_name}
+                      onChange={e => setLabForm({...labForm, test_name: e.target.value})}
+                    />
+                 </div>
+                 <div className="flex gap-4 pt-4">
+                    <button onClick={handleOrderLab} className="flex-1 py-4 bg-purple-600 text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-purple-500/20">Transmit Requisition</button>
+                    <button onClick={() => setIsLabModalOpen(false)} className="px-6 py-4 bg-slate-100 dark:bg-slate-800 text-slate-400 rounded-2xl text-xs font-black uppercase">Cancel</button>
+                 </div>
               </div>
             </motion.div>
           </div>

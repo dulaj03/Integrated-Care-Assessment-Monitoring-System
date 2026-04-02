@@ -55,29 +55,34 @@ export function DashboardLayout({ role, userName: initialUserName = '' }: Dashbo
     }
   }, []);
 
-  // Initialize notifications and user info from sessionStorage
-  useEffect(() => {
-    const savedNotifications = localStorage.getItem('notifications');
-    if (savedNotifications) {
-      try {
-        const parsed = JSON.parse(savedNotifications);
-        const loaded = parsed.map((n: Notification) => ({
-          ...n,
-          timestamp: new Date(n.timestamp)
+  const fetchNotifications = useCallback(async () => {
+    const token = sessionStorage.getItem('token');
+    if (!token) return;
+    try {
+      const res = await fetch('http://localhost:5000/api/notifications', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const mapped: Notification[] = data.map((n: any) => ({
+          id: String(n.id),
+          patientName: n.title, // Using title as "Source" name for now
+          message: n.message,
+          timestamp: new Date(n.created_at),
+          status: n.type === 'critical' || n.type === 'error' ? 'High' : n.type === 'warning' ? 'Moderate' : 'Normal',
+          isRead: n.is_read
         }));
-        // Check for health log alerts and merge them
-        const withHealthAlerts = checkAllPatientAlerts(MOCK_PATIENTS, loaded);
-        setNotifications(withHealthAlerts);
-      } catch {
-        // Fall back to mock data if parsing fails
-        const initialNotifications = checkAllPatientAlerts(MOCK_PATIENTS, mockNotifications);
-        setNotifications(initialNotifications);
+        setNotifications(mapped);
       }
-    } else {
-      // Generate initial alerts from health logs with mock notifications
-      const initialNotifications = checkAllPatientAlerts(MOCK_PATIENTS, mockNotifications);
-      setNotifications(initialNotifications);
+    } catch (error) {
+       console.error('Failed to fetch notifications:', error);
     }
+  }, []);
+
+  // Initialize notifications
+  useEffect(() => {
+    fetchNotifications();
+    fetchUnreadCount();
 
     // Load actual user name from session
     const storedName = sessionStorage.getItem('userName');
@@ -85,63 +90,62 @@ export function DashboardLayout({ role, userName: initialUserName = '' }: Dashbo
       setUserName(storedName);
     }
 
-    fetchUnreadCount();
-
-    // Socket for unread messages
+    // Socket for real-time updates
     const socket = initSocket(String(userId), role);
+    
     const handleNewMessage = () => {
-      // Only increment if not already on messages page
       if (!location.pathname.includes('messages')) {
         setUnreadMessages(prev => prev + 1);
       }
     };
 
+    const handleNewNotification = (notif: any) => {
+        const mapped: Notification = {
+          id: String(notif.id),
+          patientName: notif.title,
+          message: notif.message,
+          timestamp: new Date(notif.created_at),
+          status: notif.type === 'critical' || notif.type === 'error' ? 'High' : notif.type === 'warning' ? 'Moderate' : 'Normal',
+          isRead: notif.is_read
+        };
+        setNotifications(prev => [mapped, ...prev]);
+        toast.info(notif.title, { description: notif.message });
+    };
+
     socket?.on('new_message', handleNewMessage);
     socket?.on('messages_read', fetchUnreadCount);
+    socket?.on('new_notification', handleNewNotification);
 
     return () => {
       socket?.off('new_message', handleNewMessage);
       socket?.off('messages_read', fetchUnreadCount);
+      socket?.off('new_notification', handleNewNotification);
     };
-  }, [userId, role, location.pathname, fetchUnreadCount]);
+  }, [userId, role, location.pathname, fetchUnreadCount, fetchNotifications]);
 
   // Clear unread count when entering messages page
   useEffect(() => {
     fetchUnreadCount();
   }, [location.pathname, fetchUnreadCount]);
 
-  // Automatic alert generation from health logs (every 30 seconds)
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setNotifications((prev) => {
-        // Check for new alerts from health logs
-        return checkAllPatientAlerts(MOCK_PATIENTS, prev);
-      });
-    }, 30000); // Check every 30 seconds
-
-    return () => clearInterval(interval);
-  }, []);
-
-  // Save notifications to localStorage whenever they change
-  useEffect(() => {
-    if (notifications.length > 0) {
-      localStorage.setItem('notifications', JSON.stringify(notifications));
-    }
-  }, [notifications]);
-
   // Handle marking notification as read
-  const handleMarkAsRead = (notificationId: string) => {
-    setNotifications((prev) =>
-      prev.map((notif) =>
-        notif.id === notificationId ? { ...notif, isRead: true } : notif
-      )
-    );
+  const handleMarkAsRead = async (notificationId: string) => {
+    const token = sessionStorage.getItem('token');
+    if (!token) return;
+    try {
+        await fetch(`http://localhost:5000/api/notifications/mark-read/${notificationId}`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        setNotifications(prev => prev.map(n => n.id === notificationId ? { ...n, isRead: true } : n));
+    } catch (e) {
+        console.error('Failed to mark read:', e);
+    }
   };
 
   // Handle notification click
   const handleNotificationClick = (notification: Notification) => {
-    console.log('Notification clicked:', notification);
-    // You can add navigation or other actions here based on notification type
+    handleMarkAsRead(notification.id);
   };
 
   const patientLinks = [

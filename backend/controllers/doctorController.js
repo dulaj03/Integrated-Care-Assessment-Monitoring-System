@@ -307,7 +307,7 @@ module.exports = {
           const result = await pool.query(
               `SELECT l.*, h.name as hospital_name 
                FROM lab_results l 
-               JOIN hospitals h ON l.hospital_id = h.id 
+               LEFT JOIN hospitals h ON l.hospital_id = h.id 
                WHERE l.patient_id = $1 ORDER BY l.created_at DESC`,
               [patientId]
           );

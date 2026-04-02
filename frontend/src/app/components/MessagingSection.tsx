@@ -98,9 +98,9 @@ export function MessagingSection() {
   }
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 h-[600px] flex overflow-hidden">
-      {/* Sidebar */}
-      <div className="w-80 border-r border-slate-100 dark:border-slate-800 flex flex-col">
+    <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 h-[calc(100vh-180px)] md:h-[650px] flex flex-col md:flex-row overflow-hidden">
+      {/* Sidebar - Hidden on mobile if a conversation is selected */}
+      <div className={`w-full md:w-80 border-r border-slate-100 dark:border-slate-800 flex flex-col ${selectedConversation ? 'hidden md:flex' : 'flex'}`}>
         <div className="p-4 border-b border-slate-100 dark:border-slate-800">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold text-slate-900 dark:text-white">Messages</h3>
@@ -162,10 +162,10 @@ export function MessagingSection() {
                       }`}>
                         {conv.other_role}
                       </span>
+                      {conv.is_incoming_unread && <div className="h-2 w-2 bg-blue-500 rounded-full flex-shrink-0" />}
                     </div>
-                    {!conv.is_read && <div className="h-2 w-2 bg-blue-500 rounded-full" />}
                   <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                    {conv.last_message || 'New conversation'}
+                    {conv.message_text || 'New conversation'}
                   </p>
                 </div>
               </button>
@@ -174,14 +174,15 @@ export function MessagingSection() {
         </div>
       </div>
 
-      {/* Main Chat Area */}
-      <div className="flex-1 bg-slate-50 dark:bg-slate-950/50">
+      {/* Main Chat Area - Hidden on mobile if NO conversation is selected */}
+      <div className={`flex-1 bg-slate-50 dark:bg-slate-950/50 ${!selectedConversation ? 'hidden md:flex' : 'flex flex-col'}`}>
         {selectedConversation ? (
           <MessagingUI
             conversation={selectedConversation}
             currentUserId={userId || ''}
             currentUserRole={userRole}
             onSendMessage={fetchConversations}
+            onBack={() => setSelectedConversation(null)}
           />
         ) : (
           <div className="h-full flex flex-col items-center justify-center text-center p-8 space-y-4">
