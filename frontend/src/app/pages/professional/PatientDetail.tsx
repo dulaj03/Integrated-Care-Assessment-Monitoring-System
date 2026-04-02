@@ -15,12 +15,21 @@ export function PatientDetail() {
   const [loading, setLoading] = useState(true);
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [isLabModalOpen, setIsLabModalOpen] = useState(false);
+  const [labForm, setLabForm] = useState({ test_name: '', test_type: 'blood' });
+  const [labResults, setLabResults] = useState<any[]>([]);
 
   // Form States
   const [vitalsForm, setVitalsForm] = useState({
       systolic: '', diastolic: '', pulse: '', temp: '', spo2: '', notes: '', mood: 'good', symptoms: [] as string[]
   });
   const [reportForm, setReportForm] = useState({ title: 'Daily Care Review', summary: '', recommendations: '' });
+  const [labUpload, setLabUpload] = useState<{ id: string | null; summary: string; file: File | null }>({
+    id: null,
+    summary: '',
+    file: null
+  });
+  const [uploadingLab, setUploadingLab] = useState(false);
 
   const token = sessionStorage.getItem('token');
 
@@ -55,6 +64,12 @@ export function PatientDetail() {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (rRes.ok) setReports(await rRes.json());
+
+      // Lab Results
+      const lRes = await fetch(`http://localhost:5000/api/lab/patient/${id}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (lRes.ok) setLabResults(await lRes.json());
 
     } catch (err) {
       toast.error('Patient record synchronization error');
@@ -125,6 +140,61 @@ export function PatientDetail() {
       }
   };
 
+  const handleOrderLab = async () => {
+    if (!labForm.test_name) return;
+    try {
+        const res = await fetch('http://localhost:5000/api/lab/order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({
+                patient_id: id,
+                hospital_id: patient.hospital_id,
+                test_name: labForm.test_name,
+                test_type: labForm.test_type
+            })
+        });
+        if (res.ok) {
+            toast.success('Lab test ordered successfully');
+            setIsLabModalOpen(false);
+            setLabForm({ test_name: '', test_type: 'blood' });
+            fetchData();
+        }
+    } catch (err) {
+        toast.error('Failed to order lab test');
+    }
+  };
+
+  const handleUploadLabResult = async () => {
+    if (!labUpload.id || !labUpload.summary) {
+        toast.error('Summary and verified data is required');
+        return;
+    }
+    setUploadingLab(true);
+    const fd = new FormData();
+    fd.append('result_summary', labUpload.summary);
+    if (labUpload.file) fd.append('profile_picture', labUpload.file);
+
+    const token = sessionStorage.getItem('token');
+    if (!token) return;
+
+    try {
+        const res = await fetch(`http://localhost:5000/api/lab/upload/${labUpload.id}`, {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${token}` },
+            body: fd
+        });
+        if (res.ok) {
+            toast.success('Patient lab diagnostics updated');
+            setLabUpload({ id: null, summary: '', file: null });
+            fetchData();
+        }
+    } catch (err) {
+        toast.error('Clinical upload failed');
+    } finally {
+        setUploadingLab(false);
+    }
+  };
+
   if (loading) return <div className="flex flex-col items-center justify-center min-h-screen gap-4">
       <Loader2 className="h-10 w-10 text-blue-500 animate-spin" />
       <p className="font-black text-slate-500 uppercase tracking-widest text-[10px]">Accessing patient file...</p>
@@ -135,6 +205,7 @@ export function PatientDetail() {
   const latestVitals = logs[0];
   const activeOrders = orders.filter(o => o.status !== 'completed');
   const nurseDirectives = notes.filter(n => n.request_to_nurse);
+  const userRole = token ? JSON.parse(atob(token.split('.')[1])).role : null;
 
   return (
     <div className="space-y-8 pb-10">
@@ -245,6 +316,102 @@ export function PatientDetail() {
                 </div>
               </div>
             )}
+
+            {/* Lab Results Display */}
+            <div className="bg-white dark:bg-slate-900 p-8 rounded-[40px] border border-slate-200 dark:border-slate-800 shadow-sm">
+                <div className="flex items-center justify-between mb-8">
+                   <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
+                      <div className="p-2 bg-purple-600 rounded-xl text-white"><Activity className="h-5 w-5" /></div>
+                      Patient Lab Test Results
+                   </h3>
+                   <span className="text-xs font-black text-slate-400 uppercase tracking-widest">{labResults.length} Total Tests</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                   {labResults.length === 0 ? (
+                      <div className="col-span-full p-10 text-center font-bold text-slate-300 italic text-xs uppercase tracking-widest">No verified lab records found.</div>
+                   ) : labResults.map(res => (
+                      <div key={res.id} className="p-6 bg-slate-50 dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 space-y-4">
+                         <div className="flex justify-between items-start">
+                            <div>
+                               <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">{res.test_type} TEST</p>
+                               <h4 className="text-lg font-black text-slate-900 dark:text-white">{res.test_name}</h4>
+                            </div>
+                            <div className="flex flex-col items-end gap-1">
+                                <span className={`px-2 py-0.5 rounded-lg text-[7px] font-black uppercase ${
+                                    res.status === 'ready' ? 'bg-emerald-100 text-emerald-600' : 
+                                    res.status === 'ordered' ? 'bg-amber-100 text-amber-600' :
+                                    'bg-blue-100 text-blue-600'
+                                }`}>{res.status}</span>
+                                {userRole === 'nurse' && res.status !== 'ready' && (
+                                   <button 
+                                    onClick={() => setLabUpload(prev => ({ ...prev, id: res.id }))}
+                                    className="text-[8px] font-black text-blue-600 underline uppercase mt-1 cursor-pointer"
+                                   >
+                                     Upload Results
+                                   </button>
+                                )}
+                            </div>
+                         </div>
+                         
+                         {labUpload.id === res.id ? (
+                            <div className="p-4 bg-white dark:bg-slate-900 rounded-2xl border-2 border-blue-500 space-y-4 animate-in slide-in-from-top-2 duration-300">
+                               <div className="space-y-1">
+                                  <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Findings Summary</p>
+                                  <textarea 
+                                    className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl p-3 text-[10px] font-bold min-h-[80px]"
+                                    placeholder="Enter verified test results summary..."
+                                    value={labUpload.summary}
+                                    onChange={e => setLabUpload({...labUpload, summary: e.target.value})}
+                                  />
+                               </div>
+                               <div className="space-y-1">
+                                  <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Result Image / File</p>
+                                  <input 
+                                    type="file" 
+                                    className="w-full bg-slate-50 dark:bg-slate-800 rounded-xl p-2 text-[8px] font-black"
+                                    onChange={e => setLabUpload({...labUpload, file: e.target.files ? e.target.files[0] : null})}
+                                  />
+                               </div>
+                               <div className="flex gap-2">
+                                  <button onClick={handleUploadLabResult} disabled={uploadingLab} className="flex-1 py-3 bg-blue-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-blue-700">
+                                    {uploadingLab ? 'Syncing...' : 'Submit'}
+                                  </button>
+                                  <button onClick={() => setLabUpload({ id: null, summary: '', file: null })} className="px-3 py-3 bg-slate-100 dark:bg-slate-800 text-slate-400 rounded-xl text-[9px] font-black uppercase">Cancel</button>
+                               </div>
+                            </div>
+                         ) : (
+                            <>
+                         {res.result_summary && (
+                            <div className="p-3 bg-white/50 dark:bg-slate-900/50 rounded-xl border-l-4 border-purple-500">
+                               <p className="text-xs font-bold text-slate-600 dark:text-slate-400 italic">"{res.result_summary}"</p>
+                            </div>
+                         )}
+
+                         {res.file_url && (
+                            <div className="rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 group relative">
+                               <img 
+                                src={res.file_url} 
+                                alt="Lab Result" 
+                                className="w-full h-auto object-cover max-h-48 cursor-pointer hover:scale-105 transition-transform" 
+                                onClick={() => window.open(res.file_url, '_blank')}
+                               />
+                            </div>
+                         )}
+                            </>
+                         )}
+
+                         <div className="pt-4 border-t border-slate-200 dark:border-slate-700 flex justify-between items-center text-[9px] font-black uppercase tracking-widest">
+                            <span className="text-slate-400">{format(new Date(res.created_at), 'MMM d, yyyy')}</span>
+                            {res.nurse_name ? (
+                              <span className="text-purple-600">Verified by {res.nurse_name}</span>
+                            ) : (
+                              <span className="text-amber-500 italic">Awaiting Processing</span>
+                            )}
+                         </div>
+                      </div>
+                   ))}
+                </div>
+            </div>
          </div>
 
          {/* Actions Sidebar */}
@@ -263,6 +430,14 @@ export function PatientDetail() {
                 >
                     <Send className="h-5 w-5" /> Submit Shift Report
                 </button>
+                {userRole === 'doctor' && (
+                  <button 
+                    onClick={() => setIsLabModalOpen(true)}
+                    className="w-full py-4 bg-purple-600 text-white rounded-3xl text-sm font-black flex items-center justify-center gap-3 hover:scale-105 transition-all shadow-xl shadow-purple-500/20"
+                  >
+                      <Plus className="h-5 w-5" /> Order Lab Test
+                  </button>
+                )}
             </div>
 
             {/* Doctor's Orders (real data) */}
@@ -406,6 +581,38 @@ export function PatientDetail() {
               </motion.div>
            </div>
         )}
+        {isLabModalOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/90 backdrop-blur-xl">
+               <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="bg-white dark:bg-slate-900 rounded-[3rem] p-10 w-full max-w-lg border border-white/20 shadow-2xl relative">
+                  <button onClick={() => setIsLabModalOpen(false)} className="absolute top-10 right-10 p-2 bg-slate-100 dark:bg-slate-800 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700">
+                      <Plus className="h-6 w-6 rotate-45 text-slate-500" />
+                  </button>
+                  <h3 className="text-3xl font-black text-slate-900 dark:text-white mb-2 tracking-tight">Order Lab Diagnostic</h3>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-10">Select required diagnostic tests for patient processing</p>
+                  
+                  <div className="space-y-6">
+                     <div className="space-y-2">
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Diagnostic Test Name</p>
+                        <input className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl p-4 text-sm font-bold dark:text-white ring-0 outline-none" placeholder="e.g. Lipid Profile" value={labForm.test_name} onChange={e => setLabForm({...labForm, test_name: e.target.value})} />
+                     </div>
+                     <div className="space-y-2">
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Test Department / Type</p>
+                        <select className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl p-4 text-sm font-bold dark:text-white" value={labForm.test_type} onChange={e => setLabForm({...labForm, test_type: e.target.value})}>
+                            <option value="blood">Hematology (Blood)</option>
+                            <option value="urine">Urinalysis</option>
+                            <option value="imaging">Medical Imaging (X-Ray/CT)</option>
+                            <option value="biopsy">Biopsy / Pathology</option>
+                            <option value="cardio">Cardiovascular (ECG/Echo)</option>
+                            <option value="other">Other Diagnostic</option>
+                        </select>
+                     </div>
+                     <button onClick={handleOrderLab} className="w-full py-5 bg-purple-600 text-white rounded-[1.5rem] font-black text-sm uppercase tracking-widest shadow-2xl hover:scale-105 transition-all">
+                        Execute Lab Order
+                     </button>
+                  </div>
+               </motion.div>
+            </div>
+         )}
       </AnimatePresence>
     </div>
   );

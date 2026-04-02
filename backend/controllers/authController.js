@@ -251,6 +251,61 @@ const updateAdminProfile = async (req, res) => {
   }
 };
 
+const updatePatientProfile = async (req, res) => {
+  const { id } = req.user;
+  const { full_name, email, phone, age, gender, address } = req.body;
+  const profile_picture = req.file ? `http://localhost:5000/${req.file.path.replace(/\\/g, '/')}` : req.body.profile_picture;
+
+  try {
+    const updated = await PatientModel.updateProfile(id, {
+      full_name,
+      email,
+      phone,
+      age: age ? parseInt(age) : null,
+      gender,
+      address,
+      profile_picture
+    });
+
+    if (!updated) return res.status(404).json({ error: 'User not found' });
+    res.json({ message: 'Profile updated successfully', user: { ...updated, role: 'patient' } });
+  } catch (err) {
+    console.error('Update profile error:', err);
+    res.status(500).json({ error: 'Server error updating profile' });
+  }
+};
+
+const changePassword = async (req, res) => {
+  const { id, role } = req.user;
+  const { oldPassword, newPassword } = req.body;
+
+  try {
+    let model;
+    switch (role) {
+      case 'patient': model = PatientModel; break;
+      case 'doctor': model = DoctorModel; break;
+      case 'nurse': model = NurseModel; break;
+      case 'hospital': model = HospitalModel; break;
+      default: return res.status(400).json({ error: 'Invalid role' });
+    }
+
+    // Get current user (with password)
+    const user = await pool.query(`SELECT password FROM ${role}s WHERE id = $1`, [id]);
+    if (user.rows.length === 0) return res.status(404).json({ error: 'User not found' });
+
+    const isMatch = await bcrypt.compare(oldPassword, user.rows[0].password);
+    if (!isMatch) return res.status(400).json({ error: 'Current password is incorrect' });
+
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+    await pool.query(`UPDATE ${role}s SET password = $1 WHERE id = $2`, [hashedNewPassword, id]);
+
+    res.json({ message: 'Password changed successfully' });
+  } catch (err) {
+    console.error('Change password error:', err);
+    res.status(500).json({ error: 'Server error changing password' });
+  }
+};
+
 module.exports = {
   adminLogin,
   login,
@@ -259,5 +314,7 @@ module.exports = {
   registerNurse,
   registerHospital,
   getMe,
-  updateAdminProfile
+  updateAdminProfile,
+  updatePatientProfile,
+  changePassword
 };

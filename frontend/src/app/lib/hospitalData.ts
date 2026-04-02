@@ -3,7 +3,7 @@ import { addDays, subDays, subHours, subMinutes } from 'date-fns';
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type AppointmentStatus = 'requested' | 'confirmed' | 'in_progress' | 'completed' | 'follow_up_needed' | 'cancelled';
-export type LabTestStatus = 'ordered' | 'sample_scheduled' | 'sample_collected' | 'processing' | 'results_ready' | 'reviewed_by_doctor';
+export type LabTestStatus = 'ordered' | 'processing' | 'ready' | 'reviewed';
 export type OrderType = 'lab_test' | 'scan' | 'medication' | 'referral' | 'physiotherapy';
 
 export interface Hospital {
@@ -334,7 +334,7 @@ export const MOCK_LAB_TESTS: LabTest[] = [
     orderedByDoctorId: 'hd1',
     testName: 'Fasting Blood Sugar (FBS)',
     testType: 'blood',
-    status: 'results_ready',
+    status: 'ready',
     orderedDate: subDays(new Date(), 5).toISOString(),
     scheduledDate: subDays(new Date(), 3).toISOString(),
     completedDate: subDays(new Date(), 2).toISOString(),
@@ -383,7 +383,7 @@ export const MOCK_LAB_TESTS: LabTest[] = [
     orderedByDoctorId: 'hd1',
     testName: 'ECG (Electrocardiogram)',
     testType: 'ecg',
-    status: 'sample_scheduled',
+    status: 'ordered',
     orderedDate: subDays(new Date(), 1).toISOString(),
     scheduledDate: addDays(new Date(), 2).toISOString(),
     priority: 'routine',
@@ -591,11 +591,9 @@ export const MOCK_NURSE_REPORTS: NurseReport[] = [
 export const getLabStatusLabel = (status: LabTestStatus): string => {
   const labels: Record<LabTestStatus, string> = {
     ordered: 'Ordered',
-    sample_scheduled: 'Sample Scheduled',
-    sample_collected: 'Sample Collected',
     processing: 'Processing',
-    results_ready: 'Results Ready',
-    reviewed_by_doctor: 'Reviewed by Doctor',
+    ready: 'Results Ready',
+    reviewed: 'Reviewed by Doctor',
   };
   return labels[status];
 };
@@ -603,11 +601,9 @@ export const getLabStatusLabel = (status: LabTestStatus): string => {
 export const getLabStatusColor = (status: LabTestStatus): string => {
   const colors: Record<LabTestStatus, string> = {
     ordered: 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300',
-    sample_scheduled: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300',
-    sample_collected: 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300',
     processing: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300',
-    results_ready: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300',
-    reviewed_by_doctor: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300',
+    ready: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300',
+    reviewed: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300',
   };
   return colors[status];
 };
@@ -625,7 +621,7 @@ export const getAppointmentStatusColor = (status: AppointmentStatus): string => 
 };
 
 export const LAB_STATUS_STEPS: LabTestStatus[] = [
-  'ordered', 'sample_scheduled', 'sample_collected', 'processing', 'results_ready', 'reviewed_by_doctor',
+  'ordered', 'processing', 'ready', 'reviewed',
 ];
 
 export const getHospitalById = (id: string) => MOCK_HOSPITALS.find(h => h.id === id);

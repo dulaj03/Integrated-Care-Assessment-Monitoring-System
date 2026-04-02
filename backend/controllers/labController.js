@@ -1,110 +1,102 @@
 const pool = require('../config/db');
-const notificationModel = require('../models/notificationModel');
 
 const labController = {
-    // Hospital: Upload Lab Result
-    uploadResult: async (req, res) => {
+    // Doctor orders a test
+    orderTest: async (req, res) => {
         try {
-            const { patient_id, test_name, test_type, result_summary, result_data, file_url, doctor_id } = req.body;
-            const hospital_id = req.user.id;
+            const { patient_id, test_name, test_type, hospital_id } = req.body;
+            const doctor_id = req.user.id;
 
-            const results = await pool.query(
-                `INSERT INTO lab_results (patient_id, hospital_id, doctor_id, test_name, test_type, result_summary, result_data, file_url)
-                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
-                [patient_id, hospital_id, doctor_id, test_name, test_type, result_summary, JSON.stringify(result_data), file_url]
+            const result = await pool.query(
+                `INSERT INTO lab_results (patient_id, doctor_id, hospital_id, test_name, test_type, status)
+                 VALUES ($1, $2, $3, $4, $5, 'ordered') RETURNING *`,
+                [patient_id, doctor_id, hospital_id, test_name, test_type]
             );
 
-            // Notify Patient
-            await notificationModel.create({
-                user_id: patient_id,
-                user_role: 'patient',
-                title: 'Lab Result Ready!',
-                message: `Your ${test_name} result from ${req.user.name || 'Hospital'} is ready for review.`
-            });
-
-            // Notify Doctor if assigned
-            if (doctor_id) {
-                await notificationModel.create({
-                    user_id: doctor_id,
-                    user_role: 'doctor',
-                    title: 'New Lab result for patient',
-                    message: `Patient under your care has a new lab result: ${test_name}.`
-                });
-            }
-
-            res.status(201).json(results.rows[0]);
+            res.status(201).json(result.rows[0]);
         } catch (error) {
-            console.error(error);
-            res.status(500).json({ error: 'Upload failed' });
+            console.error('Order test failed:', error);
+            res.status(500).json({ error: 'Failed to order test' });
         }
     },
 
-    // Patient/Doctor/Nurse: View Lab Results
-    getResults: async (req, res) => {
+    // Get tests for a nurse (assigned to them via assignments)
+    getNursePendingTests: async (req, res) => {
         try {
-            const { id, role } = req.user;
-            let query;
-            if (role === 'patient') {
-                query = `SELECT l.*, h.name as hospital_name, d.full_name as doctor_name 
-                         FROM lab_results l 
-                         JOIN hospitals h ON l.hospital_id = h.id 
-                         JOIN doctors d ON l.doctor_id = d.id 
-                         WHERE l.patient_id = $1 ORDER BY l.created_at DESC`;
-            } else if (role === 'doctor') {
-                // Doctor needs to see results for patients assigned to them (or specifically for them)
-                query = `SELECT l.*, p.full_name as patient_name, h.name as hospital_name 
-                         FROM lab_results l 
-                         JOIN patients p ON l.patient_id = p.id 
-                         JOIN hospitals h ON l.hospital_id = h.id 
-                         WHERE l.doctor_id = $1 ORDER BY l.created_at DESC`;
-            } else {
-                // Nurse/Hospital logic
-                query = `SELECT l.*, p.full_name as patient_name 
-                         FROM lab_results l 
-                         JOIN patients p ON l.patient_id = p.id 
-                         WHERE l.hospital_id = $1 ORDER BY l.created_at DESC`;
-            }
-            const results = await pool.query(query, [id]);
-            res.json(results.rows);
+            const nurse_id = req.user.id;
+            const result = await pool.query(
+                `SELECT lr.*, p.full_name as patient_name, d.full_name as doctor_name
+                 FROM lab_results lr
+                 JOIN patients p ON lr.patient_id = p.id
+                 JOIN doctors d ON lr.doctor_id = d.id
+                 JOIN patient_nurse_assignments pna ON p.id = pna.patient_id
+                 WHERE pna.nurse_id = $1 AND lr.status IN ('ordered', 'processing')
+                 ORDER BY lr.created_at DESC`,
+                [nurse_id]
+            );
+            res.json(result.rows);
         } catch (error) {
-            console.error(error);
-            res.status(500).json({ error: 'Fetch failed' });
+            res.status(500).json({ error: 'Failed to fetch tests' });
         }
     },
 
-    // Update Status (Hospital/Doctor)
-    updateStatus: async (req, res) => {
+    // Nurse uploads results
+    uploadResult: async (req, res) => {
         try {
-            const { status, result_summary, result_data } = req.body;
-            const test_id = req.params.id;
+            const { id } = req.params;
+            const { result_summary } = req.body;
+            const nurse_id = req.user.id;
+            const file_url = req.file ? `http://localhost:5000/${req.file.path.replace(/\\/g, '/')}` : null;
 
-            const updateFields = [];
-            const values = [];
-            let i = 1;
+            const result = await pool.query(
+                `UPDATE lab_results 
+                 SET result_summary = $1, file_url = $2, nurse_id = $3, status = 'ready', collected_at = CURRENT_TIMESTAMP
+                 WHERE id = $4 RETURNING *`,
+                [result_summary, file_url, nurse_id, id]
+            );
 
-            if (status) {
-                updateFields.push(`status = $${i++}`);
-                values.push(status);
-            }
-            if (result_summary) {
-                updateFields.push(`result_summary = $${i++}`);
-                values.push(result_summary);
-            }
-            if (result_data) {
-                updateFields.push(`result_data = $${i++}`);
-                values.push(JSON.stringify(result_data));
-            }
-
-            if (updateFields.length === 0) return res.status(400).json({ error: 'No fields to update' });
-
-            values.push(test_id);
-            const query = `UPDATE lab_results SET ${updateFields.join(', ')} WHERE id = $${i} RETURNING *`;
-            const results = await pool.query(query, values);
-
-            res.json(results.rows[0]);
+            res.json(result.rows[0]);
         } catch (error) {
-            console.error(error);
-            res.status(500).json({ error: 'Update failed' });
+            res.status(500).json({ error: 'Failed to upload results' });
+        }
+    },
+
+    // Get results for a patient
+    getPatientResults: async (req, res) => {
+        try {
+            const patient_id = req.user.id;
+            const result = await pool.query(
+                `SELECT lr.*, d.full_name as doctor_name, n.full_name as nurse_name, h.name as hospital_name
+                 FROM lab_results lr
+                 LEFT JOIN doctors d ON lr.doctor_id = d.id
+                 LEFT JOIN nurses n ON lr.nurse_id = n.id
+                 LEFT JOIN hospitals h ON lr.hospital_id = h.id
+                 WHERE lr.patient_id = $1
+                 ORDER BY lr.created_at DESC`,
+                [patient_id]
+            );
+            res.json(result.rows);
+        } catch (error) {
+            res.status(500).json({ error: 'Failed to fetch results' });
+        }
+    },
+
+    // Get results for a specific patient (for doctors/nurses)
+    getResultsByPatient: async (req, res) => {
+        try {
+            const { patient_id } = req.params;
+            const result = await pool.query(
+                `SELECT lr.*, d.full_name as doctor_name, n.full_name as nurse_name
+                 FROM lab_results lr
+                 LEFT JOIN doctors d ON lr.doctor_id = d.id
+                 LEFT JOIN nurses n ON lr.nurse_id = n.id
+                 WHERE lr.patient_id = $1
+                 ORDER BY lr.created_at DESC`,
+                [patient_id]
+            );
+            res.json(result.rows);
+        } catch (error) {
+            res.status(500).json({ error: 'Failed' });
         }
     }
 };

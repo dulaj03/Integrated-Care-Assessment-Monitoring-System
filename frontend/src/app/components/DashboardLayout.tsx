@@ -13,8 +13,9 @@ import {
   FlaskConical,
   ClipboardList,
 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { clsx } from 'clsx';
+import { initSocket } from '../lib/socket';
 import { MOCK_PATIENTS } from '../lib/mockData';
 import { ThemeSwitcher } from './ThemeSwitcher';
 import { NotificationBell } from './NotificationBell';
@@ -32,7 +33,27 @@ export function DashboardLayout({ role, userName: initialUserName = '' }: Dashbo
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [userName, setUserName] = useState(initialUserName);
+  const [unreadMessages, setUnreadMessages] = useState(0);
   const location = useLocation();
+  const userId = sessionStorage.getItem('userId');
+
+  const fetchUnreadCount = useCallback(async () => {
+    const token = sessionStorage.getItem('token');
+    if (!token) return;
+    try {
+      const res = await fetch('http://localhost:5000/api/messages/conversations', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const conversations = await res.json();
+        // Correctly count only conversations with active unread incoming messages
+        const count = conversations.reduce((acc: number, conv: any) => acc + (conv.is_incoming_unread ? 1 : 0), 0);
+        setUnreadMessages(count);
+      }
+    } catch (error) {
+      console.error('Error fetching unread count:', error);
+    }
+  }, []);
 
   // Initialize notifications and user info from sessionStorage
   useEffect(() => {
@@ -63,7 +84,31 @@ export function DashboardLayout({ role, userName: initialUserName = '' }: Dashbo
     if (storedName) {
       setUserName(storedName);
     }
-  }, []);
+
+    fetchUnreadCount();
+
+    // Socket for unread messages
+    const socket = initSocket(String(userId), role);
+    const handleNewMessage = () => {
+      // Only increment if not already on messages page
+      if (!location.pathname.includes('messages')) {
+        setUnreadMessages(prev => prev + 1);
+      }
+    };
+
+    socket?.on('new_message', handleNewMessage);
+    socket?.on('messages_read', fetchUnreadCount);
+
+    return () => {
+      socket?.off('new_message', handleNewMessage);
+      socket?.off('messages_read', fetchUnreadCount);
+    };
+  }, [userId, role, location.pathname, fetchUnreadCount]);
+
+  // Clear unread count when entering messages page
+  useEffect(() => {
+    fetchUnreadCount();
+  }, [location.pathname, fetchUnreadCount]);
 
   // Automatic alert generation from health logs (every 30 seconds)
   useEffect(() => {
@@ -171,7 +216,7 @@ export function DashboardLayout({ role, userName: initialUserName = '' }: Dashbo
                     isActive
                       ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-r-4 border-blue-600'
                       : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-300',
-                    'group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors duration-200'
+                    'group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors duration-200 relative'
                   )}
                 >
                   <item.icon
@@ -181,6 +226,11 @@ export function DashboardLayout({ role, userName: initialUserName = '' }: Dashbo
                     )}
                   />
                   {item.name}
+                  {item.name === 'Messages' && unreadMessages > 0 && (
+                    <span className="absolute right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-lg shadow-red-500/40 animate-pulse">
+                      {unreadMessages}
+                    </span>
+                  )}
                 </Link>
               );
             })}

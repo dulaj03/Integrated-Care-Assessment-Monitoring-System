@@ -3,7 +3,6 @@ import { FlaskConical, Clock, CheckCircle2, AlertTriangle, ChevronDown, ChevronU
 import { motion, AnimatePresence } from 'motion/react';
 import { format } from 'date-fns';
 import {
-  MOCK_LAB_TESTS,
   LabTest,
   LAB_STATUS_STEPS,
   getLabStatusLabel,
@@ -66,7 +65,7 @@ function LabTestCard({ test }: { test: LabTest }) {
           </div>
           <div className="flex flex-col items-end gap-2">
             <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${getLabStatusColor(test.status)}`}>
-              {test.status === 'results_ready' || test.status === 'reviewed_by_doctor' ? <CheckCircle2 className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
+              {test.status === 'ready' || test.status === 'reviewed' ? <CheckCircle2 className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
               {getLabStatusLabel(test.status)}
             </span>
             <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${test.priority === 'stat' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' :
@@ -202,7 +201,7 @@ export function LabResults() {
     const token = sessionStorage.getItem('token');
     if (!token) return;
     try {
-      const res = await fetch('http://localhost:5000/api/lab/my', {
+      const res = await fetch('http://localhost:5000/api/lab/my-results', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -229,12 +228,12 @@ export function LabResults() {
     priority: t.priority || 'routine',
     result: t.result_data || (t.result_summary ? { summary: t.result_summary } : null),
     steps: t.steps || []
-  })) : MOCK_LAB_TESTS.filter(t => t.patientId === 'p1');
+  })) : []; // Remove hardcoded mock fallback if empty to show "No tests found"
 
   const filtered = filterStatus === 'all' ? tests : tests.filter(t => t.status === filterStatus);
 
-  const pendingCount = tests.filter(t => !['results_ready', 'reviewed_by_doctor'].includes(t.status)).length;
-  const readyCount = tests.filter(t => t.status === 'results_ready' || t.status === 'reviewed_by_doctor').length;
+  const pendingCount = tests.filter(t => !['ready', 'reviewed'].includes(t.status)).length;
+  const readyCount = tests.filter(t => t.status === 'ready' || t.status === 'reviewed').length;
 
   if (loading) {
      return <div className="flex items-center justify-center p-20"><Loader2 className="h-8 w-8 animate-spin text-blue-600" /></div>;
@@ -271,8 +270,8 @@ export function LabResults() {
           { value: 'all', label: 'All Tests' },
           { value: 'ordered', label: 'Ordered' },
           { value: 'processing', label: 'Processing' },
-          { value: 'results_ready', label: 'Results Ready' },
-          { value: 'reviewed_by_doctor', label: 'Reviewed' },
+          { value: 'ready', label: 'Results Ready' },
+          { value: 'reviewed', label: 'Reviewed' },
         ].map(opt => (
           <button key={opt.value} onClick={() => setFilterStatus(opt.value)}
             className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${filterStatus === opt.value

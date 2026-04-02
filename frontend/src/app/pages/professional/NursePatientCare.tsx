@@ -31,6 +31,7 @@ export function NursePatientCare() {
   const [nurseLogs, setNurseLogs] = useState<any[]>([]);
   const [doctorOrders, setDoctorOrders] = useState<any[]>([]);
   const [clinicalNotes, setClinicalNotes] = useState<any[]>([]);
+  const [labTests, setLabTests] = useState<any[]>([]);
 
   // Token & Token Data
   const token = sessionStorage.getItem('token');
@@ -64,6 +65,12 @@ export function NursePatientCare() {
       if (lRes.ok) setNurseLogs(await lRes.json());
       if (oRes.ok) setDoctorOrders(await oRes.json());
       if (nRes.ok) setClinicalNotes(await nRes.json());
+
+      // Fetch lab tests for this patient
+      const lrRes = await fetch(`http://localhost:5000/api/lab/patient/${pid}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (lrRes.ok) setLabTests(await lrRes.json());
     } catch (err) {
       console.error('Data pull failed', err);
     }
@@ -94,6 +101,13 @@ export function NursePatientCare() {
     { title: 'Patient Meal Assistance', description: '', completed: false },
     { title: 'Personal Hygiene', description: '', completed: false },
   ]);
+
+  const [labUpload, setLabUpload] = useState<{ id: string | null; summary: string; file: File | null }>({
+    id: null,
+    summary: '',
+    file: null
+  });
+  const [uploadingLab, setUploadingLab] = useState(false);
 
   const selectedPatient = patients.find(p => String(p.id) === String(selectedPatientId));
 
@@ -157,12 +171,42 @@ export function NursePatientCare() {
     }
   };
 
+  const handleUploadLabResult = async () => {
+    if (!labUpload.id || !labUpload.summary) {
+        toast.error('Result summary is required');
+        return;
+    }
+    if (!token) return;
+    setUploadingLab(true);
+    const formData = new FormData();
+    formData.append('result_summary', labUpload.summary);
+    if (labUpload.file) formData.append('profile_picture', labUpload.file); // Reusing field name for now
+
+    try {
+        const res = await fetch(`http://localhost:5000/api/lab/upload/${labUpload.id}`, {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${token}` },
+            body: formData
+        });
+        if (res.ok) {
+            toast.success('Lab results synchronized with patient file');
+            setLabUpload({ id: null, summary: '', file: null });
+            if (selectedPatientId) fetchSelectedData(selectedPatientId);
+        }
+    } catch (err) {
+        toast.error('Upload failed');
+    } finally {
+        setUploadingLab(false);
+    }
+  };
+
   const TABS: { key: NurseTab; label: string; icon: any; badge?: number }[] = [
     { key: 'patients', label: 'My Patients', icon: Users },
     { key: 'log_symptoms', label: 'Log Vitals', icon: ClipboardList },
     { key: 'doctor_orders', label: `Orders (${doctorOrders.filter(o => o.status !== 'completed').length})`, icon: Activity },
     { key: 'nurse_report', label: 'Shift Report', icon: Send },
     { key: 'care_notes', label: 'Clinical Notes', icon: MessageSquare },
+    { key: 'lab_results', label: `Labs (${labTests.filter(l => l.status === 'ordered').length})`, icon: Activity },
   ];
 
   if (loading && patients.length === 0) {
@@ -470,8 +514,101 @@ export function NursePatientCare() {
                             </div>
                          </div>
                       </div>
-                   )}
-                </motion.div>
+                    )}
+                    {activeTab === 'lab_results' && (
+                        <div className="space-y-10">
+                            <div className="bg-white dark:bg-slate-900 p-12 rounded-[4rem] border border-slate-200 dark:border-slate-800 shadow-2xl">
+                                <h4 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter mb-10 flex items-center gap-6">
+                                    <div className="p-4 bg-purple-600 rounded-3xl text-white shadow-xl shadow-purple-500/20"><Activity className="h-8 w-8" /></div>
+                                    Laboratory Processing Hub
+                                </h4>
+
+                                <div className="grid grid-cols-1 xl:grid-cols-2 gap-10">
+                                    <div className="space-y-6">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-4">Pending Diagnostic Orders</p>
+                                        <div className="space-y-4">
+                                            {labTests.filter(t => t.status === 'ordered' || t.status === 'processing').length === 0 ? (
+                                                <div className="p-16 text-center bg-slate-50 dark:bg-slate-800/50 rounded-[3rem] border border-dashed border-slate-200 dark:border-slate-700">
+                                                    <p className="text-sm font-bold text-slate-300 italic">No new lab orders detected.</p>
+                                                </div>
+                                            ) : labTests.filter(t => t.status === 'ordered' || t.status === 'processing').map(test => (
+                                                <button 
+                                                    key={test.id}
+                                                    onClick={() => setLabUpload({...labUpload, id: test.id})}
+                                                    className={`w-full p-8 rounded-[3rem] border-2 transition-all text-left flex items-center justify-between ${
+                                                        labUpload.id === test.id 
+                                                        ? 'bg-purple-50 dark:bg-purple-900/20 border-purple-500 shadow-xl' 
+                                                        : 'bg-white dark:bg-slate-800 border-transparent hover:border-slate-200 dark:hover:border-slate-700'
+                                                    }`}
+                                                >
+                                                    <div>
+                                                        <p className="text-[9px] font-black text-purple-600 uppercase tracking-widest mb-1">{test.test_type} TEST</p>
+                                                        <p className="text-lg font-black text-slate-900 dark:text-white">{test.test_name}</p>
+                                                        <p className="text-[10px] font-bold text-slate-400 mt-2">Ordered {format(new Date(test.created_at), 'h:mm a')}</p>
+                                                    </div>
+                                                    <Plus className={`h-6 w-6 ${labUpload.id === test.id ? 'text-purple-600' : 'text-slate-300'}`} />
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-slate-50 dark:bg-slate-800/50 p-10 rounded-[4rem] border border-slate-200 dark:border-slate-700">
+                                        {labUpload.id ? (
+                                            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                                <h5 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">Upload Test Results</h5>
+                                                <div className="space-y-6">
+                                                    <div className="space-y-2">
+                                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Result Summary / Text</p>
+                                                        <textarea 
+                                                            className="w-full bg-white dark:bg-slate-900 border-none rounded-3xl p-6 text-sm font-bold min-h-[150px] shadow-sm"
+                                                            placeholder="Enter clinical summary of the findings..."
+                                                            value={labUpload.summary}
+                                                            onChange={e => setLabUpload({...labUpload, summary: e.target.value})}
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Attachment (Image/Document)</p>
+                                                        <input 
+                                                            type="file" 
+                                                            className="w-full bg-white dark:bg-slate-900 rounded-3xl p-6 text-[10px] font-black uppercase"
+                                                            onChange={e => setLabUpload({...labUpload, file: e.target.files ? e.target.files[0] : null})}
+                                                        />
+                                                    </div>
+                                                    <button 
+                                                        onClick={handleUploadLabResult}
+                                                        disabled={uploadingLab}
+                                                        className="w-full py-6 bg-purple-600 text-white rounded-[2rem] font-black text-sm uppercase tracking-widest shadow-2xl hover:scale-105 transition-all disabled:opacity-50"
+                                                    >
+                                                        {uploadingLab ? 'Synchronizing File...' : 'Dispatch Verified Results'}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="h-full flex flex-col items-center justify-center text-center p-10 opacity-50">
+                                                <div className="p-6 bg-white dark:bg-slate-900 rounded-[2.5rem] mb-6"><ClipboardList className="h-10 w-10 text-slate-300" /></div>
+                                                <p className="text-xs font-black text-slate-400 uppercase tracking-widest leading-relaxed">Select a pending order from the list to begin result verification and clinical documentation.</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Verified History */}
+                            <div className="bg-white dark:bg-slate-900 p-10 rounded-[40px] border border-slate-200 dark:border-slate-800 shadow-sm mt-10">
+                                <h3 className="text-xl font-black text-slate-900 dark:text-white mb-8 tracking-tight">Recently Verified Results</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    {labTests.filter(t => t.status === 'ready').map(test => (
+                                        <div key={test.id} className="p-6 bg-slate-50 dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700">
+                                            <p className="text-[9px] font-black text-emerald-500 uppercase tracking-widest mb-1">VERIFIED RESULT</p>
+                                            <p className="text-md font-black text-slate-900 dark:text-white">{test.test_name}</p>
+                                            <p className="text-[10px] font-bold text-slate-400 mt-2">Completed {format(new Date(test.collected_at || test.created_at), 'MMM d, h:mm a')}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                 </motion.div>
              )}
            </AnimatePresence>
         </div>

@@ -2,22 +2,17 @@ const express = require('express');
 const router = express.Router();
 const labController = require('../controllers/labController');
 const { verifyToken } = require('../middleware/authMiddleware');
+const upload = require('../utils/upload');
 
-// All lab results need user authentication
-router.use(verifyToken);
+// Doctor routes
+router.post('/order', verifyToken, labController.orderTest);
+router.get('/patient/:patient_id', verifyToken, labController.getResultsByPatient);
 
-// Upload (Hospital)
-router.post('/upload', labController.uploadResult);
+// Nurse routes
+router.get('/pending', verifyToken, labController.getNursePendingTests);
+router.put('/upload/:id', verifyToken, upload.single('profile_picture'), labController.uploadResult); // Reuse profile_picture for now or add result_file
 
-// Get Results (Any role who can see results)
-router.get('/my', labController.getResults);
-
-// Update Status (Hospital/Doctor)
-const authUpdate = (req, res, next) => {
-    if (req.user.role === 'hospital' || req.user.role === 'doctor') next();
-    else res.status(403).json({ error: 'Only hospitals or doctors can update results' });
-};
-router.put('/:id', authUpdate, labController.updateStatus);
-router.patch('/:id', authUpdate, labController.updateStatus);
+// Patient routes
+router.get('/my-results', verifyToken, labController.getPatientResults);
 
 module.exports = router;

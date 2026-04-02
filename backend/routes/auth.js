@@ -8,7 +8,9 @@ const {
   registerNurse,
   registerHospital,
   getMe,
-  updateAdminProfile
+  updateAdminProfile,
+  updatePatientProfile,
+  changePassword
 } = require('../controllers/authController');
 const { verifyToken, verifyAdminToken } = require('../middleware/authMiddleware');
 const upload = require('../utils/upload');
@@ -24,6 +26,8 @@ router.post('/register/nurse', upload.single('licenseDocument'), registerNurse);
 
 // Protected endpoints
 router.get('/me', verifyToken, getMe);
+router.post('/change-password', verifyToken, changePassword);
+router.put('/profile', verifyToken, upload.single('profile_picture'), updatePatientProfile);
 router.put('/admin/profile', verifyAdminToken, updateAdminProfile);
 
 module.exports = router;

@@ -38,23 +38,12 @@ export function MessagingSection() {
     setLoadingContacts(true);
     const token = sessionStorage.getItem('token');
     try {
-      let url = '';
-      if (userRole === 'patient') {
-        url = 'http://localhost:5000/api/hospitals'; // Patients can message any hospital
-      } else if (userRole === 'hospital') {
-        url = `http://localhost:5000/api/hospitals/${userId}/patients`;
-      } else if (userRole === 'doctor' || userRole === 'nurse') {
-        url = `http://localhost:5000/api/${userRole}/patients`;
-      }
-
-      if (url) {
-        const res = await fetch(url, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setAvailableContacts(data);
-        }
+      const res = await fetch('http://localhost:5000/api/messages/contacts', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setAvailableContacts(data);
       }
     } catch (error) {
       console.error('Error fetching contacts:', error);
@@ -81,8 +70,8 @@ export function MessagingSection() {
     // Create a temporary conversation object
     const newConv: Conversation = {
       other_id: contact.id,
-      other_role: userRole === 'patient' ? 'hospital' : 'patient',
-      other_name: contact.name || contact.full_name,
+      other_role: contact.role,
+      other_name: contact.name,
     };
 
     // Check if conversation already exists in list
@@ -155,17 +144,26 @@ export function MessagingSection() {
                 }`}
               >
                 <div className={`h-12 w-12 rounded-full flex-shrink-0 flex items-center justify-center ${
-                  conv.other_role === 'hospital' ? 'bg-indigo-100 text-indigo-600' : 'bg-blue-100 text-blue-600'
+                  conv.other_role === 'hospital' ? 'bg-indigo-100 text-indigo-600' : 
+                  conv.other_role === 'doctor' ? 'bg-purple-100 text-purple-600' :
+                  conv.other_role === 'nurse' ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'
                 }`}>
                   {conv.other_role === 'hospital' ? <Building2 className="h-6 w-6" /> : <User className="h-6 w-6" />}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-start mb-0.5">
-                    <h4 className="text-sm font-bold text-slate-900 dark:text-white truncate">
-                      {conv.other_name || `${conv.other_role} #${conv.other_id}`}
-                    </h4>
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-sm font-bold text-slate-900 dark:text-white truncate">
+                        {conv.other_name || `${conv.other_role} #${conv.other_id}`}
+                      </h4>
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider ${
+                        conv.other_role === 'hospital' ? 'bg-indigo-100 text-indigo-700' :
+                        conv.other_role === 'doctor' ? 'bg-purple-100 text-purple-700' :
+                        conv.other_role === 'nurse' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'
+                      }`}>
+                        {conv.other_role}
+                      </span>
+                    </div>
                     {!conv.is_read && <div className="h-2 w-2 bg-blue-500 rounded-full" />}
-                  </div>
                   <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
                     {conv.last_message || 'New conversation'}
                   </p>
@@ -212,7 +210,7 @@ export function MessagingSection() {
             >
               <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
                 <h3 className="text-xl font-bold text-slate-900 dark:text-white">
-                  {userRole === 'patient' ? 'Message a Hospital' : 'Message a Patient'}
+                  Message Center - Find Contacts
                 </h3>
                 <button onClick={() => setIsNewChatModalOpen(false)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
                   <X className="h-6 w-6 text-slate-400" />
@@ -232,16 +230,29 @@ export function MessagingSection() {
                   <div className="space-y-2">
                     {availableContacts.map(contact => (
                       <button
-                        key={contact.id}
+                        key={`${contact.role}_${contact.id}`}
                         onClick={() => handleStartNewChat(contact)}
                         className="w-full p-4 flex items-center gap-4 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-left border border-transparent hover:border-slate-100 dark:hover:border-slate-700"
                       >
-                        <div className="h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600">
-                          {userRole === 'patient' ? <Building2 className="h-6 w-6" /> : <User className="h-6 w-6" />}
+                        <div className={`h-12 w-12 rounded-full flex-shrink-0 flex items-center justify-center ${
+                          contact.role === 'hospital' ? 'bg-indigo-100 text-indigo-600' : 
+                          contact.role === 'doctor' ? 'bg-purple-100 text-purple-600' :
+                          contact.role === 'nurse' ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'
+                        }`}>
+                          {contact.role === 'hospital' ? <Building2 className="h-6 w-6" /> : <User className="h-6 w-6" />}
                         </div>
-                        <div>
-                          <p className="font-bold text-slate-900 dark:text-white">{contact.name || contact.full_name}</p>
-                          <p className="text-xs text-slate-500 truncate max-w-[200px]">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className="font-bold text-slate-900 dark:text-white truncate">{contact.name || contact.full_name}</p>
+                            <span className={`text-[8px] px-1.5 py-0.5 rounded-full font-black uppercase tracking-[0.1em] ${
+                              contact.role === 'hospital' ? 'bg-indigo-100 text-indigo-700' :
+                              contact.role === 'doctor' ? 'bg-purple-100 text-purple-700' :
+                              contact.role === 'nurse' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'
+                            }`}>
+                              {contact.role}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-500 truncate max-w-[200px] mt-0.5">
                             {contact.address || `${contact.condition || 'Status'} · ${contact.status || 'Active'}`}
                           </p>
                         </div>

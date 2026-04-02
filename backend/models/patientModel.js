@@ -19,7 +19,16 @@ class PatientModel {
 
   static async findById(id) {
     const result = await pool.query(
-      'SELECT id, full_name, email, hospital_id, doctor_id, status, condition, created_at FROM patients WHERE id = $1',
+      `SELECT p.id, p.full_name, p.email, p.hospital_id, p.doctor_id, p.status, p.condition, 
+              p.phone, p.age, p.gender, p.address, p.profile_picture, p.created_at,
+              d.full_name as doctor_name,
+              (SELECT string_agg(n.full_name, ', ') 
+               FROM nurses n 
+               JOIN patient_nurse_assignments pna ON n.id = pna.nurse_id 
+               WHERE pna.patient_id = p.id) as nurse_names
+       FROM patients p
+       LEFT JOIN doctors d ON p.doctor_id = d.id
+       WHERE p.id = $1`,
       [id]
     );
     return result.rows[0];
@@ -76,6 +85,25 @@ class PatientModel {
     const result = await pool.query(
       'DELETE FROM patients WHERE id = $1 RETURNING id',
       [id]
+    );
+    return result.rows[0];
+  }
+
+  static async updateProfile(id, data) {
+    const { full_name, email, phone, age, gender, address, profile_picture } = data;
+    const result = await pool.query(
+      `UPDATE patients 
+       SET full_name = COALESCE($1, full_name), 
+           email = COALESCE($2, email), 
+           phone = COALESCE($3, phone), 
+           age = COALESCE($4, age), 
+           gender = COALESCE($5, gender), 
+           address = COALESCE($6, address), 
+           profile_picture = COALESCE($7, profile_picture),
+           updated_at = CURRENT_TIMESTAMP 
+       WHERE id = $8 
+       RETURNING *`,
+      [full_name, email, phone, age, gender, address, profile_picture, id]
     );
     return result.rows[0];
   }

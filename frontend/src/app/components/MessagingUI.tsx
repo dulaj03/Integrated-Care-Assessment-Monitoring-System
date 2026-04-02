@@ -55,7 +55,10 @@ export function MessagingUI({ conversation, currentUserId, currentUserRole, onSe
         (String(newMessage.sender_id) === String(conversation.other_id) && newMessage.sender_role === conversation.other_role) ||
         (String(newMessage.receiver_id) === String(conversation.other_id) && newMessage.receiver_role === conversation.other_role)
       ) {
-        setMessages(prev => [...prev, newMessage]);
+        setMessages(prev => {
+          if (prev.some(m => m.id === newMessage.id)) return prev;
+          return [...prev, newMessage];
+        });
       }
     };
 
@@ -97,7 +100,10 @@ export function MessagingUI({ conversation, currentUserId, currentUserRole, onSe
 
       if (res.ok) {
         const newMessage = await res.json();
-        setMessages(prev => [...prev, newMessage]);
+        setMessages(prev => {
+          if (prev.some(m => m.id === newMessage.id)) return prev;
+          return [...prev, newMessage];
+        });
         setInputValue('');
         onSendMessage?.(inputValue);
       } else {
@@ -124,16 +130,29 @@ export function MessagingUI({ conversation, currentUserId, currentUserRole, onSe
     <div className="flex flex-col h-full bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-800 overflow-hidden">
       {/* Header */}
       <div className="bg-white dark:bg-slate-900 px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center gap-4">
-        <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center text-blue-600 dark:text-blue-400">
+        <div className={`h-10 w-10 rounded-full flex items-center justify-center ${
+          conversation.other_role === 'hospital' ? 'bg-indigo-100 text-indigo-600' : 
+          conversation.other_role === 'doctor' ? 'bg-purple-100 text-purple-600' :
+          conversation.other_role === 'nurse' ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'
+        }`}>
           {conversation.other_role === 'hospital' ? <Building2 className="h-5 w-5" /> : <UserIcon className="h-5 w-5" />}
         </div>
-        <div>
-          <h2 className="text-sm font-bold text-slate-900 dark:text-white capitalize">
-            {conversation.other_name || `${conversation.other_role} #${conversation.other_id}`}
-          </h2>
-          <div className="flex items-center gap-1.5">
-            <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Online</p>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <h2 className="text-sm font-bold text-slate-900 dark:text-white capitalize truncate">
+              {conversation.other_name || `${conversation.other_role} #${conversation.other_id}`}
+            </h2>
+            <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-black uppercase tracking-widest ${
+              conversation.other_role === 'hospital' ? 'bg-indigo-100 text-indigo-700' :
+              conversation.other_role === 'doctor' ? 'bg-purple-100 text-purple-700' :
+              conversation.other_role === 'nurse' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'
+            }`}>
+              {conversation.other_role}
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5 mt-0.5">
+            <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Connected</p>
           </div>
         </div>
       </div>

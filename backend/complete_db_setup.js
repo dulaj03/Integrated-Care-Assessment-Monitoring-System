@@ -4,9 +4,14 @@ async function setup() {
   try {
     console.log("🛠️ Starting database synchronization...");
 
-    // 1. Fix patients table (add condition + nurse_id if missing)
+    // 1. Fix patients table (add profile fields)
     await pool.query("ALTER TABLE patients ADD COLUMN IF NOT EXISTS condition VARCHAR(50) DEFAULT 'stable'");
     await pool.query("ALTER TABLE patients ADD COLUMN IF NOT EXISTS last_vital_check TIMESTAMP");
+    await pool.query("ALTER TABLE patients ADD COLUMN IF NOT EXISTS phone VARCHAR(20)");
+    await pool.query("ALTER TABLE patients ADD COLUMN IF NOT EXISTS age INTEGER");
+    await pool.query("ALTER TABLE patients ADD COLUMN IF NOT EXISTS gender VARCHAR(20)");
+    await pool.query("ALTER TABLE patients ADD COLUMN IF NOT EXISTS address TEXT");
+    await pool.query("ALTER TABLE patients ADD COLUMN IF NOT EXISTS profile_picture VARCHAR(255)");
     
     // 2. Create appointments table
     await pool.query(`
@@ -32,14 +37,16 @@ async function setup() {
         patient_id      INTEGER NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
         hospital_id     INTEGER NOT NULL REFERENCES hospitals(id) ON DELETE CASCADE,
         doctor_id       INTEGER NOT NULL REFERENCES doctors(id) ON DELETE SET NULL,
+        nurse_id        INTEGER REFERENCES nurses(id) ON DELETE SET NULL,
         test_name       VARCHAR(100) NOT NULL,
         test_type       VARCHAR(50) NOT NULL,
         result_summary  TEXT,
         result_data     JSONB,
         file_url        VARCHAR(255),
-        status          VARCHAR(30) DEFAULT 'ready',
+        status          VARCHAR(30) DEFAULT 'ordered', -- ordered, processing, ready, reviewed
         collected_at    TIMESTAMP,
-        created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
 
