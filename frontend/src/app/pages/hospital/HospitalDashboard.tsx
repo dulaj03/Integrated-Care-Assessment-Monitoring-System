@@ -10,6 +10,37 @@ import {
   getAppointmentStatusColor,
 } from '../../lib/hospitalData';
 
+// Safely parse a date string or object into a local Date object
+function parseLocalDate(dateInput: any): Date {
+  if (!dateInput) return new Date();
+  if (dateInput instanceof Date) return dateInput;
+  
+  const dateStr = String(dateInput);
+  // If it is an ISO string (like 2026-04-04T00:00:00.000Z), let standard parsing handle it
+  // But if it is JUST a YYYY-MM-DD string, parse it as local midnight
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    const [year, month, day] = dateStr.split('-').map(Number);
+    return new Date(year, month - 1, day);
+  }
+  
+  const d = new Date(dateStr);
+  return isNaN(d.getTime()) ? new Date() : d;
+}
+
+// Format "HH:mm:ss" or ISO string time into "h:mm a"
+function formatTime(timeInput: string): string {
+  if (!timeInput) return '--:--';
+  // If it's a full ISO string, extract time
+  if (timeInput.includes('T')) {
+    return format(new Date(timeInput), 'h:mm a');
+  }
+  // If HH:mm:ss
+  const [hours, minutes] = timeInput.split(':').map(Number);
+  const date = new Date();
+  date.setHours(hours, minutes);
+  return format(date, 'h:mm a');
+}
+
 export function HospitalDashboard() {
   const storedUserName = sessionStorage.getItem('userName');
   const storedRole = sessionStorage.getItem('userRole');
@@ -76,7 +107,7 @@ export function HospitalDashboard() {
     }
   };
 
-  const todayAppointments = appointments.filter(a => isToday(new Date(a.appointment_date)));
+  const todayAppointments = appointments.filter(a => isToday(parseLocalDate(a.appointment_date)));
   const pendingActionCount = appointments.filter(a => a.status === 'requested').length;
 
   const stats = [
@@ -145,9 +176,9 @@ export function HospitalDashboard() {
                         <Send className="h-3 w-3" /> Notify Doctor
                       </button>
                    </div>
-                   <div className="flex gap-4 text-[11px] text-slate-500">
-                      <span>{format(new Date(appt.appointment_date), 'MMM d, yyyy')}</span>
-                      <span>{appt.appointment_time}</span>
+                   <div className="flex gap-4 text-[11px] text-slate-500 font-medium">
+                      <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {format(parseLocalDate(appt.appointment_date), 'MMM d, yyyy')}</span>
+                      <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {formatTime(appt.appointment_time)}</span>
                    </div>
                  </div>
                ))}
@@ -171,7 +202,9 @@ export function HospitalDashboard() {
                     <div>
                       <p className="font-medium text-slate-900 dark:text-white text-sm">{appt.patient_name}</p>
                       <p className="text-xs text-slate-500 dark:text-slate-400">{appt.doctor_name} · {appt.reason}</p>
-                      <p className="text-xs text-blue-600 dark:text-blue-400">{format(new Date(appt.appointment_date), 'MMM d')} · {appt.appointment_time}</p>
+                       <p className="text-xs text-blue-600 dark:text-blue-400 font-bold">
+                         {format(parseLocalDate(appt.appointment_date), 'MMM d')} · {formatTime(appt.appointment_time)}
+                       </p>
                     </div>
                     <span className={`text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-tighter ${getAppointmentStatusColor(appt.status)}`}>
                       {appt.status.replace('_', ' ')}

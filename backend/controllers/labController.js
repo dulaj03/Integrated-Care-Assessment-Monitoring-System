@@ -53,18 +53,28 @@ const labController = {
     getNursePendingTests: async (req, res) => {
         try {
             const nurse_id = req.user.id;
+            
+            // First, get the nurse's hospital_id(s)
+            const nurseRes = await pool.query('SELECT hospital_ids FROM nurses WHERE id = $1', [nurse_id]);
+            const hospital_ids = nurseRes.rows[0]?.hospital_ids || [];
+
+            if (hospital_ids.length === 0) {
+                return res.json([]);
+            }
+
+            // Fetch ALL pending tests in those hospitals
             const result = await pool.query(
                 `SELECT lr.*, p.full_name as patient_name, d.full_name as doctor_name
                  FROM lab_results lr
                  JOIN patients p ON lr.patient_id = p.id
                  JOIN doctors d ON lr.doctor_id = d.id
-                 JOIN patient_nurse_assignments pna ON p.id = pna.patient_id
-                 WHERE pna.nurse_id = $1 AND lr.status IN ('ordered', 'processing')
+                 WHERE lr.hospital_id = ANY($1::int[]) AND lr.status IN ('ordered', 'processing')
                  ORDER BY lr.created_at DESC`,
-                [nurse_id]
+                [hospital_ids]
             );
             res.json(result.rows);
         } catch (error) {
+            console.error('getNursePendingTests failed:', error);
             res.status(500).json({ error: 'Failed to fetch tests' });
         }
     },
@@ -147,6 +157,24 @@ const labController = {
         } catch (error) {
             console.error('Review failed:', error);
             res.status(500).json({ error: 'Failed to finalize review' });
+        }
+    },
+
+    // Get all results for doctor/nurse dashboard
+    getAllResults: async (req, res) => {
+        try {
+            const result = await pool.query(
+                `SELECT lr.*, p.full_name as patient_name, h.name as hospital_name, d.full_name as doctor_name
+                 FROM lab_results lr
+                 JOIN patients p ON lr.patient_id = p.id
+                 LEFT JOIN hospitals h ON lr.hospital_id = h.id
+                 LEFT JOIN doctors d ON lr.doctor_id = d.id
+                 ORDER BY lr.created_at DESC`
+            );
+            res.json(result.rows);
+        } catch (error) {
+            console.error('Fetch all results failed:', error);
+            res.status(500).json({ error: 'Failed to fetch results' });
         }
     }
 };

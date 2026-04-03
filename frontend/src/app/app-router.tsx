@@ -27,6 +27,8 @@ import { NurseRounds } from './pages/professional/NurseRounds';
 import { NursePatientCare } from './pages/professional/NursePatientCare';
 import { HospitalDashboard } from './pages/hospital/HospitalDashboard';
 import { LabManagement } from './pages/hospital/LabManagement';
+import { ProceduralOutcomes } from './pages/professional/ProceduralOutcomes';
+import { CareHistory } from './pages/patient/CareHistory';
 import { NotFound } from './pages/NotFound';
 import { ScrollToTopOnNavigate } from './components/ScrollToTopOnNavigate';
 
@@ -63,6 +65,7 @@ export const router = createBrowserRouter([
           { index: true, Component: PatientDashboard },
           { path: 'dashboard', Component: PatientDashboard },
           { path: 'log', Component: HealthLog },
+          { path: 'care-history', Component: CareHistory },
           { path: 'appointments', Component: Appointments },
           { path: 'hospitals', Component: HospitalFinder },
           { path: 'lab-results', Component: LabResults },
@@ -80,6 +83,7 @@ export const router = createBrowserRouter([
           { path: 'dashboard', element: <ProfessionalDashboard role="doctor" /> },
           { path: 'patients', Component: DoctorPatients },
           { path: 'patient/:id', Component: PatientWorkspace },
+          { path: 'procedural-hub', Component: ProceduralOutcomes },
           { path: 'schedule', Component: DoctorSchedule },
           { path: 'reports', Component: DoctorReports },
           { path: 'messages', Component: Messages },

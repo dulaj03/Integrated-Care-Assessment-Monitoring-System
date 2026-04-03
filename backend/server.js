@@ -47,6 +47,7 @@ app.use('/api/appointments', require('./routes/appointment'));
 app.use('/api/doctors', require('./routes/doctors_info'));
 app.use('/api/lab', require('./routes/lab'));
 app.use('/api/messages', require('./routes/message'));
+app.use('/api/rounds', require('./routes/nurseRounds'));
 
 // ─── Health Check ─────────────────────────────────────────────
 app.get('/', (req, res) => {

@@ -11,6 +11,37 @@ import {
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { format } from 'date-fns';
+
+// Safely parse a date string or object into a local Date object
+function parseLocalDate(dateInput: any): Date {
+  if (!dateInput) return new Date();
+  if (dateInput instanceof Date) return dateInput;
+  
+  const dateStr = String(dateInput);
+  // If it is an ISO string (like 2026-04-04T00:00:00.000Z), let standard parsing handle it
+  // But if it is JUST a YYYY-MM-DD string, parse it as local midnight
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    const [year, month, day] = dateStr.split('-').map(Number);
+    return new Date(year, month - 1, day);
+  }
+  
+  const d = new Date(dateStr);
+  return isNaN(d.getTime()) ? new Date() : d;
+}
+
+// Format "HH:mm:ss" or ISO string time into "h:mm a"
+function formatTime(timeInput: string): string {
+  if (!timeInput) return '--:--';
+  // If it's a full ISO string, extract time
+  if (timeInput.includes('T')) {
+    return format(new Date(timeInput), 'h:mm a');
+  }
+  // If HH:mm:ss
+  const [hours, minutes] = timeInput.split(':').map(Number);
+  const date = new Date();
+  date.setHours(hours, minutes);
+  return format(date, 'h:mm a');
+}
 import { motion, AnimatePresence } from 'motion/react';
 import { HealthTrendChart } from '../../components/HealthTrendChart';
 import { MessagingSection } from '../../components/MessagingSection';
@@ -131,6 +162,19 @@ export function PatientDashboard() {
     } catch (e) { console.error(e); }
   };
 
+  const [activeRounds, setActiveRounds] = useState<any[]>([]);
+
+  const fetchActiveRounds = async () => {
+    if (!patientId) return;
+    const token = sessionStorage.getItem('token');
+    try {
+      const res = await fetch(`http://localhost:5000/api/rounds/patient/${patientId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) setActiveRounds(await res.json());
+    } catch (e) { console.error(e); }
+  };
+
   const fetchPatientInfo = async () => {
     const token = sessionStorage.getItem('token');
     if (!token) return;
@@ -155,7 +199,8 @@ export function PatientDashboard() {
       fetchPatientInfo(),
       fetchLiveAppointments(),
       fetchPatientOrders(),
-      fetchNurseReports()
+      fetchNurseReports(),
+      fetchActiveRounds()
     ]);
     setLoading(false);
   }, [patientId]);
@@ -207,7 +252,7 @@ export function PatientDashboard() {
   const liveOrders = dbOrders.length > 0 ? dbOrders : getPatientOrders(patient.id);
   const nurseReports = dbReports.length > 0 ? dbReports : getPatientNurseReports(patient.id);
 
-  const readyTests = labTests.filter(t => t.status === 'results_ready');
+  const readyTests = labTests.filter(t => t.status === 'ready');
   const activeOrders = liveOrders;
 
   const [isLogFormOpen, setIsLogFormOpen] = useState(false);
@@ -407,6 +452,72 @@ export function PatientDashboard() {
             </div>
           </div>
         </motion.div>
+      )}
+
+      {/* Active Care Journey */}
+      {activeRounds.filter(r => r.status !== 'completed').length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+              <Activity className="h-6 w-6 text-emerald-500" />
+              Active Care Journey
+            </h3>
+            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Live Treatment Progress</span>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {activeRounds.filter(r => r.status !== 'completed').map(round => {
+              const completedSteps = round.steps?.filter((s:any) => s.status === 'completed').length || 0;
+              const totalSteps = round.steps?.length || 1;
+              const progress = Math.round((completedSteps / totalSteps) * 100);
+              const currentStep = round.steps?.find((s:any) => s.status === 'pending')?.step_name || 'Finalizing...';
+
+              return (
+                <div key={round.id} className="bg-white dark:bg-slate-900 border-2 border-emerald-100 dark:border-emerald-900/20 rounded-[2.5rem] p-6 shadow-sm relative overflow-hidden">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="h-12 w-12 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-600">
+                        <ClipboardList className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Current Task</p>
+                        <h4 className="text-lg font-black text-slate-900 dark:text-white">{round.title}</h4>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-2xl font-black text-emerald-600 leading-none">{progress}%</p>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Complete</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between text-xs font-bold text-slate-500">
+                      <span>Next Step: <span className="text-slate-900 dark:text-white uppercase tracking-wider">{currentStep}</span></span>
+                      <span>Milestone {completedSteps} of {totalSteps}</span>
+                    </div>
+                    <div className="w-full bg-slate-100 dark:bg-slate-800 h-3 rounded-full overflow-hidden border border-slate-200 dark:border-slate-700 p-0.5">
+                      <div 
+                        className="bg-emerald-500 h-full rounded-full transition-all duration-1000 shadow-[0_0_10px_rgba(16,185,129,0.5)]"
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
+                    
+                    {/* Visual Milestone Track */}
+                    <div className="flex gap-1 justify-between">
+                      {round.steps?.map((step: any) => (
+                        <div key={step.id} className="flex-1 flex flex-col items-center gap-1 group">
+                          <div className={`h-1.5 w-full rounded-full transition-all ${step.status === 'completed' ? 'bg-emerald-500' : 'bg-slate-200 dark:bg-slate-800'}`} />
+                          <span className={`text-[8px] font-black uppercase tracking-tighter transition-opacity ${step.status === 'completed' ? 'text-emerald-500 opacity-100' : 'text-slate-300 dark:text-slate-600 opacity-0 group-hover:opacity-100'}`}>
+                            {step.step_name.split(' ')[0]}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       )}
 
       {/* Alert Banner */}
@@ -693,7 +804,7 @@ export function PatientDashboard() {
                         <div className="flex items-center gap-2 mt-0.5">
                           <span className="flex items-center gap-1 text-[10px] font-bold text-slate-400">
                             <Clock className="h-3 w-3" />
-                            {format(new Date(appt.appointment_date), 'MMM d')} · {appt.appointment_time?.slice(0, 5)}
+                            {format(parseLocalDate(appt.appointment_date), 'MMM d')} · {formatTime(appt.appointment_time)}
                           </span>
                           {appt.hospital_name && (
                             <span className="flex items-center gap-1 text-[10px] font-bold text-slate-400 truncate">
@@ -707,10 +818,10 @@ export function PatientDashboard() {
                       <div className={`shrink-0 text-center px-3 py-1.5 rounded-xl
                         ${isConfirmed ? 'bg-emerald-100 dark:bg-emerald-900/30' : 'bg-slate-100 dark:bg-slate-800'}`}>
                         <p className={`text-lg font-black leading-none ${isConfirmed ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-700 dark:text-white'}`}>
-                          {format(new Date(appt.appointment_date), 'dd')}
+                          {format(parseLocalDate(appt.appointment_date), 'dd')}
                         </p>
                         <p className={`text-[8px] font-black uppercase tracking-widest ${isConfirmed ? 'text-emerald-400' : 'text-slate-400'}`}>
-                          {format(new Date(appt.appointment_date), 'MMM')}
+                          {format(parseLocalDate(appt.appointment_date), 'MMM')}
                         </p>
                       </div>
                     </div>

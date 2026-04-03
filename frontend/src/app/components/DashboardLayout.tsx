@@ -15,12 +15,11 @@ import {
 } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import { clsx } from 'clsx';
+import { toast } from 'sonner';
 import { initSocket } from '../lib/socket';
-import { MOCK_PATIENTS } from '../lib/mockData';
 import { ThemeSwitcher } from './ThemeSwitcher';
 import { NotificationBell } from './NotificationBell';
-import { mockNotifications, Notification } from '../lib/mockNotifications';
-import { checkAllPatientAlerts } from '../lib/alertGenerator';
+import { Notification } from '../lib/mockNotifications';
 
 export type UserRole = 'patient' | 'nurse' | 'doctor' | 'hospital';
 
@@ -151,6 +150,7 @@ export function DashboardLayout({ role, userName: initialUserName = '' }: Dashbo
   const patientLinks = [
     { name: 'Dashboard', href: '/patient/dashboard', icon: LayoutDashboard },
     { name: 'Health Log', href: '/patient/log', icon: FileText },
+    { name: 'Care History', href: '/patient/care-history', icon: Activity },
     { name: 'Appointments', href: '/patient/appointments', icon: Calendar },
     { name: 'Find Hospitals', href: '/patient/hospitals', icon: Building2 },
     { name: 'Lab Results', href: '/patient/lab-results', icon: FlaskConical },
@@ -161,6 +161,7 @@ export function DashboardLayout({ role, userName: initialUserName = '' }: Dashbo
   const doctorLinks = [
     { name: 'Dashboard', href: '/doctor/dashboard', icon: LayoutDashboard },
     { name: 'My Patients', href: '/doctor/patients', icon: Users },
+    { name: 'Procedural Hub', href: '/doctor/procedural-hub', icon: ClipboardList },
     { name: 'Messages', href: '/doctor/messages', icon: MessageCircle },
     { name: 'Schedule', href: '/doctor/schedule', icon: Calendar },
     { name: 'Reports', href: '/doctor/reports', icon: FileText },

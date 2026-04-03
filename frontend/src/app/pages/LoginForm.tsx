@@ -62,6 +62,7 @@ export function LoginForm() {
       sessionStorage.setItem('userRole', role || 'patient');
       sessionStorage.setItem('userEmail', result.user.email);
       sessionStorage.setItem('userName', result.user.full_name || result.user.name);
+      sessionStorage.setItem('user', JSON.stringify(result.user)); // Cache entire user object for context-rich dashboards
 
       // Navigate to role-specific dashboard
       if (role === 'patient') {

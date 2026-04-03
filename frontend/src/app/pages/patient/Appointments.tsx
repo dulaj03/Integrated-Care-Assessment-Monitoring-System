@@ -8,6 +8,31 @@ import { format, isPast } from 'date-fns';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
 
+// Safely parse a date string or object into a local Date object
+function parseLocalDate(dateInput: any): Date {
+  if (!dateInput) return new Date();
+  if (dateInput instanceof Date) return dateInput;
+  
+  const dateStr = String(dateInput);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    const [year, month, day] = dateStr.split('-').map(Number);
+    return new Date(year, month - 1, day);
+  }
+  
+  const d = new Date(dateStr);
+  return isNaN(d.getTime()) ? new Date() : d;
+}
+
+// Format "HH:mm:ss" or ISO string time into "h:mm a"
+function formatTime(timeInput: string): string {
+  if (!timeInput) return '--:--';
+  if (timeInput.includes('T')) return format(new Date(timeInput), 'h:mm a');
+  const [hours, minutes] = timeInput.split(':').map(Number);
+  const date = new Date();
+  date.setHours(hours, minutes);
+  return format(date, 'h:mm a');
+}
+
 // ─── Types ───────────────────────────────────────────────────────────────────
 type ApptStatus = 'requested' | 'hospital_approved' | 'confirmed' | 'completed' | 'cancelled';
 
@@ -156,7 +181,7 @@ function ApprovalStepper({ status }: { status: ApptStatus }) {
 function AppointmentCard({ apt }: { apt: Appointment }) {
   const isActive = apt.status !== 'completed' && apt.status !== 'cancelled';
   const isConfirmed = apt.status === 'confirmed';
-  const isPastAppt = isPast(new Date(`${apt.appointment_date.split('T')[0]}T${apt.appointment_time}`));
+  const isPastAppt = isPast(parseLocalDate(apt.appointment_date));
 
   const borderColor = apt.status === 'cancelled'
     ? 'border-red-200 dark:border-red-900/30'
@@ -191,10 +216,10 @@ function AppointmentCard({ apt }: { apt: Appointment }) {
         <div className={`shrink-0 text-center px-4 py-2 rounded-2xl
           ${isConfirmed ? 'bg-emerald-50 dark:bg-emerald-900/20' : 'bg-slate-50 dark:bg-slate-800'}`}>
           <p className={`text-xl font-black leading-none ${isConfirmed ? 'text-emerald-600' : 'text-slate-900 dark:text-white'}`}>
-            {format(new Date(apt.appointment_date), 'dd')}
+            {format(parseLocalDate(apt.appointment_date), 'dd')}
           </p>
           <p className={`text-[9px] font-black uppercase tracking-widest ${isConfirmed ? 'text-emerald-400' : 'text-slate-400'}`}>
-            {format(new Date(apt.appointment_date), 'MMM')}
+            {format(parseLocalDate(apt.appointment_date), 'MMM')}
           </p>
         </div>
       </div>
@@ -203,7 +228,7 @@ function AppointmentCard({ apt }: { apt: Appointment }) {
       <div className="grid grid-cols-2 gap-3 mb-5">
         <div className="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400">
           <Clock className="h-3.5 w-3.5 shrink-0" />
-          <span>{apt.appointment_time?.slice(0, 5) || '--:--'}</span>
+          <span>{formatTime(apt.appointment_time)}</span>
         </div>
         <div className="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400 min-w-0">
           <MapPin className="h-3.5 w-3.5 shrink-0" />
