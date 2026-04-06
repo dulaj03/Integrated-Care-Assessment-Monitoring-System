@@ -58,7 +58,7 @@ export function ProfessionalDashboard({ role }: { role?: 'doctor' | 'nurse' }) {
 
       if (!numericHospitalId) {
           console.error('[Clinical Assignment] ID Failure:', { hId, user, patient });
-          window.alert('CRITICAL ERROR: Hospital ID missing context. Please LOG OUT AND LOG IN again to refresh clinical session.');
+          toast.error('Session expired. Please log out and back in to refresh clinical session.');
           return;
       }
 
@@ -74,14 +74,14 @@ export function ProfessionalDashboard({ role }: { role?: 'doctor' | 'nurse' }) {
       });
 
       if (res.ok) {
-        window.alert(`SUCCESS: ${assignTitle} assigned.`);
+        toast.success(`${assignTitle} assigned successfully.`);
         setShowAssignModal(false);
         setAssignTitle('');
         setSelectedAssignPatient(null);
         fetchData();
       } else {
         const errorData = await res.json();
-        window.alert(`ERROR: ${errorData.error || 'Server error'}`);
+        toast.error(errorData.error || 'Server error');
       }
     } catch (e) {
       toast.error('Medical server connection failed.');

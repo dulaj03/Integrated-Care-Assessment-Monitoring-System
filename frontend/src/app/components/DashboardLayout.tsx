@@ -1,4 +1,4 @@
-import { Link, Outlet, useLocation } from 'react-router';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router';
 import {
   LayoutDashboard,
   User,
@@ -34,7 +34,17 @@ export function DashboardLayout({ role, userName: initialUserName = '' }: Dashbo
   const [userName, setUserName] = useState(initialUserName);
   const [unreadMessages, setUnreadMessages] = useState(0);
   const location = useLocation();
+  const navigate = useNavigate();
   const userId = sessionStorage.getItem('userId');
+
+  const handleLogout = useCallback(() => {
+    sessionStorage.clear();
+    // Also clear specific admin keys just in case
+    localStorage.removeItem('admin_token');
+    localStorage.removeItem('admin_auth');
+    toast.success('Signed out successfully');
+    navigate('/login');
+  }, [navigate]);
 
   const fetchUnreadCount = useCallback(async () => {
     const token = sessionStorage.getItem('token');
@@ -165,6 +175,7 @@ export function DashboardLayout({ role, userName: initialUserName = '' }: Dashbo
     { name: 'Messages', href: '/doctor/messages', icon: MessageCircle },
     { name: 'Schedule', href: '/doctor/schedule', icon: Calendar },
     { name: 'Reports', href: '/doctor/reports', icon: FileText },
+    { name: 'Settings', href: '/doctor/settings', icon: User },
   ];
 
   const nurseLinks = [
@@ -173,6 +184,7 @@ export function DashboardLayout({ role, userName: initialUserName = '' }: Dashbo
     { name: 'Patient Care', href: '/nurse/care', icon: ClipboardList },
     { name: 'Messages', href: '/nurse/messages', icon: MessageCircle },
     { name: 'Rounds', href: '/nurse/rounds', icon: Activity },
+    { name: 'Settings', href: '/nurse/settings', icon: User },
   ];
 
   const hospitalLinks = [
@@ -257,10 +269,13 @@ export function DashboardLayout({ role, userName: initialUserName = '' }: Dashbo
                 </p>
               </div>
             </div>
-            <Link to="/login" className="mt-4 flex items-center text-sm text-red-600 dark:text-red-500 hover:text-red-800 dark:hover:text-red-400 transition-colors duration-200">
+            <button 
+              onClick={handleLogout}
+              className="mt-4 flex items-center text-sm text-red-600 dark:text-red-500 hover:text-red-800 dark:hover:text-red-400 transition-colors duration-200"
+            >
               <LogOut className="h-4 w-4 mr-2" />
               Sign Out
-            </Link>
+            </button>
           </div>
         </div>
       </div>

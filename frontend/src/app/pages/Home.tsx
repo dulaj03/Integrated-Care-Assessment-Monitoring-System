@@ -1,14 +1,14 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { Navbar } from '../components/Navbar';
-import { Footer } from '../components/footer';
+import { Footer } from '../components/Footer';
 import { ScrollToTop } from '../components/ScrollToTop';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import {
-  Activity, ShieldCheck, Users, BarChart3, Clock, Heart, Stethoscope, Clipboard,
+  ShieldCheck, Users, Clock, Heart, Stethoscope, Clipboard,
   CheckCircle2, ArrowRight, TrendingUp, FileText, Bell, Building2, FlaskConical,
-  Pill, MessageSquare, Smartphone, Zap, Globe,
+  MessageSquare, Smartphone, Zap, Globe,
 } from 'lucide-react';
 import { motion, useSpring, useTransform, useInView } from 'motion/react';
 import { LucideIcon } from 'lucide-react';
@@ -61,6 +61,34 @@ function Counter({ value, label, suffix = '', icon: Icon }: CounterProps) {
 export function Landing() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const isLoggedIn = !!sessionStorage.getItem('token');
+  const userRole = sessionStorage.getItem('userRole');
+  const [stats, setStats] = useState({ patients: 1250, doctors: 380, hospitals: 18 });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/api/public/stats');
+        if (res.ok) {
+          const data = await res.json();
+          setStats(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch stats:', error);
+      }
+    };
+    fetchStats();
+  }, []);
+
+  const getDashboardPath = () => {
+    switch (userRole) {
+      case 'patient': return '/patient/dashboard';
+      case 'doctor': return '/doctor/dashboard';
+      case 'nurse': return '/nurse/dashboard';
+      case 'hospital': return '/hospital/dashboard';
+      default: return '/login';
+    }
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
@@ -92,9 +120,9 @@ export function Landing() {
                 </motion.p>
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.3 }}
                   className="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start gap-3">
-                  <Link to="/login"
+                  <Link to={isLoggedIn ? getDashboardPath() : "/login"}
                     className="flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 md:py-4 md:text-lg md:px-10 transition-colors duration-200 shadow-lg">
-                    {t('common.getStarted')}
+                    {isLoggedIn ? 'Go to Dashboard' : t('common.getStarted')}
                   </Link>
                   <Link to="/features"
                     className="flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-900/50 md:py-4 md:text-lg md:px-10 transition-colors duration-200">
@@ -120,9 +148,9 @@ export function Landing() {
               viewport={{ once: true }}
               className="grid grid-cols-3 lg:grid-cols-1 gap-4 md:gap-6 w-full max-w-4xl lg:max-w-[280px]"
             >
-              <Counter value={1250} label="Patients" suffix="+" icon={Users} />
-              <Counter value={380} label="Doctors" suffix="+" icon={Stethoscope} />
-              <Counter value={18} label="Hospitals" suffix="+" icon={Building2} />
+              <Counter value={stats.patients} label="Patients" suffix="+" icon={Users} />
+              <Counter value={stats.doctors} label="Doctors" suffix="+" icon={Stethoscope} />
+              <Counter value={stats.hospitals} label="Hospitals" suffix="+" icon={Building2} />
             </motion.div>
           </div>
         </div>
@@ -134,7 +162,7 @@ export function Landing() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             {[
               { value: '4 Roles', label: 'User Portals', icon: Users },
-              { value: '6+', label: 'Sri Lankan Hospitals', icon: Building2 },
+              { value: `${stats.hospitals}+`, label: 'Sri Lankan Hospitals', icon: Building2 },
               { value: 'Real-time', label: 'Lab Tracking', icon: FlaskConical },
               { value: '24 / 7', label: 'System Access', icon: Clock },
             ].map((stat, i) => (
@@ -516,9 +544,9 @@ export function Landing() {
             Join patients, nurses, doctors, and hospital admins across Sri Lanka already benefiting from I-CAMS — the connected care platform.
           </motion.p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Link to="/login"
+            <Link to={isLoggedIn ? getDashboardPath() : "/login"}
               className="inline-flex items-center justify-center px-8 py-4 border border-transparent text-base font-semibold rounded-xl text-blue-600 bg-white hover:bg-blue-50 dark:bg-slate-100 dark:hover:bg-slate-200 transition-colors duration-200 shadow-lg">
-              Get Started — It's Free
+              {isLoggedIn ? 'Go to Dashboard' : "Get Started — It's Free"}
             </Link>
             <Link to="/features"
               className="inline-flex items-center justify-center px-8 py-4 border-2 border-white/50 text-base font-semibold rounded-xl text-white hover:bg-white/10 transition-colors duration-200">

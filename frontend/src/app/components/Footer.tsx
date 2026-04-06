@@ -69,7 +69,7 @@ export function Footer() {
             {/* Location 1 */}
             <div className="space-y-4">
               <h4 className="text-white text-xs font-semibold tracking-wider uppercase mb-6">Headquarters</h4>
-              <p className="hover:text-white dark:hover:text-gray-300 transition-colors cursor-pointer">info@i-cams.lk</p>
+              <p className="hover:text-white dark:hover:text-gray-300 transition-colors cursor-pointer">infoicams123@gmail.com</p>
               <p>+94 11 234 5678</p>
               <p>123 Healthcare Ave,<br />Colombo 03, Sri Lanka</p>
               <a href="#" className="inline-flex items-center hover:text-white dark:hover:text-gray-300 transition-colors mt-2">
@@ -80,7 +80,7 @@ export function Footer() {
             {/* Location 2 */}
             <div className="space-y-4">
               <h4 className="text-white text-xs font-semibold tracking-wider uppercase mb-6">Support</h4>
-              <p className="hover:text-white dark:hover:text-gray-300 transition-colors cursor-pointer">support@i-cams.lk</p>
+              <p className="hover:text-white dark:hover:text-gray-300 transition-colors cursor-pointer">infoicams123@gmail.com</p>
               <p>+94 11 234 9999</p>
               <p>456 Tech Park,<br />Kandy, Sri Lanka</p>
               <a href="#" className="inline-flex items-center hover:text-white dark:hover:text-gray-300 transition-colors mt-2">

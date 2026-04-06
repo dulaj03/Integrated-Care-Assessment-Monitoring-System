@@ -68,6 +68,31 @@ class NurseModel {
     );
     return result.rows[0];
   }
+
+  static async updateProfile(id, data) {
+    const { 
+      full_name, email, qualification, license_number, 
+      years_of_experience, institution_name, registration_number 
+    } = data;
+    const result = await pool.query(
+      `UPDATE nurses 
+       SET full_name = COALESCE($1, full_name), 
+           email = COALESCE($2, email), 
+           qualification = COALESCE($3, qualification), 
+           license_number = COALESCE($4, license_number), 
+           years_of_experience = COALESCE($5, years_of_experience), 
+           institution_name = COALESCE($6, institution_name), 
+           registration_number = COALESCE($7, registration_number),
+           updated_at = CURRENT_TIMESTAMP 
+       WHERE id = $8 
+       RETURNING id, full_name, email, qualification, status, created_at, hospital_ids, institution_name`,
+      [
+        full_name, email, qualification, license_number, 
+        years_of_experience, institution_name, registration_number, id
+      ]
+    );
+    return result.rows[0];
+  }
 }
 
 module.exports = NurseModel;

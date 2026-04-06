@@ -2,6 +2,8 @@ const HealthLogModel = require('../models/healthLogModel');
 const PatientModel = require('../models/patientModel');
 const NotificationModel = require('../models/notificationModel');
 const CareTeamModel = require('../models/careTeamModel');
+const DoctorModel = require('../models/doctorModel');
+const emailService = require('../utils/emailService');
 const pool = require('../config/db');
 
 const createHealthLog = async (req, res) => {
@@ -61,6 +63,31 @@ const createHealthLog = async (req, res) => {
            user_id: nurse.id, user_role: 'nurse', title, message, type: 'critical'
         });
       }
+
+      // --- TRIGGER CRITICAL EMAIL ALERTS (URGENT RECIPIENTS: PATIENT, DOCTOR, NURSES) ---
+      const recipients = [];
+      if (patient.email) recipients.push(patient.email);
+      
+      if (patient.doctor_id) {
+        const doc = await DoctorModel.findById(patient.doctor_id);
+        if (doc?.email) recipients.push(doc.email);
+      }
+      
+      nurses.forEach(n => { if (n.email) recipients.push(n.email); });
+
+      // Parallel email delivery for emergency performance
+      emailService.sendCriticalAlert(
+        recipients, 
+        patient.full_name, 
+        { 
+          systolic: systolic_bp, 
+          diastolic: diastolic_bp, 
+          heartRate: heart_rate, 
+          temperature: temperature, 
+          oxygen: oxygen_level 
+        },
+        reasons
+      ).catch(err => console.error('[ALERTS] Critical Email Delivery Failed:', err));
     } else {
       // If not critical, ensure condition is 'monitoring' or 'stable'
       const patient = await PatientModel.findById(patient_id);

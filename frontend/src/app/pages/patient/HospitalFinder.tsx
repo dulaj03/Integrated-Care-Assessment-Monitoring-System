@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Search, MapPin, Phone, Star, Building2, Stethoscope, ChevronRight, Clock, Calendar, CheckCircle, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { toast } from 'sonner';
 import {
   MOCK_HOSPITALS,
   Hospital,
@@ -125,11 +126,11 @@ export function HospitalFinder() {
         setStep('booked');
       } else {
         const err = await res.json();
-        alert(err.error || 'Booking failed');
+        toast.error(err.error || 'Booking failed');
       }
     } catch (error) {
       console.error('Error booking appointment:', error);
-      alert('Network error. Please try again.');
+      toast.error('Network error. Please try again.');
     }
   };
 

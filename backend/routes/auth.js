@@ -10,6 +10,7 @@ const {
   getMe,
   updateAdminProfile,
   updatePatientProfile,
+  updateProfessionalProfile,
   changePassword
 } = require('../controllers/authController');
 const { verifyToken, verifyAdminToken } = require('../middleware/authMiddleware');
@@ -28,6 +29,7 @@ router.post('/register/nurse', upload.single('licenseDocument'), registerNurse);
 router.get('/me', verifyToken, getMe);
 router.post('/change-password', verifyToken, changePassword);
 router.put('/profile', verifyToken, upload.single('profile_picture'), updatePatientProfile);
+router.put('/professional/profile', verifyToken, updateProfessionalProfile);
 router.put('/admin/profile', verifyAdminToken, updateAdminProfile);
 
 module.exports = router;

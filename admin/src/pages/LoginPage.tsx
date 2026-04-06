@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Lock,
   User,
@@ -16,7 +16,20 @@ interface LoginPageProps {
 export const LoginPage = ({ onLogin }: LoginPageProps) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const savedUser = localStorage.getItem('remembered_admin_username');
+    const savedPass = localStorage.getItem('remembered_admin_password');
+    const savedRemember = localStorage.getItem('remembered_admin_me') === 'true';
+
+    if (savedRemember) {
+      if (savedUser) setUsername(savedUser);
+      if (savedPass) setPassword(savedPass);
+      setRememberMe(true);
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,6 +55,16 @@ export const LoginPage = ({ onLogin }: LoginPageProps) => {
       localStorage.setItem('admin_auth', 'true');
       onLogin();
       toast.success(`Welcome back, ${data.user.full_name}!`);
+
+      if (rememberMe) {
+        localStorage.setItem('remembered_admin_username', username);
+        localStorage.setItem('remembered_admin_password', password);
+        localStorage.setItem('remembered_admin_me', 'true');
+      } else {
+        localStorage.removeItem('remembered_admin_username');
+        localStorage.removeItem('remembered_admin_password');
+        localStorage.removeItem('remembered_admin_me');
+      }
 
     } catch {
       toast.error('Cannot connect to server. Is the backend running?');
@@ -102,6 +125,19 @@ export const LoginPage = ({ onLogin }: LoginPageProps) => {
                   required
                 />
               </div>
+            </div>
+
+            <div className="flex items-center ml-1">
+              <label className="flex items-center cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="rounded border-white/10 text-blue-500 focus:ring-blue-500 bg-slate-900/50"
+                  disabled={isLoading}
+                />
+                <span className="ml-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest group-hover:text-slate-400 transition-colors">Remember me</span>
+              </label>
             </div>
 
             <button

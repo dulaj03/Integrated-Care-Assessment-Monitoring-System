@@ -7,6 +7,19 @@ import { ThemeSwitcher } from './ThemeSwitcher';
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const userRole = sessionStorage.getItem('userRole');
+  const userName = sessionStorage.getItem('userName');
+  const isLoggedIn = !!sessionStorage.getItem('token');
+
+  const getDashboardPath = () => {
+    switch (userRole) {
+      case 'patient': return '/patient/dashboard';
+      case 'doctor': return '/doctor/dashboard';
+      case 'nurse': return '/nurse/dashboard';
+      case 'hospital': return '/hospital/dashboard';
+      default: return '/login';
+    }
+  };
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -45,27 +58,39 @@ export function Navbar() {
               </Link>
             ))}
             <Link
-              to="/login"
+              to={getDashboardPath()}
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 dark:from-blue-700 dark:to-cyan-700 dark:hover:from-blue-600 dark:hover:to-cyan-600 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-900 focus:ring-cyan-500 shadow-lg shadow-blue-500/50 dark:shadow-cyan-500/50 hover:shadow-xl hover:shadow-blue-500/60 dark:hover:shadow-cyan-500/60 transition-all duration-200"
             >
-              Dashboard
+              {isLoggedIn ? 'Go to Dashboard' : 'Dashboard'}
             </Link>
           </div>
 
           <div className="hidden sm:ml-6 sm:flex sm:items-center gap-3">
             <ThemeSwitcher />
-            <Link
-              to="/login"
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-900 focus:ring-blue-500 transition-colors duration-200"
-            >
-              Sign In
-            </Link>
-            <Link
-              to="/register"
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-900 focus:ring-blue-500 shadow-sm transition-colors duration-200"
-            >
-              Get Started
-            </Link>
+            {isLoggedIn ? (
+              <Link
+                to={getDashboardPath()}
+                className="inline-flex items-center gap-2 px-4 py-2 border-2 border-blue-100 dark:border-blue-900/50 text-sm font-semibold rounded-xl text-blue-700 dark:text-blue-300 bg-white dark:bg-slate-900/50 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-all duration-200 shadow-sm"
+              >
+                <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                {userName || 'Account'}
+              </Link>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-900 focus:ring-blue-500 transition-colors duration-200"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  to="/register"
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-900 focus:ring-blue-500 shadow-sm transition-colors duration-200"
+                >
+                  Get Started
+                </Link>
+              </>
+            )}
           </div>
 
           <div className="-mr-2 flex items-center sm:hidden gap-2">
@@ -108,12 +133,35 @@ export function Navbar() {
             </Link>
             <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-800 pb-4">
               <div className="space-y-2 px-4">
-                <Link to="/login" className="block w-full text-center px-4 py-2 border border-transparent text-base font-medium rounded-md text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors duration-200">
-                  Sign In
-                </Link>
-                <Link to="/register" className="block w-full text-center px-4 py-2 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 transition-colors duration-200">
-                  Get Started
-                </Link>
+                {isLoggedIn ? (
+                  <Link
+                    to={getDashboardPath()}
+                    className="block w-full text-center px-4 py-3 border-2 border-blue-500/20 text-base font-bold rounded-xl text-blue-700 dark:text-blue-300 bg-blue-50/50 dark:bg-blue-900/20 transition-colors duration-200"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <span className="flex items-center justify-center gap-2">
+                      <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                      {userName || 'Back to Dashboard'}
+                    </span>
+                  </Link>
+                ) : (
+                  <>
+                    <Link
+                      to="/login"
+                      className="block w-full text-center px-4 py-2 border border-transparent text-base font-medium rounded-md text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors duration-200"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      Sign In
+                    </Link>
+                    <Link
+                      to="/register"
+                      className="block w-full text-center px-4 py-2 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 transition-colors duration-200"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      Get Started
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>

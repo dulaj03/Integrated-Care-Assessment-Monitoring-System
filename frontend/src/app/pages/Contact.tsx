@@ -4,20 +4,93 @@ import {
   Mail,
   Phone,
   MapPin,
+  Clock,
+  Send,
   Building2,
   LifeBuoy,
-  Languages,
-  Clock,
-  ExternalLink,
-  Send
+  Languages
 } from 'lucide-react';
 import { Navbar } from '../components/Navbar';
-import { Footer } from '../components/footer';
+import { Footer } from '../components/Footer';
 import { motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 
+import { useState } from 'react';
+import { toast } from 'sonner';
+
 export function Contact() {
   const { t } = useTranslation();
+  const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+  const [instFormData, setInstFormData] = useState({ hospitalName: '', contactPerson: '', email: '', requirements: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isInstSubmitting, setIsInstSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.name || !formData.email || !formData.message) {
+      toast.error('Please fill in all fields.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const res = await fetch('http://localhost:5000/api/public/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (res.ok) {
+        toast.success('Message sent! Check your email for confirmation.', {
+          description: 'Our team will contact you within 24 hours.',
+        });
+        setFormData({ name: '', email: '', message: '' });
+      } else {
+        const errorData = await res.json();
+        toast.error(errorData.error || 'Failed to send message.');
+      }
+    } catch (error) {
+      toast.error('Failed to connect to the server. Please try again later.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleInstSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!instFormData.hospitalName || !instFormData.contactPerson || !instFormData.email || !instFormData.requirements) {
+      toast.error('Please fill in all institutional fields.');
+      return;
+    }
+
+    setIsInstSubmitting(true);
+    try {
+      const res = await fetch('http://localhost:5000/api/public/hospital-request', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(instFormData),
+      });
+
+      if (res.ok) {
+        toast.success('Institutional request sent!', {
+          description: 'A verification form has been sent to the hospital email address.',
+        });
+        setInstFormData({ hospitalName: '', contactPerson: '', email: '', requirements: '' });
+      } else {
+        const errorData = await res.json();
+        toast.error(errorData.error || 'Failed to send request.');
+      }
+    } catch (error) {
+      toast.error('Failed to connect to the server. Please try again later.');
+    } finally {
+      setIsInstSubmitting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
       <Navbar />
@@ -66,26 +139,52 @@ export function Contact() {
             <p className="text-slate-500 dark:text-slate-400 mb-8">
               {t('contact.messageDescription')}
             </p>
-            <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
+            <form className="space-y-6" onSubmit={handleSubmit}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t('contact.fullName')}</label>
-                  <input type="text" className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl p-4 focus:ring-2 focus:ring-blue-500 dark:text-white" placeholder={t('contact.fullName')} />
+                  <input 
+                    type="text" 
+                    required
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl p-4 focus:ring-2 focus:ring-blue-500 dark:text-white" 
+                    placeholder={t('contact.fullName')} 
+                  />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t('contact.email')}</label>
-                  <input type="email" className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl p-4 focus:ring-2 focus:ring-blue-500 dark:text-white" placeholder={t('contact.email')} />
+                  <input 
+                    type="email" 
+                    required
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl p-4 focus:ring-2 focus:ring-blue-500 dark:text-white" 
+                    placeholder={t('contact.email')} 
+                  />
                 </div>
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{t('contact.messageContent')}</label>
-                <textarea rows={5} className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl p-4 focus:ring-2 focus:ring-blue-500 dark:text-white" placeholder={t('contact.messagePlaceholder')}></textarea>
+                <textarea 
+                  rows={5} 
+                  required
+                  value={formData.message}
+                  onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                  className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl p-4 focus:ring-2 focus:ring-blue-500 dark:text-white" 
+                  placeholder={t('contact.messagePlaceholder')}
+                ></textarea>
               </div>
-              <button type="submit" className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-12 rounded-xl transition-all shadow-lg shadow-blue-500/20 active:scale-95">
-                {t('contact.send')}
+              <button 
+                type="submit" 
+                disabled={isSubmitting}
+                className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold py-4 px-12 rounded-xl transition-all shadow-lg shadow-blue-500/20 active:scale-95"
+              >
+                {isSubmitting ? 'Sending...' : t('contact.send')}
               </button>
             </form>
           </motion.div>
+
 
           {/* Quick Contact & Info (Restored & Updated) */}
           <div className="space-y-8">
@@ -104,7 +203,7 @@ export function Contact() {
                   </div>
                   <div>
                     <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Email Us</p>
-                    <p className="text-slate-700 dark:text-slate-200 font-medium">info@i-cams.lk</p>
+                    <p className="text-slate-700 dark:text-slate-200 font-medium">infoicams123@gmail.com</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-4 group">
@@ -146,7 +245,7 @@ export function Contact() {
           </div>
         </div>
 
-        {/* Institutional Section (New Requirement) */}
+        {/* Institutional Section (Updated) */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -160,23 +259,57 @@ export function Contact() {
                 <Building2 className="w-4 h-4 mr-2" />
                 Institutional Partnerships
               </div>
-              <h2 className="text-4xl font-bold mb-6 leading-tight">Implement I-CAMS in your Hospital</h2>
+              <h2 className="text-4xl font-bold mb-6 leading-tight">Hospital Registration Request</h2>
               <p className="text-slate-400 text-lg mb-8">
                 Join our network of healthcare providers optimizing clinical outcomes through integrated monitoring.
                 Our team provides full technical integration and clinical staff training.
               </p>
             </div>
-            <form className="bg-white/5 backdrop-blur-md p-8 rounded-3xl border border-white/10 space-y-4" onSubmit={(e) => e.preventDefault()}>
-              <input type="text" className="w-full bg-white/10 border-white/20 rounded-xl p-4 placeholder:text-white/40 focus:ring-blue-500 text-white" placeholder="Hospital Name" />
-              <input type="text" className="w-full bg-white/10 border-white/20 rounded-xl p-4 placeholder:text-white/40 focus:ring-blue-500 text-white" placeholder="Contact Person" />
-              <textarea className="w-full bg-white/10 border-white/20 rounded-xl p-4 placeholder:text-white/40 focus:ring-blue-500 text-white" placeholder="Integration Requirements" rows={3}></textarea>
-              <button className="w-full bg-blue-600 hover:bg-blue-700 py-4 font-bold rounded-xl transition-all shadow-lg shadow-blue-500/30">
-                Submit Institutional Request
+            <form className="bg-white/5 backdrop-blur-md p-8 rounded-3xl border border-white/10 space-y-4" onSubmit={handleInstSubmit}>
+              <input 
+                type="text" 
+                required
+                value={instFormData.hospitalName}
+                onChange={(e) => setInstFormData({ ...instFormData, hospitalName: e.target.value })}
+                className="w-full bg-white/10 border-white/20 rounded-xl p-4 placeholder:text-white/40 focus:ring-blue-500 text-white" 
+                placeholder="Hospital Name" 
+              />
+              <input 
+                type="text" 
+                required
+                value={instFormData.contactPerson}
+                onChange={(e) => setInstFormData({ ...instFormData, contactPerson: e.target.value })}
+                className="w-full bg-white/10 border-white/20 rounded-xl p-4 placeholder:text-white/40 focus:ring-blue-500 text-white" 
+                placeholder="Contact Person" 
+              />
+              <input 
+                type="email" 
+                required
+                value={instFormData.email}
+                onChange={(e) => setInstFormData({ ...instFormData, email: e.target.value })}
+                className="w-full bg-white/10 border-white/20 rounded-xl p-4 placeholder:text-white/40 focus:ring-blue-500 text-white" 
+                placeholder="Hospital Email Address" 
+              />
+              <textarea 
+                required
+                value={instFormData.requirements}
+                onChange={(e) => setInstFormData({ ...instFormData, requirements: e.target.value })}
+                className="w-full bg-white/10 border-white/20 rounded-xl p-4 placeholder:text-white/40 focus:ring-blue-500 text-white" 
+                placeholder="Integration Requirements" 
+                rows={3}
+              ></textarea>
+              <button 
+                type="submit" 
+                disabled={isInstSubmitting}
+                className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 py-4 font-bold rounded-xl transition-all shadow-lg shadow-blue-500/30"
+              >
+                {isInstSubmitting ? 'Submitting...' : 'Submit Institutional Request'}
               </button>
             </form>
           </div>
           <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/20 rounded-full blur-[100px] -mr-32 -mt-32"></div>
         </motion.div>
+
 
         {/* Help Desk & Map Section */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
@@ -202,7 +335,7 @@ export function Contact() {
                 </div>
                 <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300 font-medium">
                   <Mail className="w-5 h-5 text-emerald-500" />
-                  <span>support@i-cams.lk</span>
+                  <span>infoicams123@gmail.com</span>
                 </div>
               </div>
             </div>

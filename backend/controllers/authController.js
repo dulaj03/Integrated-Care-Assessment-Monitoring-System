@@ -275,6 +275,45 @@ const updatePatientProfile = async (req, res) => {
   }
 };
 
+const updateProfessionalProfile = async (req, res) => {
+  const { id, role } = req.user;
+  const { 
+    full_name, email, specialization, license_number, 
+    years_of_experience, institution_name, registration_number 
+  } = req.body;
+
+  try {
+    let model;
+    if (role === 'doctor') model = DoctorModel;
+    else if (role === 'nurse') model = NurseModel;
+    else return res.status(403).json({ error: 'Access denied: Role not authorized for professional updates' });
+
+    // Secure numeric parsing (Preventing NaN-related SQL failure)
+    let experienceVal = parseInt(years_of_experience);
+    if (isNaN(experienceVal)) experienceVal = null;
+    
+    const updateData = { 
+      full_name: full_name || null, 
+      email: email || null, 
+      license_number: license_number || null, 
+      years_of_experience: experienceVal, 
+      institution_name: institution_name || null, 
+      registration_number: registration_number || null 
+    };
+    
+    if (role === 'doctor') updateData.specialization = specialization || null;
+    else updateData.qualification = specialization || null;
+
+    const updated = await model.updateProfile(id, updateData);
+    if (!updated) return res.status(404).json({ error: 'Professional record not found' });
+
+    res.json({ message: 'Professional profile updated successfully', user: { ...updated, role } });
+  } catch (err) {
+    console.error(`[AUTH_ERROR] Role: ${role}, ID: ${id}, Error:`, err);
+    res.status(500).json({ error: 'Internal server error during professional profile update' });
+  }
+};
+
 const changePassword = async (req, res) => {
   const { id, role } = req.user;
   const { oldPassword, newPassword } = req.body;
@@ -316,5 +355,6 @@ module.exports = {
   getMe,
   updateAdminProfile,
   updatePatientProfile,
+  updateProfessionalProfile,
   changePassword
 };

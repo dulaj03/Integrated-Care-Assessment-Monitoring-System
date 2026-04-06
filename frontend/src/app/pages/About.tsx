@@ -1,10 +1,10 @@
 import { Link } from 'react-router';
 import {
   ArrowLeft, Activity, ShieldCheck, HeartPulse, Building2, FlaskConical,
-  Users, Stethoscope, Heart, Clipboard, CheckCircle2, Zap, Globe, MessageSquare, ArrowRight,
+  CheckCircle2, Zap, Globe,
 } from 'lucide-react';
 import { Navbar } from '../components/Navbar';
-import { Footer } from '../components/footer';
+import { Footer } from '../components/Footer';
 import { motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 

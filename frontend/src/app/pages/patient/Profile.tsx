@@ -1,6 +1,7 @@
 import { Mail, Phone, Calendar, Heart, Pill, AlertCircle, Edit, Shield, MapPin, User as UserIcon } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 
 export function Profile() {
   const { t } = useTranslation();
@@ -84,7 +85,9 @@ export function Profile() {
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      alert('New passwords do not match');
+      toast.error('Mismatch Error', {
+        description: 'New passwords do not match. Please re-enter.'
+      });
       return;
     }
 
@@ -104,16 +107,16 @@ export function Profile() {
       });
 
       if (res.ok) {
-        alert('Password changed successfully!');
+        toast.success('Password changed successfully!');
         setIsPasswordModalOpen(false);
         setPasswordData({ oldPassword: '', newPassword: '', confirmPassword: '' });
       } else {
         const error = await res.json();
-        alert(error.error || 'Failed to change password');
+        toast.error(error.error || 'Failed to change password');
       }
     } catch (err) {
       console.error('Error changing password:', err);
-      alert('Error changing password');
+      toast.error('Error changing password');
     } finally {
       setPasswordLoading(false);
     }
@@ -139,7 +142,9 @@ export function Profile() {
       link.parentNode?.removeChild(link);
     } catch (err) {
       console.error('Error downloading records:', err);
-      alert('Failed to generate health records');
+      toast.error('Download Failed', {
+        description: 'Failed to generate health records PDF. Please try again later.'
+      });
     }
   };
 
@@ -173,13 +178,13 @@ export function Profile() {
         const { user } = await res.json();
         setPatient(user);
         setIsEditing(false);
-        alert('Profile updated successfully!');
+        toast.success('Profile updated successfully!');
       } else {
-        alert('Failed to update profile');
+        toast.error('Failed to update profile');
       }
     } catch (err) {
       console.error('Error saving profile:', err);
-      alert('Error saving profile');
+      toast.error('Error saving profile');
     } finally {
       setSaveLoading(false);
     }

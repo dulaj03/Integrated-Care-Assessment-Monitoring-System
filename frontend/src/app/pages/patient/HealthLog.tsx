@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 
 export function HealthLog() {
   const { t } = useTranslation();
@@ -37,7 +38,9 @@ export function HealthLog() {
     e.preventDefault();
 
     if (!patientId) {
-      alert('You must be logged in to save health logs.');
+      toast.error('Session Required', {
+        description: 'You must be logged in to save health logs.'
+      });
       return;
     }
 
@@ -65,15 +68,15 @@ export function HealthLog() {
       });
 
       if (res.ok) {
-        alert('Health log saved successfully!');
+        toast.success('Health log saved successfully!');
         navigate('/patient/dashboard');
       } else {
         const data = await res.json();
-        alert(data.error || 'Failed to submit health log');
+        toast.error(data.error || 'Failed to submit health log');
       }
     } catch (err) {
       console.error('Error submitting health log:', err);
-      alert('Network error. Is the backend running?');
+      toast.error('Network error. Is the backend running?');
     } finally {
       setLoading(false);
     }

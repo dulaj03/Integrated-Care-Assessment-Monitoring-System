@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Send, User as UserIcon, Building2 } from 'lucide-react';
 import { initSocket } from '../lib/socket';
+import { toast } from 'sonner';
 
 export interface Conversation {
   other_id: string | number;
@@ -111,7 +112,7 @@ export function MessagingUI({ conversation, currentUserId, currentUserRole, onSe
         onSendMessage?.(inputValue);
       } else {
         const data = await res.json();
-        alert(data.error || 'Failed to send message');
+        toast.error(data.error || 'Failed to send message');
       }
     } catch (error) {
       console.error('Error sending message:', error);

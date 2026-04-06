@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { Mail, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 
@@ -8,8 +8,22 @@ export function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Load remembered credentials on component mount
+  useEffect(() => {
+    const savedEmail = localStorage.getItem(`remembered_email_${role}`);
+    const savedPassword = localStorage.getItem(`remembered_password_${role}`);
+    const savedRememberMe = localStorage.getItem(`remembered_me_${role}`) === 'true';
+
+    if (savedRememberMe) {
+      if (savedEmail) setEmail(savedEmail);
+      if (savedPassword) setPassword(savedPassword);
+      setRememberMe(true);
+    }
+  }, [role]);
 
   const roleConfig: Record<string, { label: string; color: string; icon: string }> = {
     patient: {
@@ -63,6 +77,17 @@ export function LoginForm() {
       sessionStorage.setItem('userEmail', result.user.email);
       sessionStorage.setItem('userName', result.user.full_name || result.user.name);
       sessionStorage.setItem('user', JSON.stringify(result.user)); // Cache entire user object for context-rich dashboards
+
+      // Handle "Remember me"
+      if (rememberMe) {
+        localStorage.setItem(`remembered_email_${role}`, email);
+        localStorage.setItem(`remembered_password_${role}`, password);
+        localStorage.setItem(`remembered_me_${role}`, 'true');
+      } else {
+        localStorage.removeItem(`remembered_email_${role}`);
+        localStorage.removeItem(`remembered_password_${role}`);
+        localStorage.removeItem(`remembered_me_${role}`);
+      }
 
       // Navigate to role-specific dashboard
       if (role === 'patient') {
@@ -188,6 +213,8 @@ export function LoginForm() {
               <label className="flex items-center cursor-pointer">
                 <input
                   type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
                   className="rounded border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500 bg-white dark:bg-slate-800"
                   disabled={loading}
                 />

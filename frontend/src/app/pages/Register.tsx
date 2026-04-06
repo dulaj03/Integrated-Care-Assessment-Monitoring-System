@@ -3,6 +3,7 @@ import { Link, useSearchParams, useNavigate } from 'react-router';
 import { UserPlus, Upload } from 'lucide-react';
 import { Hospital } from '../lib/hospitalData';
 import { Navbar } from '../components/Navbar';
+import { toast } from 'sonner';
 
 export function Register() {
   const [searchParams] = useSearchParams();
@@ -193,7 +194,9 @@ export function Register() {
       } else if (isProfessional) {
         sessionStorage.setItem('verificationStatus', 'pending');
         // Show success message or redirect
-        alert('Registration successful! Your account is pending verification.');
+        toast.success('Registration successful!', {
+          description: 'Your account is pending verification by our clinical team.',
+        });
         navigate(`/login/${formData.role}`);
       } else {
         navigate(`/login/${formData.role}`);

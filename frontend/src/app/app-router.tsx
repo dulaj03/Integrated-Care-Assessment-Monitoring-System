@@ -29,6 +29,7 @@ import { HospitalDashboard } from './pages/hospital/HospitalDashboard';
 import { LabManagement } from './pages/hospital/LabManagement';
 import { ProceduralOutcomes } from './pages/professional/ProceduralOutcomes';
 import { CareHistory } from './pages/patient/CareHistory';
+import { Settings } from './pages/professional/Settings';
 import { NotFound } from './pages/NotFound';
 import { ScrollToTopOnNavigate } from './components/ScrollToTopOnNavigate';
 
@@ -87,6 +88,7 @@ export const router = createBrowserRouter([
           { path: 'schedule', Component: DoctorSchedule },
           { path: 'reports', Component: DoctorReports },
           { path: 'messages', Component: Messages },
+          { path: 'settings', Component: Settings },
         ],
       },
 
@@ -102,6 +104,7 @@ export const router = createBrowserRouter([
           { path: 'rounds', Component: NurseRounds },
           { path: 'patient/:id', Component: PatientDetail },
           { path: 'messages', Component: Messages },
+          { path: 'settings', Component: Settings },
         ],
       },
 

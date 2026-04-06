@@ -8,9 +8,9 @@ import {
   getLabStatusColor,
   getPatientNurseReports,
 } from '../../lib/hospitalData';
-import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 
 // Safely parse a date string or object into a local Date object
 function parseLocalDate(dateInput: any): Date {
@@ -69,7 +69,6 @@ interface DbHealthLog {
 }
 
 export function PatientDashboard() {
-  const { t } = useTranslation();
   const patientId = sessionStorage.getItem('userId');
   const userEmail = sessionStorage.getItem('userEmail');
   const userName = sessionStorage.getItem('userName') || 'Patient';
@@ -339,7 +338,7 @@ export function PatientDashboard() {
       });
 
       if (res.ok) {
-        alert('Health log saved successfully!');
+        toast.success('Health log saved successfully!');
         setIsLogFormOpen(false);
         setLogFormData({
           systolic: '',
@@ -354,11 +353,11 @@ export function PatientDashboard() {
         await fetchHealthLogs(); // Refresh dashboard data
       } else {
         const data = await res.json();
-        alert(data.error || 'Failed to submit health log');
+        toast.error(data.error || 'Failed to submit health log');
       }
     } catch (err) {
       console.error('Error submitting health log:', err);
-      alert('Network error. Is the backend running?');
+      toast.error('Network error. Is the backend running?');
     }
   };
 
@@ -402,7 +401,7 @@ export function PatientDashboard() {
       <div className="md:flex md:items-center md:justify-between">
         <div className="flex-1 min-w-0">
           <h2 className="text-2xl font-bold leading-7 text-slate-900 dark:text-white sm:text-3xl sm:truncate">
-            {t('patient_dashboard.greeting')}, {patient.name.split(' ')[0]}!
+            Welcome back, {patient.name.split(' ')[0]}!
           </h2>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Current Status: <span className="font-bold uppercase text-blue-600">{patientStatus}</span> | Condition: <span className={`font-bold uppercase ${patientCondition === 'critical' ? 'text-red-500' : 'text-green-500'}`}>{patientCondition}</span>
@@ -421,7 +420,7 @@ export function PatientDashboard() {
             className={`inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white transition-colors duration-200 ${isPending ? 'bg-slate-400 cursor-not-allowed' : 'bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600'}`}
           >
             <Plus className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
-            {t('patient_dashboard.logHealth')}
+            Log Health Vitals
           </button>
         </div>
       </div>
@@ -506,7 +505,7 @@ export function PatientDashboard() {
                       {round.steps?.map((step: any) => (
                         <div key={step.id} className="flex-1 flex flex-col items-center gap-1 group">
                           <div className={`h-1.5 w-full rounded-full transition-all ${step.status === 'completed' ? 'bg-emerald-500' : 'bg-slate-200 dark:bg-slate-800'}`} />
-                          <span className={`text-[8px] font-black uppercase tracking-tighter transition-opacity ${step.status === 'completed' ? 'text-emerald-500 opacity-100' : 'text-slate-300 dark:text-slate-600 opacity-0 group-hover:opacity-100'}`}>
+                          <span className={`text-[8px] font-black uppercase tracking-tighter transition-opacity ${step.status === 'completed' ? 'text-emerald-500 opacity-100' : 'text-slate-300 dark:bg-slate-600 opacity-0 group-hover:opacity-100'}`}>
                             {step.step_name.split(' ')[0]}
                           </span>
                         </div>
@@ -579,28 +578,28 @@ export function PatientDashboard() {
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {[
           {
-            label: t('patient_dashboard.bloodPressure'),
+            label: 'Blood Pressure',
             value: latestLog?.systolic_bp ? `${latestLog.systolic_bp}/${latestLog.diastolic_bp}` : (latestLog?.vitals?.bloodPressure || 'N/A'),
             icon: Activity,
             color: 'text-slate-400',
             sub: latestLog?.created_at ? `Latest update: ${format(new Date(latestLog.created_at), 'MMM d, p')}` : (latestLog?.date ? `Record from ${format(new Date(latestLog.date), 'MMM d')}` : 'No records yet')
           },
           {
-            label: t('patient_dashboard.heartRate'),
+            label: 'Heart Rate',
             value: `${latestLog?.heart_rate || latestLog?.vitals?.heartRate || 'N/A'} bpm`,
             icon: Heart,
             color: 'text-red-400',
             sub: latestLog?.created_at ? `Latest update: ${format(new Date(latestLog.created_at), 'MMM d')}` : 'Resting rate'
           },
           {
-            label: t('patient_dashboard.temperature'),
+            label: 'Temperature',
             value: `${latestLog?.temperature || latestLog?.vitals?.temperature || 'N/A'}°C`,
             icon: Thermometer,
             color: 'text-orange-400',
             sub: latestLog?.created_at ? `Latest update: ${format(new Date(latestLog.created_at), 'MMM d')}` : 'Last checked'
           },
           {
-            label: t('patient_dashboard.bloodOxygen'),
+            label: 'Oxygen Level',
             value: `${latestLog?.oxygen_level || latestLog?.vitals?.oxygenLevel || 'N/A'}%`,
             icon: Droplet,
             color: 'text-blue-400',
@@ -754,7 +753,7 @@ export function PatientDashboard() {
         <div className="lg:col-span-2">
           <HealthTrendChart 
             logs={allLogsForChart} 
-            title={t('patient_dashboard.healthTrends') || "Health Trends"}
+            title="Comprehensive Health Trends Analysis"
           />
         </div>
 

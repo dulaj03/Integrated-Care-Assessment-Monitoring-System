@@ -1,7 +1,7 @@
 import { Link } from 'react-router';
 import { ArrowLeft, Scale, AlertTriangle, UserCheck, Activity, Stethoscope } from 'lucide-react';
 import { Navbar } from '../components/Navbar';
-import { Footer } from '../components/footer';
+import { Footer } from '../components/Footer';
 import { motion } from 'motion/react';
 
 export function TermsOfService() {
