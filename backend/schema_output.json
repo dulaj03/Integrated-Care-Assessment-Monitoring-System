@@ -64,6 +64,11 @@
       "column_name": "nurse_id",
       "data_type": "integer",
       "is_nullable": "YES"
+    },
+    {
+      "column_name": "review_note",
+      "data_type": "text",
+      "is_nullable": "YES"
     }
   ],
   "fks": [

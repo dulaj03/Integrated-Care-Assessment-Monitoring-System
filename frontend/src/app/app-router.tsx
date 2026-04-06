@@ -33,11 +33,14 @@ import { Settings } from './pages/professional/Settings';
 import { NotFound } from './pages/NotFound';
 import { ScrollToTopOnNavigate } from './components/ScrollToTopOnNavigate';
 
+import { AIChatBubble } from './components/AIChatBubble';
+
 function RootLayout() {
   return (
     <>
       <ScrollToTopOnNavigate />
       <Outlet />
+      <AIChatBubble />
     </>
   );
 }
