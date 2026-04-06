@@ -96,15 +96,13 @@ Current User Role: ${user ? user.role : 'GUEST'}
       const chat = model.startChat({
         history: history || [],
         generationConfig: {
-          maxOutputTokens: 800,
+          maxOutputTokens: 2048,
         },
       });
 
       const result = await chat.sendMessage(message);
       const response = await result.response;
       const text = response.text();
-
-      res.json({ reply: text });
 
       res.json({ reply: text });
     } catch (error) {
