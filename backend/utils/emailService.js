@@ -209,3 +209,116 @@ exports.sendCriticalAlert = async (recipients, patientName, vitalsData, reasons)
 
   return transporter.sendMail(mailOptions);
 };
+
+/**
+ * Notify Patient of Appointment Approval
+ */
+exports.sendAppointmentApproval = async (email, patientName, doctorName, date, time, hospitalName) => {
+  const mailOptions = {
+    from: `"I-CAMS Appointments" <${process.env.EMAIL_USER}>`,
+    to: email,
+    subject: `CONFIRMED: Your Appointment with Dr. ${doctorName}`,
+    html: `
+      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #1e293b; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden;">
+        <div style="background-color: #2563eb; color: white; padding: 30px; text-align: center;">
+          <h2 style="margin: 0; font-weight: 800;">Appointment Confirmed</h2>
+          <p style="margin: 5px 0 0; opacity: 0.9;">Your healthcare visit has been approved</p>
+        </div>
+        <div style="padding: 30px; background-color: #ffffff;">
+          <p>Dear <strong>${patientName}</strong>,</p>
+          <p>This is to inform you that your appointment request has been reviewed and officially confirmed by your doctor.</p>
+          <div style="background-color: #f8fafc; border-radius: 12px; padding: 20px; margin: 25px 0; border: 1px solid #e2e8f0;">
+            <table style="width: 100%;">
+              <tr>
+                <td style="padding: 5px 0; color: #64748b; font-size: 13px;">Consultant</td>
+                <td style="padding: 5px 0; text-align: right; font-weight: bold;">Dr. ${doctorName}</td>
+              </tr>
+              <tr>
+                <td style="padding: 5px 0; color: #64748b; font-size: 13px;">Facility</td>
+                <td style="padding: 5px 0; text-align: right; font-weight: bold;">${hospitalName}</td>
+              </tr>
+              <tr>
+                <td style="padding: 5px 0; color: #64748b; font-size: 13px;">Date</td>
+                <td style="padding: 5px 0; text-align: right; font-weight: bold;">${date}</td>
+              </tr>
+              <tr>
+                <td style="padding: 5px 0; color: #64748b; font-size: 13px;">Time</td>
+                <td style="padding: 5px 0; text-align: right; font-weight: bold;">${time}</td>
+              </tr>
+            </table>
+          </div>
+          <p style="font-size: 14px; color: #475569; text-align: center; margin-top: 30px;">Please arrive at <strong>${hospitalName}</strong> 15 minutes prior to your scheduled time.</p>
+          <div style="margin-top: 40px; text-align: center; border-top: 1px solid #f1f5f9; padding-top: 20px;">
+            <p style="margin: 0; color: #94a3b8; font-size: 11px;">© 2026 I-CAMS. Professional Clinical Management.</p>
+          </div>
+        </div>
+      </div>
+    `
+  };
+  return transporter.sendMail(mailOptions);
+};
+
+/**
+ * Notify Patient of Nurse Assignment
+ */
+exports.sendNurseAssignment = async (email, patientName, nurseName, doctorName) => {
+  const mailOptions = {
+    from: `"I-CAMS Care Team" <${process.env.EMAIL_USER}>`,
+    to: email,
+    subject: `New Care Team Member Assigned: ${nurseName}`,
+    html: `
+      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #1e293b; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden;">
+        <div style="background-color: #0d9488; color: white; padding: 30px; text-align: center;">
+          <h2 style="margin: 0; font-weight: 800;">Care Team Update</h2>
+          <p style="margin: 5px 0 0; opacity: 0.9;">A personal nurse has been assigned to your care</p>
+        </div>
+        <div style="padding: 30px; background-color: #ffffff;">
+          <p>Dear <strong>${patientName}</strong>,</p>
+          <p>To ensure you receive the highest quality of continuous monitoring, <strong>Dr. ${doctorName}</strong> has expanded your clinical care team.</p>
+          <div style="background-color: #f0fdfa; border-left: 4px solid #0d9488; padding: 20px; margin: 25px 0;">
+            <p style="margin: 0; font-size: 16px;"><strong>Assigned Nurse:</strong> ${nurseName}</p>
+            <p style="margin: 5px 0 0; color: #0f766e; font-size: 14px;">This nurse will be responsible for reviewing your daily health logs and performing clinical rounds.</p>
+          </div>
+          <p style="font-size: 14px; color: #475569;">You can now communicate with your assigned nurse through the I-CAMS Messaging Portal.</p>
+          <div style="margin-top: 40px; text-align: center; border-top: 1px solid #f1f5f9; padding-top: 20px;">
+            <p style="margin: 0; color: #94a3b8; font-size: 11px;">© 2026 I-CAMS. Integrated Patient Care.</p>
+          </div>
+        </div>
+      </div>
+    `
+  };
+  return transporter.sendMail(mailOptions);
+};
+
+/**
+ * Notify Patient & Doctor of Lab Result Upload
+ */
+exports.sendLabResultNotification = async (recipients, patientName, testName, hospitalName) => {
+  if (!recipients || recipients.length === 0) return;
+  const mailOptions = {
+    from: `"I-CAMS Lab Portal" <${process.env.EMAIL_USER}>`,
+    to: recipients.join(', '),
+    subject: `LAB READY: ${testName} Results for ${patientName}`,
+    html: `
+      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #1e293b; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden;">
+        <div style="background-color: #7c3aed; color: white; padding: 30px; text-align: center;">
+          <h2 style="margin: 0; font-weight: 800;">Laboratory Results Ready</h2>
+          <p style="margin: 5px 0 0; opacity: 0.9;">Clinical data has been officially published</p>
+        </div>
+        <div style="padding: 30px; background-color: #ffffff;">
+          <p>This is an automated clinical notification from <strong>${hospitalName}</strong>.</p>
+          <div style="background-color: #f5f3ff; border: 1px solid #ddd6fe; border-radius: 12px; padding: 20px; margin: 25px 0;">
+             <p style="margin: 0; font-size: 14px; color: #6d28d9; text-transform: uppercase; font-weight: 900; letter-spacing: 0.05em;">Published Report</p>
+             <h3 style="margin: 5px 0 0; color: #1e293b;">${testName}</h3>
+             <p style="margin: 10px 0 0; font-size: 14px;"><strong>Patient:</strong> ${patientName}</p>
+          </div>
+          <p style="font-size: 14px; color: #475569;">The full report and summarized clinical findings are now available for review within the I-CAMS Patient Dashboard and Physician Portal.</p>
+          <div style="margin-top: 40px; text-align: center; border-top: 1px solid #f1f5f9; padding-top: 20px;">
+            <p style="margin: 0; color: #94a3b8; font-size: 11px;">© 2026 I-CAMS. Diagnostic Laboratory Management.</p>
+          </div>
+        </div>
+      </div>
+    `
+  };
+  return transporter.sendMail(mailOptions);
+};

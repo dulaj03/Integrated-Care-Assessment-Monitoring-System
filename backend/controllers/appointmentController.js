@@ -1,5 +1,9 @@
 const pool = require('../config/db');
 const NotificationModel = require('../models/notificationModel');
+const PatientModel = require('../models/patientModel');
+const DoctorModel = require('../models/doctorModel');
+const HospitalModel = require('../models/hospitalModel');
+const emailService = require('../utils/emailService');
 
 const appointmentController = {
     // Patient: Book an appointment
@@ -61,6 +65,26 @@ const appointmentController = {
                     title: 'Appointment Fully Confirmed',
                     message: `Dr. ${req.user.full_name || 'Sarah'} has confirmed your meeting on ${appt.appointment_date}.`
                 });
+
+                // Send Email Notification
+                try {
+                  const patient = await PatientModel.findById(appt.patient_id);
+                  const doctor = await DoctorModel.findById(appt.doctor_id);
+                  const hospital = await HospitalModel.findById(appt.hospital_id);
+
+                  if (patient && patient.email) {
+                    await emailService.sendAppointmentApproval(
+                      patient.email,
+                      patient.full_name,
+                      doctor.full_name || "Your Doctor",
+                      appt.appointment_date,
+                      appt.appointment_time,
+                      hospital.name || "I-CAMS Network"
+                    );
+                  }
+                } catch (emailErr) {
+                  console.error('[Email Error] Failed to send appointment approval:', emailErr);
+                }
             }
 
             res.json(appt);

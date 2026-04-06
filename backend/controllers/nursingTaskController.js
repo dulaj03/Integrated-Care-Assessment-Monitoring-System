@@ -1,4 +1,8 @@
 const pool = require('../config/db');
+const PatientModel = require('../models/patientModel');
+const DoctorModel = require('../models/doctorModel');
+const HospitalModel = require('../models/hospitalModel');
+const emailService = require('../utils/emailService');
 
 const nursingTaskController = {
     // Create a new task with initial milestones
@@ -200,14 +204,26 @@ const nursingTaskController = {
 
             const task = result.rows[0];
 
-            // If it's linked to a lab test, update the test result too!
-            if (task.lab_test_id) {
-                await client.query(
-                    `UPDATE lab_results 
-                     SET result_summary = $1, file_url = $2, nurse_id = $3, status = 'ready', collected_at = CURRENT_TIMESTAMP
-                     WHERE id = $4`,
-                    [result_summary, result_file, nurse_id, task.lab_test_id]
+            // Send Email Notifications
+            try {
+              const patient = await PatientModel.findById(task.patient_id);
+              const doctor = await DoctorModel.findById(task.doctor_id);
+              const hospital = await HospitalModel.findById(task.hospital_id);
+              
+              const recipients = [];
+              if (patient && patient.email) recipients.push(patient.email);
+              if (doctor && doctor.email) recipients.push(doctor.email);
+
+              if (recipients.length > 0) {
+                await emailService.sendLabResultNotification(
+                  recipients,
+                  patient.full_name,
+                  task.title || "Clinical Task Result",
+                  hospital.name || "I-CAMS Network"
                 );
+              }
+            } catch (emailErr) {
+              console.error('[Email Error] Failed to send nursing task notification:', emailErr);
             }
 
             await client.query('COMMIT');

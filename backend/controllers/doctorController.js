@@ -5,6 +5,7 @@ const NotificationModel = require('../models/notificationModel');
 const pool = require('../config/db');
 const HospitalModel = require('../models/hospitalModel');
 const DoctorModel = require('../models/doctorModel');
+const emailService = require('../utils/emailService');
 
 // FR12: Get registration requests of patients pending approval
 const getPendingPatients = async (req, res) => {
@@ -106,9 +107,23 @@ const assignNurse = async (req, res) => {
       user_id: nurseId,
       user_role: 'nurse',
       title: 'New Patient Assigned',
-      message: `Dr. ${req.user.name || 'Your Doctor'} has assigned you to care for ${patient.full_name}.`,
+      message: `Dr. ${req.user.full_name || 'Your Doctor'} has assigned you to care for ${patient.full_name}.`,
       type: 'info'
     });
+
+    // Send Email to Patient
+    try {
+      if (patient && patient.email) {
+        await emailService.sendNurseAssignment(
+          patient.email, 
+          patient.full_name,
+          nurseData.full_name,
+          req.user.full_name || 'Your Doctor'
+        );
+      }
+    } catch (emailErr) {
+      console.error('[Email Error] Failed to send nurse assignment email:', emailErr);
+    }
 
     res.json({ message: 'Nurse assigned successfully' });
   } catch (error) {

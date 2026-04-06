@@ -1,4 +1,8 @@
 const pool = require('../config/db');
+const PatientModel = require('../models/patientModel');
+const DoctorModel = require('../models/doctorModel');
+const HospitalModel = require('../models/hospitalModel');
+const emailService = require('../utils/emailService');
 
 const labController = {
     // Doctor orders a test
@@ -94,8 +98,33 @@ const labController = {
                 [result_summary, file_url, nurse_id, id]
             );
 
-            res.json(result.rows[0]);
+            const labResult = result.rows[0];
+
+            // Send Email Notifications
+            try {
+              const patient = await PatientModel.findById(labResult.patient_id);
+              const doctor = await DoctorModel.findById(labResult.doctor_id);
+              const hospital = await HospitalModel.findById(labResult.hospital_id);
+              
+              const recipients = [];
+              if (patient && patient.email) recipients.push(patient.email);
+              if (doctor && doctor.email) recipients.push(doctor.email);
+
+              if (recipients.length > 0) {
+                await emailService.sendLabResultNotification(
+                  recipients,
+                  patient.full_name,
+                  labResult.test_name,
+                  hospital.name || "I-CAMS Network"
+                );
+              }
+            } catch (emailErr) {
+              console.error('[Email Error] Failed to send lab result notification:', emailErr);
+            }
+
+            res.json(labResult);
         } catch (error) {
+            console.error('Upload result failed:', error);
             res.status(500).json({ error: 'Failed to upload results' });
         }
     },
