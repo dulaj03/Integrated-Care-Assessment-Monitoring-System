@@ -1,4 +1,5 @@
 import { Link, Outlet, useLocation, useNavigate } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import {
   LayoutDashboard,
   User,
@@ -18,6 +19,7 @@ import { clsx } from 'clsx';
 import { toast } from 'sonner';
 import { initSocket } from '../lib/socket';
 import { ThemeSwitcher } from './ThemeSwitcher';
+import { AdvancedLanguageSwitcher } from './AdvancedLanguageSwitcher';
 import { NotificationBell } from './NotificationBell';
 import { Notification } from '../lib/mockNotifications';
 
@@ -29,6 +31,7 @@ interface DashboardLayoutProps {
 }
 
 export function DashboardLayout({ role, userName: initialUserName = '' }: DashboardLayoutProps) {
+  const { t } = useTranslation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [userName, setUserName] = useState(initialUserName);
@@ -158,38 +161,38 @@ export function DashboardLayout({ role, userName: initialUserName = '' }: Dashbo
   };
 
   const patientLinks = [
-    { name: 'Dashboard', href: '/patient/dashboard', icon: LayoutDashboard },
-    { name: 'Health Log', href: '/patient/log', icon: FileText },
-    { name: 'Care History', href: '/patient/care-history', icon: Activity },
-    { name: 'Appointments', href: '/patient/appointments', icon: Calendar },
-    { name: 'Find Hospitals', href: '/patient/hospitals', icon: Building2 },
-    { name: 'Lab Results', href: '/patient/lab-results', icon: FlaskConical },
-    { name: 'Messages', href: '/patient/messages', icon: MessageCircle },
-    { name: 'Profile', href: '/patient/profile', icon: User },
+    { name: t('sidebar.dashboard'), href: '/patient/dashboard', icon: LayoutDashboard },
+    { name: t('sidebar.healthLog'), href: '/patient/log', icon: FileText },
+    { name: t('sidebar.careHistory'), href: '/patient/care-history', icon: Activity },
+    { name: t('sidebar.appointments'), href: '/patient/appointments', icon: Calendar },
+    { name: t('sidebar.findHospitals'), href: '/patient/hospitals', icon: Building2 },
+    { name: t('sidebar.labResults'), href: '/patient/lab-results', icon: FlaskConical },
+    { name: t('sidebar.messages'), href: '/patient/messages', icon: MessageCircle },
+    { name: t('sidebar.profile'), href: '/patient/profile', icon: User },
   ];
 
   const doctorLinks = [
-    { name: 'Dashboard', href: '/doctor/dashboard', icon: LayoutDashboard },
-    { name: 'My Patients', href: '/doctor/patients', icon: Users },
-    { name: 'Procedural Hub', href: '/doctor/procedural-hub', icon: ClipboardList },
-    { name: 'Messages', href: '/doctor/messages', icon: MessageCircle },
-    { name: 'Schedule', href: '/doctor/schedule', icon: Calendar },
-    { name: 'Reports', href: '/doctor/reports', icon: FileText },
-    { name: 'Settings', href: '/doctor/settings', icon: User },
+    { name: t('sidebar.dashboard'), href: '/doctor/dashboard', icon: LayoutDashboard },
+    { name: t('sidebar.myPatients'), href: '/doctor/patients', icon: Users },
+    { name: t('sidebar.proceduralHub'), href: '/doctor/procedural-hub', icon: ClipboardList },
+    { name: t('sidebar.messages'), href: '/doctor/messages', icon: MessageCircle },
+    { name: t('sidebar.schedule'), href: '/doctor/schedule', icon: Calendar },
+    { name: t('sidebar.reports'), href: '/doctor/reports', icon: FileText },
+    { name: t('sidebar.settings'), href: '/doctor/settings', icon: User },
   ];
 
   const nurseLinks = [
-    { name: 'Dashboard', href: '/nurse/dashboard', icon: LayoutDashboard },
-    { name: 'Patients', href: '/nurse/patients', icon: Users },
-    { name: 'Patient Care', href: '/nurse/care', icon: ClipboardList },
-    { name: 'Messages', href: '/nurse/messages', icon: MessageCircle },
-    { name: 'Rounds', href: '/nurse/rounds', icon: Activity },
-    { name: 'Settings', href: '/nurse/settings', icon: User },
+    { name: t('sidebar.dashboard'), href: '/nurse/dashboard', icon: LayoutDashboard },
+    { name: t('sidebar.patients'), href: '/nurse/patients', icon: Users },
+    { name: t('sidebar.patientCare'), href: '/nurse/care', icon: ClipboardList },
+    { name: t('sidebar.messages'), href: '/nurse/messages', icon: MessageCircle },
+    { name: t('sidebar.rounds'), href: '/nurse/rounds', icon: Activity },
+    { name: t('sidebar.settings'), href: '/nurse/settings', icon: User },
   ];
 
   const hospitalLinks = [
-    { name: 'Dashboard', href: '/hospital/dashboard', icon: LayoutDashboard },
-    { name: 'Messages', href: '/hospital/messages', icon: MessageCircle },
+    { name: t('sidebar.dashboard'), href: '/hospital/dashboard', icon: LayoutDashboard },
+    { name: t('sidebar.messages'), href: '/hospital/messages', icon: MessageCircle },
   ];
 
   const links = role === 'patient' ? patientLinks
@@ -226,7 +229,7 @@ export function DashboardLayout({ role, userName: initialUserName = '' }: Dashbo
               const isActive = location.pathname === item.href;
               return (
                 <Link
-                  key={item.name}
+                  key={item.href}
                   to={item.href}
                   onClick={() => setSidebarOpen(false)}
                   className={clsx(
@@ -243,7 +246,7 @@ export function DashboardLayout({ role, userName: initialUserName = '' }: Dashbo
                     )}
                   />
                   {item.name}
-                  {item.name === 'Messages' && unreadMessages > 0 && (
+                  {item.href.includes('messages') && unreadMessages > 0 && (
                     <span className="absolute right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-lg shadow-red-500/40 animate-pulse">
                       {unreadMessages}
                     </span>
@@ -254,7 +257,7 @@ export function DashboardLayout({ role, userName: initialUserName = '' }: Dashbo
           </nav>
         </div>
 
-        <div className="flex-shrink-0 flex border-t border-slate-200 dark:border-slate-800 p-4">
+        <div className="flex-shrink-0 flex flex-col border-t border-slate-200 dark:border-slate-800 p-4 gap-4">
           <div className="flex-shrink-0 w-full group block">
             <div className="flex items-center">
               <div className="h-9 w-9 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400">
@@ -265,7 +268,7 @@ export function DashboardLayout({ role, userName: initialUserName = '' }: Dashbo
                   {userName}
                 </p>
                 <p className="text-xs font-medium text-slate-500 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-300 capitalize transition-colors duration-200">
-                  {role}
+                  {t(`common.${role}`)}
                 </p>
               </div>
             </div>
@@ -274,7 +277,7 @@ export function DashboardLayout({ role, userName: initialUserName = '' }: Dashbo
               className="mt-4 flex items-center text-sm text-red-600 dark:text-red-500 hover:text-red-800 dark:hover:text-red-400 transition-colors duration-200"
             >
               <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
+              {t('common.signOut')}
             </button>
           </div>
         </div>
@@ -289,15 +292,16 @@ export function DashboardLayout({ role, userName: initialUserName = '' }: Dashbo
             onClick={() => setSidebarOpen(true)}
             className="md:hidden -ml-0.5 h-10 w-10 inline-flex items-center justify-center rounded-md text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-300 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 transition-colors duration-200"
           >
-            <span className="sr-only">Open sidebar</span>
+            <span className="sr-only">{t('sidebar.openSidebar')}</span>
             <Menu className="h-6 w-6" />
           </button>
 
           {/* Center - Page title (mobile) */}
-          <div className="md:hidden font-semibold text-slate-900 dark:text-white text-sm">Dashboard</div>
+          <div className="md:hidden font-semibold text-slate-900 dark:text-white text-sm">{t('sidebar.dashboard')}</div>
 
           {/* Right side - Notifications, Theme, etc */}
           <div className="flex items-center gap-2 ml-auto md:ml-0">
+            <AdvancedLanguageSwitcher compact showNativeNames={false} />
             <NotificationBell
               notifications={notifications}
               onMarkAsRead={handleMarkAsRead}

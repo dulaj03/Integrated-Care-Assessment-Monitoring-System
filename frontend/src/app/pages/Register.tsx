@@ -4,8 +4,10 @@ import { UserPlus, Upload } from 'lucide-react';
 import { Hospital } from '../lib/hospitalData';
 import { Navbar } from '../components/Navbar';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 
 export function Register() {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const roleParam = searchParams.get('role') || 'patient';
@@ -218,12 +220,12 @@ export function Register() {
             <UserPlus className="h-12 w-12 text-blue-600 dark:text-blue-500" />
           </div>
           <h2 className="mt-6 text-center text-2xl font-bold leading-9 tracking-tight text-slate-900 dark:text-white">
-            Create a new account
+            {t('register.title')}
           </h2>
           <p className="mt-2 text-center text-sm text-slate-600 dark:text-slate-400">
-            Or{' '}
+            {t('register.alreadyHaveAccount')}{' '}
             <Link to={roleParam ? `/login/${roleParam}` : '/login'} className="font-semibold text-blue-600 dark:text-blue-500 hover:text-blue-500 dark:hover:text-blue-400 transition-colors duration-200">
-              sign in to your existing account
+              {t('register.signIn')}
             </Link>
           </p>
         </div>
@@ -251,7 +253,7 @@ export function Register() {
               {/* Basic fields for all roles */}
               <div>
                 <label htmlFor="name" className="block text-sm font-medium leading-6 text-slate-900 dark:text-white">
-                  Full Name
+                  {t('patient_profile.fullName')}
                 </label>
                 <div className="mt-2">
                   <input
@@ -271,7 +273,7 @@ export function Register() {
 
               <div>
                 <label htmlFor="email" className="block text-sm font-medium leading-6 text-slate-900 dark:text-white">
-                  Email address
+                  {t('register.email')}
                 </label>
                 <div className="mt-2">
                   <input
@@ -292,7 +294,7 @@ export function Register() {
 
               <div>
                 <label htmlFor="role" className="block text-sm font-medium leading-6 text-slate-900 dark:text-white">
-                  I am a...
+                  {t('register.selectRole')}
                 </label>
                 <div className="mt-2">
                   <select
@@ -303,9 +305,9 @@ export function Register() {
                     disabled={loading}
                     className="block w-full rounded-md border-0 py-1.5 text-slate-900 dark:text-white shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 focus:ring-2 focus:ring-inset focus:ring-blue-600 dark:focus:ring-blue-500 bg-white dark:bg-slate-800 sm:text-sm sm:leading-6 disabled:opacity-50 transition-colors duration-200"
                   >
-                    <option value="patient">Patient</option>
-                    <option value="doctor">Doctor</option>
-                    <option value="nurse">Nurse</option>
+                    <option value="patient">{t('register.patient')}</option>
+                    <option value="doctor">{t('register.doctor')}</option>
+                    <option value="nurse">{t('register.nurse')}</option>
                   </select>
                 </div>
               </div>
@@ -626,7 +628,7 @@ export function Register() {
 
               <div>
                 <label htmlFor="password" className="block text-sm font-medium leading-6 text-slate-900 dark:text-white">
-                  Password
+                  {t('register.password')}
                 </label>
                 <div className="mt-2">
                   <input
@@ -646,7 +648,7 @@ export function Register() {
 
               <div>
                 <label htmlFor="confirmPassword" className="block text-sm font-medium leading-6 text-slate-900 dark:text-white">
-                  Confirm Password
+                  {t('register.confirmPassword')}
                 </label>
                 <div className="mt-2">
                   <input
@@ -670,7 +672,7 @@ export function Register() {
                   disabled={loading}
                   className="flex w-full justify-center rounded-md bg-blue-600 dark:bg-blue-700 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-blue-500 dark:hover:bg-blue-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:focus-visible:outline-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                 >
-                  {loading ? (isProfessional ? 'Submitting for Verification...' : 'Creating account...') : 'Sign up'}
+                  {loading ? (isProfessional ? 'Submitting for Verification...' : 'Creating account...') : t('register.createAccount')}
                 </button>
               </div>
             </form>

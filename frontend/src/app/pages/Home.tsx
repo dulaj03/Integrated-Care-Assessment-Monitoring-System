@@ -10,7 +10,7 @@ import {
   CheckCircle2, ArrowRight, TrendingUp, FileText, Bell, Building2, FlaskConical,
   MessageSquare, Smartphone, Zap, Globe,
 } from 'lucide-react';
-import { motion, useSpring, useTransform, useInView } from 'motion/react';
+import { motion, useSpring, useTransform, useInView, AnimatePresence } from 'motion/react';
 import { LucideIcon } from 'lucide-react';
 
 interface CounterProps {
@@ -64,6 +64,20 @@ export function Landing() {
   const isLoggedIn = !!sessionStorage.getItem('token');
   const userRole = sessionStorage.getItem('userRole');
   const [stats, setStats] = useState({ patients: 1250, doctors: 380, hospitals: 18 });
+  const [rollingIndex, setRollingIndex] = useState(0);
+
+  const rollingWords = [
+    t('hero.titleHighlight'),
+    t('landing.hero.rolling1'),
+    t('landing.hero.rolling2')
+  ];
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setRollingIndex((prev) => (prev + 1) % rollingWords.length);
+    }, 1800);
+    return () => clearInterval(timer);
+  }, [rollingWords.length]);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -97,8 +111,28 @@ export function Landing() {
       {/* ─── Hero ─── */}
       <section className="relative overflow-hidden bg-white dark:bg-slate-900">
         <div className="max-w-7xl mx-auto">
-          <div className="relative z-10 pb-8 bg-white dark:bg-slate-900 sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32">
-            <main className="mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28">
+          <div className="relative z-10 pb-8 bg-white dark:bg-slate-900 sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32 overflow-hidden lg:overflow-visible">
+            
+            {/* Background Visual Floating Elements */}
+            <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden rounded-br-[100px] lg:rounded-br-none">
+              <motion.div
+                animate={{ y: [0, -20, 0] }}
+                transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+                className="absolute -top-10 -left-24 text-slate-100 dark:text-slate-800/50"
+              >
+                <Users className="w-[35rem] h-[35rem]" />
+              </motion.div>
+              
+              <motion.div
+                animate={{ y: [0, 30, 0], rotate: [0, 5, 0] }}
+                transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
+                className="absolute top-[40%] -right-10 text-blue-50 dark:text-blue-900/30"
+              >
+                <Stethoscope className="w-[28rem] h-[28rem]" />
+              </motion.div>
+            </div>
+
+            <main className="relative z-10 mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28">
               <div className="sm:text-center lg:text-left">
                 <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="mb-6 inline-block sm:block">
                   <LanguageSwitcher />
@@ -110,9 +144,22 @@ export function Landing() {
                   <span className="text-sm font-semibold text-blue-700 dark:text-blue-300">Sri Lanka's First Integrated Care Platform</span>
                 </motion.div>
                 <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
-                  className="text-4xl tracking-tight font-extrabold text-slate-900 dark:text-white sm:text-5xl md:text-6xl">
-                  <span className="block xl:inline">{t('hero.title').split(' ')[0]} {t('hero.title').split(' ')[1]} {t('hero.title').split(' ')[2]}</span>{' '}
-                  <span className="block text-blue-600 dark:text-blue-500 xl:inline">{t('hero.titleHighlight')}</span>
+                  className="text-4xl tracking-tight font-extrabold text-slate-900 dark:text-white sm:text-5xl md:text-6xl flex flex-col xl:block">
+                  <span className="block xl:inline leading-tight xl:leading-normal">{t('hero.title').split(' ')[0]} {t('hero.title').split(' ')[1]} {t('hero.title').split(' ')[2]}</span>{' '}
+                  <span className="block xl:inline-grid text-blue-600 dark:text-blue-500 overflow-hidden align-bottom mt-1 xl:mt-0" style={{ display: 'inline-grid', height: '1.3em' }}>
+                    <AnimatePresence>
+                      <motion.span
+                        key={rollingIndex}
+                        initial={{ y: "120%", opacity: 0 }}
+                        animate={{ y: "0%", opacity: 1 }}
+                        exit={{ y: "-120%", opacity: 0 }}
+                        transition={{ duration: 0.45, ease: [0.65, 0, 0.35, 1] }}
+                        className="col-start-1 row-start-1 py-1"
+                      >
+                        {rollingWords[rollingIndex]}
+                      </motion.span>
+                    </AnimatePresence>
+                  </span>
                 </motion.h1>
                 <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}
                   className="mt-3 text-base text-slate-500 dark:text-slate-400 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
@@ -207,8 +254,8 @@ export function Landing() {
                     <TrendingUp className="h-5 w-5 text-white" />
                   </div>
                   <div>
-                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Live Tracking</p>
-                    <p className="text-sm font-bold text-slate-900 dark:text-white">Lab results visible in real time</p>
+                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">{t('landing.workflow.badge')}</p>
+                    <p className="text-sm font-bold text-slate-900 dark:text-white">{t('landing.workflow.badgeDesc')}</p>
                   </div>
                 </div>
               </div>
@@ -216,21 +263,21 @@ export function Landing() {
             <motion.div initial={{ opacity: 0, x: 40 }} whileInView={{ opacity: 1, x: 0 }} transition={{ duration: 0.6, delay: 0.1 }} viewport={{ once: true }}
               className="lg:w-1/2 w-full">
               <span className="inline-block text-xs font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400 mb-4">
-                New — Hospital Integration
+                {t('landing.workflow.subHeading')}
               </span>
               <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white mb-5 leading-tight">
-                From Doctor's Order to Lab Result — All in One App
+                {t('landing.workflow.heading')}
               </h2>
               <p className="text-slate-600 dark:text-slate-300 text-lg leading-relaxed mb-6">
-                I-CAMS now connects you directly to hospitals in Sri Lanka. Book doctor appointments, track your lab tests step-by-step, and receive results on your dashboard the moment the hospital uploads them.
+                {t('landing.workflow.desc')}
               </p>
               <ul className="space-y-3">
                 {[
-                  'Browse & book appointments at 6+ Sri Lankan hospitals',
-                  'Doctor places lab or scan orders directly from the platform',
-                  'Hospital lab updates progress: Ordered → Collected → Processing → Results ready',
-                  'Patient sees the result the instant it\'s uploaded — with flagged values highlighted',
-                  'Nurse logs daily symptoms; doctor reviews and responds in-app',
+                  t('landing.workflow.point0'),
+                  t('landing.workflow.point1'),
+                  t('landing.workflow.point2'),
+                  t('landing.workflow.point3'),
+                  t('landing.workflow.point4'),
                 ].map((point) => (
                   <li key={point} className="flex items-start gap-3">
                     <CheckCircle2 className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
@@ -249,7 +296,7 @@ export function Landing() {
                   }
                 }}
                 className="mt-8 inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 font-semibold hover:text-blue-700 dark:hover:text-blue-300 transition-colors duration-200">
-                Find a Hospital <ArrowRight className="h-4 w-4" />
+                <ArrowRight className="h-4 w-4" /> {t('landing.workflow.findHospital')}
               </button>
             </motion.div>
           </div>
@@ -262,17 +309,18 @@ export function Landing() {
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} viewport={{ once: true }}
             className="text-center mb-14">
             <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white">
-              One Platform. Four Powerful Portals.
+              {t('landing.portals.heading')}
             </h2>
             <p className="mt-4 text-lg text-slate-500 dark:text-slate-400 max-w-2xl mx-auto">
-              Every role gets a dedicated, intelligent workspace — designed specifically for how they interact with healthcare.
+              {t('landing.portals.desc')}
             </p>
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
               {
-                title: 'Patient Portal',
+                title: t('landing.portal_cards.patient_title'),
+                id: 'Patient Portal',
                 icon: Heart,
                 gradient: 'from-blue-500 to-cyan-500',
                 bg: 'from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20',
@@ -280,16 +328,17 @@ export function Landing() {
                 link: 'text-blue-600 dark:text-blue-400',
                 dot: 'bg-blue-500',
                 features: [
-                  'Health vitals & trend dashboard',
-                  'Book hospital appointments',
-                  'Track lab tests in real time',
-                  'View results with flagged values',
-                  'Medications & care plan',
-                  'Secure chat with care team',
+                  t('landing.portal_cards.patient_f0'),
+                  t('landing.portal_cards.patient_f1'),
+                  t('landing.portal_cards.patient_f2'),
+                  t('landing.portal_cards.patient_f3'),
+                  t('landing.portal_cards.patient_f4'),
+                  t('landing.portal_cards.patient_f5'),
                 ],
               },
               {
-                title: 'Nurse Dashboard',
+                title: t('landing.portal_cards.nurse_title'),
+                id: 'Nurse Dashboard',
                 icon: Clipboard,
                 gradient: 'from-purple-500 to-pink-500',
                 bg: 'from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20',
@@ -297,16 +346,17 @@ export function Landing() {
                 link: 'text-purple-600 dark:text-purple-400',
                 dot: 'bg-purple-500',
                 features: [
-                  'Log vitals, symptoms & pain level',
-                  'Symptom chip selection + mood tracker',
-                  'Flag urgent concerns to doctor',
-                  'View & action doctor\'s orders',
-                  'Reply to care notes in-thread',
-                  'Patient status at a glance',
+                  t('landing.portal_cards.nurse_f0'),
+                  t('landing.portal_cards.nurse_f1'),
+                  t('landing.portal_cards.nurse_f2'),
+                  t('landing.portal_cards.nurse_f3'),
+                  t('landing.portal_cards.nurse_f4'),
+                  t('landing.portal_cards.nurse_f5'),
                 ],
               },
               {
-                title: 'Doctor Workspace',
+                title: t('landing.portal_cards.doctor_title'),
+                id: 'Doctor Workspace',
                 icon: Stethoscope,
                 gradient: 'from-emerald-500 to-teal-500',
                 bg: 'from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20',
@@ -314,16 +364,17 @@ export function Landing() {
                 link: 'text-emerald-600 dark:text-emerald-400',
                 dot: 'bg-emerald-500',
                 features: [
-                  'Full patient 5-tab workspace',
-                  'See nurse-flagged alerts instantly',
-                  'Order labs, scans & medications',
-                  'Review lab results & add notes',
-                  'Write & view clinical notes',
-                  'Direct reply to nurse observations',
+                  t('landing.portal_cards.doctor_f0'),
+                  t('landing.portal_cards.doctor_f1'),
+                  t('landing.portal_cards.doctor_f2'),
+                  t('landing.portal_cards.doctor_f3'),
+                  t('landing.portal_cards.doctor_f4'),
+                  t('landing.portal_cards.doctor_f5'),
                 ],
               },
               {
-                title: 'Hospital Admin',
+                title: t('landing.portal_cards.admin_title'),
+                id: 'Hospital Admin',
                 icon: Building2,
                 gradient: 'from-orange-500 to-amber-500',
                 bg: 'from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20',
@@ -331,12 +382,12 @@ export function Landing() {
                 link: 'text-orange-600 dark:text-orange-400',
                 dot: 'bg-orange-500',
                 features: [
-                  'View today\'s appointment queue',
-                  'Manage lab test pipeline',
-                  'Advance test status step-by-step',
-                  'Upload result summaries',
-                  'Auto-notifies patient when ready',
-                  'Doctor roster management',
+                  t('landing.portal_cards.admin_f0'),
+                  t('landing.portal_cards.admin_f1'),
+                  t('landing.portal_cards.admin_f2'),
+                  t('landing.portal_cards.admin_f3'),
+                  t('landing.portal_cards.admin_f4'),
+                  t('landing.portal_cards.admin_f5'),
                 ],
               },
             ].map((portal, i) => {
@@ -371,7 +422,7 @@ export function Landing() {
                 }
               };
 
-              const s = styles[portal.title as keyof typeof styles];
+              const s = styles[portal.id as keyof typeof styles];
 
               return (
                 <motion.div key={portal.title} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
@@ -390,7 +441,7 @@ export function Landing() {
                     ))}
                   </ul>
                   <Link to="/login" className={`inline-flex items-center ${s.link} font-semibold hover:opacity-80 transition-opacity`}>
-                    Get Started <ArrowRight className="h-4 w-4 ml-1" />
+                    {t('landing.portal_cards.getStarted')} <ArrowRight className="h-4 w-4 ml-1" />
                   </Link>
                 </motion.div>
               );
@@ -406,20 +457,20 @@ export function Landing() {
             <motion.div initial={{ opacity: 0, x: -40 }} whileInView={{ opacity: 1, x: 0 }} transition={{ duration: 0.6 }} viewport={{ once: true }}
               className="lg:w-1/2 w-full">
               <span className="inline-block text-xs font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 mb-4">
-                Community &amp; Home Care
+                {t('landing.community.badge')}
               </span>
               <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white mb-5 leading-tight">
-                Extending Quality Care Beyond the Hospital Walls
+                {t('landing.community.heading')}
               </h2>
               <p className="text-slate-600 dark:text-slate-300 text-lg leading-relaxed mb-6">
-                I-CAMS bridges the gap between hospital-based clinical teams and community care workers. Home-based nurses can submit assessments, log daily observations, and flag urgent needs — keeping the entire care team in sync while the patient recovers at home.
+                {t('landing.community.desc')}
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                 {[
-                  { icon: FileText, title: 'Digital Care Logs', desc: 'Replace paper-based records with secure digital logs' },
-                  { icon: Bell, title: 'Smart Alerts', desc: "Instant notifications when a patient's status changes" },
-                  { icon: Users, title: 'Team Coordination', desc: 'Nurses, doctors & carers on one platform' },
-                  { icon: TrendingUp, title: 'Progress Tracking', desc: 'Chart recovery milestones and follow-up targets' },
+                  { icon: FileText, title: t('landing.community.f1Title'), desc: t('landing.community.f1Desc') },
+                  { icon: Bell, title: t('landing.community.f2Title'), desc: t('landing.community.f2Desc') },
+                  { icon: Users, title: t('landing.community.f3Title'), desc: t('landing.community.f3Desc') },
+                  { icon: TrendingUp, title: t('landing.community.f4Title'), desc: t('landing.community.f4Desc') },
                 ].map((item) => (
                   <div key={item.title} className="flex items-start gap-3 p-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow duration-200">
                     <div className="h-9 w-9 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center flex-shrink-0">
@@ -433,7 +484,7 @@ export function Landing() {
                 ))}
               </div>
               <Link to="/about" className="inline-flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-semibold hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors duration-200">
-                Learn about I-CAMS <ArrowRight className="h-4 w-4" />
+                {t('landing.community.link')} <ArrowRight className="h-4 w-4" />
               </Link>
             </motion.div>
             <motion.div initial={{ opacity: 0, x: 40 }} whileInView={{ opacity: 1, x: 0 }} transition={{ duration: 0.6, delay: 0.1 }} viewport={{ once: true }}
@@ -445,8 +496,8 @@ export function Landing() {
                     <Heart className="h-5 w-5 text-white" />
                   </div>
                   <div>
-                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Patient-Centred</p>
-                    <p className="text-sm font-bold text-slate-900 dark:text-white">Care delivered anywhere</p>
+                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">{t('landing.community.imageBadgeTop')}</p>
+                    <p className="text-sm font-bold text-slate-900 dark:text-white">{t('landing.community.imageBadgeBottom')}</p>
                   </div>
                 </div>
               </div>
@@ -460,51 +511,51 @@ export function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} viewport={{ once: true }}
             className="text-center mb-14">
-            <span className="inline-block text-xs font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400 mb-4">Why We're Different</span>
+            <span className="inline-block text-xs font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400 mb-4">{t('landing.innovation.badge')}</span>
             <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white">
-              Built for Sri Lanka. Built for the Future.
+              {t('landing.innovation.heading')}
             </h2>
             <p className="mt-4 text-lg text-slate-500 dark:text-slate-400 max-w-2xl mx-auto">
-              No other system in Sri Lanka connects patients, nurses, doctors, and hospitals in a single real-time workflow.
+              {t('landing.innovation.desc')}
             </p>
           </motion.div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               {
                 icon: Globe,
-                title: 'Sri Lanka–First',
+                title: t('landing.innovation.i1Title'),
                 color: 'blue',
-                desc: 'Designed specifically for the Sri Lankan healthcare landscape — government and private hospitals, local specializations, multilingual support (English, Sinhala, Tamil).',
+                desc: t('landing.innovation.i1Desc'),
               },
               {
                 icon: Zap,
-                title: 'End-to-End Connected',
+                title: t('landing.innovation.i2Title'),
                 color: 'purple',
-                desc: 'From booking a hospital appointment to receiving lab results on your phone — the entire care journey is digitized and visible to every authorized role in real time.',
+                desc: t('landing.innovation.i2Desc'),
               },
               {
                 icon: ShieldCheck,
-                title: 'Clinical-Grade Security',
+                title: t('landing.innovation.i3Title'),
                 color: 'emerald',
-                desc: 'Patient data is protected with clinical-grade security standards. Role-based access ensures that only authorized personnel see sensitive information.',
+                desc: t('landing.innovation.i3Desc'),
               },
               {
                 icon: MessageSquare,
-                title: 'In-App Care Communication',
+                title: t('landing.innovation.i4Title'),
                 color: 'orange',
-                desc: 'Nurses flag concerns to doctors. Doctors reply with instructions. Patients receive updates. All within the app — no external messaging tools needed.',
+                desc: t('landing.innovation.i4Desc'),
               },
               {
                 icon: FlaskConical,
-                title: 'Live Lab Test Tracker',
+                title: t('landing.innovation.i5Title'),
                 color: 'teal',
-                desc: 'Patients can track every step of their lab test — from being ordered, sample collected, processing, to results ready — with timestamps at every stage.',
+                desc: t('landing.innovation.i5Desc'),
               },
               {
                 icon: Smartphone,
-                title: 'Mobile-First Design',
+                title: t('landing.innovation.i6Title'),
                 color: 'pink',
-                desc: 'Fully responsive and optimized for mobile. Elderly patients can log vitals from home, and nurses can submit assessments during ward rounds on any device.',
+                desc: t('landing.innovation.i6Desc'),
               },
             ].map((item, i) => {
               const iconStyles: Record<string, string> = {
@@ -537,20 +588,20 @@ export function Landing() {
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
           <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
             className="text-3xl md:text-4xl font-bold text-white mb-4">
-            Ready to Experience Smarter Healthcare?
+            {t('landing.cta.heading')}
           </motion.h2>
           <motion.p initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }}
             className="text-lg text-blue-50 mb-10 max-w-2xl mx-auto">
-            Join patients, nurses, doctors, and hospital admins across Sri Lanka already benefiting from I-CAMS — the connected care platform.
+            {t('landing.cta.desc')}
           </motion.p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link to={isLoggedIn ? getDashboardPath() : "/login"}
               className="inline-flex items-center justify-center px-8 py-4 border border-transparent text-base font-semibold rounded-xl text-blue-600 bg-white hover:bg-blue-50 dark:bg-slate-100 dark:hover:bg-slate-200 transition-colors duration-200 shadow-lg">
-              {isLoggedIn ? 'Go to Dashboard' : "Get Started — It's Free"}
+              {isLoggedIn ? 'Go to Dashboard' : t('landing.cta.button')}
             </Link>
             <Link to="/features"
               className="inline-flex items-center justify-center px-8 py-4 border-2 border-white/50 text-base font-semibold rounded-xl text-white hover:bg-white/10 transition-colors duration-200">
-              See All Features →
+              {t('landing.cta.link')}
             </Link>
           </div>
         </div>
@@ -560,10 +611,10 @@ export function Landing() {
       <section className="py-10 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-slate-500 dark:text-slate-400 text-lg italic font-medium">
-            "Bridging the clinical gap through technology, one log at a time."
+            {t('landing.footer.quote')}
           </p>
           <p className="text-slate-400 dark:text-slate-500 text-[10px] mt-4 uppercase tracking-[0.2em] font-bold">
-            I-CAMS Sri Lanka • Integrated Care &amp; Monitoring System
+            {t('landing.footer.brand')}
           </p>
         </div>
       </section>

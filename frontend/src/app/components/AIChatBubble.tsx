@@ -71,11 +71,13 @@ export function AIChatBubble() {
       const data = await response.json();
       if (response.ok) {
         setMessages(prev => [...prev, { role: 'model', content: data.reply }]);
+      } else if (response.status === 429) {
+        setMessages(prev => [...prev, { role: 'model', content: "⏳ The AI service is a bit busy right now. Please wait a few seconds and try again!" }]);
       } else {
-        setMessages(prev => [...prev, { role: 'model', content: "I'm sorry, I'm having trouble connecting right now. Please try again later." }]);
+        setMessages(prev => [...prev, { role: 'model', content: `I'm sorry, something went wrong on my end (Error ${response.status}). Please try again in a moment.` }]);
       }
     } catch (error) {
-      setMessages(prev => [...prev, { role: 'model', content: "Something went wrong. Please check your connection." }]);
+      setMessages(prev => [...prev, { role: 'model', content: "⚠️ Unable to reach the AI service. Please check your connection and try again." }]);
     } finally {
       setIsLoading(false);
     }

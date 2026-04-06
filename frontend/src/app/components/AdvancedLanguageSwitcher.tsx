@@ -23,10 +23,10 @@ export function AdvancedLanguageSwitcher({
   const { i18n } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
 
-  const languages: Array<{ code: LanguageCode; label: string; nativeLabel: string }> = [
-    { code: 'en', label: 'English', nativeLabel: 'English' },
-    { code: 'si', label: 'Sinhala', nativeLabel: 'සිංහල' },
-    { code: 'ta', label: 'Tamil', nativeLabel: 'தமிழ்' },
+  const languages: Array<{ code: LanguageCode; label: string; nativeLabel: string; short: string }> = [
+    { code: 'en', label: 'English', nativeLabel: 'English', short: 'EN' },
+    { code: 'si', label: 'Sinhala', nativeLabel: 'සිංහල', short: 'සි' },
+    { code: 'ta', label: 'Tamil', nativeLabel: 'தமிழ்', short: 'த' },
   ];
 
   const currentLang = languages.find((l) => l.code === i18n.language);
@@ -56,7 +56,7 @@ export function AdvancedLanguageSwitcher({
               : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600'
             }`}
           >
-            {lang.label.substring(0, 2).toUpperCase()}
+            {lang.short}
           </button>
         ))}
       </div>

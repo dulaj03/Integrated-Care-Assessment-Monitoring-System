@@ -87,7 +87,7 @@ export function Login() {
             </div>
             <div className="relative flex justify-center">
               <span className="px-3 bg-white dark:bg-slate-900 text-xs text-slate-400 dark:text-slate-500 font-semibold uppercase tracking-widest">
-                Hospital &amp; Institutional
+                {t('login.hospitalInstitutional')}
               </span>
             </div>
           </div>
@@ -104,9 +104,9 @@ export function Login() {
                 </svg>
               </div>
               <div className="text-left">
-                <p className="text-base font-semibold text-slate-900 dark:text-white">Hospital Admin</p>
+                <p className="text-base font-semibold text-slate-900 dark:text-white">{t('login.hospitalAdmin')}</p>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Manage appointments, lab tests &amp; patient flow
+                  {t('login.hospitalAdminDesc')}
                 </p>
               </div>
             </div>

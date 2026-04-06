@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Activity, Calendar, Droplet, Heart, Thermometer, AlertCircle, Plus, FlaskConical, Pill, ClipboardList, ChevronRight, Building2, CheckCircle2, Clock, User, History as HistoryIcon, Loader2, Bell, Send, Stethoscope, MapPin, FileText } from 'lucide-react';
 import { CURRENT_USER_PATIENT } from '../../lib/mockData';
 import {
@@ -69,9 +70,10 @@ interface DbHealthLog {
 }
 
 export function PatientDashboard() {
+  const { t } = useTranslation();
   const patientId = sessionStorage.getItem('userId');
   const userEmail = sessionStorage.getItem('userEmail');
-  const userName = sessionStorage.getItem('userName') || 'Patient';
+  const userName = sessionStorage.getItem('userName') || t('common.patient');
 
   // If we have a real user, use their data, otherwise fallback to mock
   const patient = {
@@ -365,7 +367,7 @@ export function PatientDashboard() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
         <Loader2 className="h-12 w-12 text-blue-500 animate-spin" />
-        <p className="text-slate-500 animate-pulse">Loading your dashboard...</p>
+        <p className="text-slate-500 animate-pulse">{t('patient_dashboard.loadingDashboard')}</p>
       </div>
     );
   }
@@ -379,7 +381,7 @@ export function PatientDashboard() {
         <div className="bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-blue-100 dark:border-blue-900 overflow-hidden">
           <div className="px-4 py-2 bg-blue-50 dark:bg-blue-900/40 border-b border-blue-100 dark:border-blue-800 flex items-center justify-between">
             <h3 className="text-sm font-bold text-blue-800 dark:text-blue-300 flex items-center gap-2">
-              <Bell className="h-4 w-4" /> New Notifications
+              <Bell className="h-4 w-4" /> {t('patient_dashboard.newNotifications')}
             </h3>
           </div>
           <div className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -401,10 +403,10 @@ export function PatientDashboard() {
       <div className="md:flex md:items-center md:justify-between">
         <div className="flex-1 min-w-0">
           <h2 className="text-2xl font-bold leading-7 text-slate-900 dark:text-white sm:text-3xl sm:truncate">
-            Welcome back, {patient.name.split(' ')[0]}!
+            {t('patient_dashboard.greeting')}, {patient.name.split(' ')[0]}!
           </h2>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Current Status: <span className="font-bold uppercase text-blue-600">{patientStatus}</span> | Condition: <span className={`font-bold uppercase ${patientCondition === 'critical' ? 'text-red-500' : 'text-green-500'}`}>{patientCondition}</span>
+            {t('common.status')}: <span className="font-bold uppercase text-blue-600">{t(`common.${patientStatus}`) || patientStatus}</span> | {t('patient_dashboard.currentCondition')}: <span className={`font-bold uppercase ${patientCondition === 'critical' ? 'text-red-500' : 'text-green-500'}`}>{t(`professional_dashboard.${patientCondition}Status`) || patientCondition}</span>
           </p>
         </div>
         <div className="mt-4 flex gap-3 md:mt-0 md:ml-4">
@@ -412,7 +414,7 @@ export function PatientDashboard() {
             className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-emerald-600 dark:bg-emerald-700 hover:bg-emerald-700 dark:hover:bg-emerald-600 transition-colors duration-200"
           >
             <Building2 className="-ml-1 mr-2 h-4 w-4" />
-            Book Hospital
+            {t('patient_dashboard.bookHospital')}
           </Link>
           <button
             onClick={() => setIsLogFormOpen(true)}
@@ -420,7 +422,7 @@ export function PatientDashboard() {
             className={`inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white transition-colors duration-200 ${isPending ? 'bg-slate-400 cursor-not-allowed' : 'bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600'}`}
           >
             <Plus className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
-            Log Health Vitals
+            {t('patient_dashboard.logHealthVitals')}
           </button>
         </div>
       </div>
@@ -436,10 +438,9 @@ export function PatientDashboard() {
             <Clock className="h-8 w-8 text-blue-600 dark:text-blue-400" />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-blue-800 dark:text-blue-300">Registration Pending Approval</h3>
+            <h3 className="text-xl font-bold text-blue-800 dark:text-blue-300">{t('patient_dashboard.registrationPending')}</h3>
             <p className="mt-1 text-slate-600 dark:text-slate-300">
-              Welcome to I-CAMS! Your registration has been sent to your selected doctor for review.
-              Once approved, you will have full access to log your health data and view hospital services.
+              {t('patient_dashboard.pendingDesc')}
             </p>
             <div className="mt-4 flex items-center gap-2">
               <span className="px-3 py-1 bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-700 rounded-full text-xs font-semibold text-blue-700 dark:text-blue-400 flex items-center gap-1">
@@ -459,9 +460,9 @@ export function PatientDashboard() {
           <div className="flex items-center justify-between">
             <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
               <Activity className="h-6 w-6 text-emerald-500" />
-              Active Care Journey
+              {t('patient_dashboard.activeCareJourney')}
             </h3>
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Live Treatment Progress</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('common.realtime')}</span>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {activeRounds.filter(r => r.status !== 'completed').map(round => {
@@ -525,9 +526,9 @@ export function PatientDashboard() {
           <div className="flex">
             <AlertCircle className={`h-5 w-5 flex-shrink-0 ${patientCondition === 'critical' ? 'text-red-400' : 'text-yellow-400'}`} />
             <div className="ml-3">
-              <h3 className={`text-sm font-medium ${patientCondition === 'critical' ? 'text-red-800 dark:text-red-300' : 'text-yellow-800 dark:text-yellow-300'}`}>Attention Needed</h3>
+              <h3 className={`text-sm font-medium ${patientCondition === 'critical' ? 'text-red-800 dark:text-red-300' : 'text-yellow-800 dark:text-yellow-300'}`}>{t('patient_dashboard.attentionNeeded')}</h3>
               <p className={`mt-1 text-sm ${patientCondition === 'critical' ? 'text-red-700 dark:text-red-400' : 'text-yellow-700 dark:text-yellow-400'}`}>
-                Your current health status is marked as <strong>{patientCondition}</strong>. Please monitor your vitals closely.
+                {t('patient_dashboard.statusWarning')} <strong>{t(`professional_dashboard.${patientCondition}Status`) || patientCondition}</strong>.
               </p>
             </div>
           </div>
@@ -561,7 +562,7 @@ export function PatientDashboard() {
           <div className="flex items-center gap-3">
             <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0" />
             <div>
-              <p className="font-semibold text-green-800 dark:text-green-300 text-sm">Lab Results Ready!</p>
+              <p className="font-semibold text-green-800 dark:text-green-300 text-sm">{t('patient_dashboard.labResultsReady')}</p>
               <p className="text-xs text-green-700 dark:text-green-400">
                 {readyTests.length} test result{readyTests.length > 1 ? 's are' : ' is'} available: {readyTests.map(t => t.testName).join(', ')}
               </p>
@@ -569,7 +570,7 @@ export function PatientDashboard() {
           </div>
           <Link to="/patient/lab-results"
             className="flex items-center gap-1 text-sm font-semibold text-green-700 dark:text-green-300 hover:text-green-900 dark:hover:text-green-100 transition-colors">
-            View Results <ChevronRight className="h-4 w-4" />
+            {t('patient_dashboard.viewResults')} <ChevronRight className="h-4 w-4" />
           </Link>
         </motion.div>
       )}
@@ -578,32 +579,32 @@ export function PatientDashboard() {
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {[
           {
-            label: 'Blood Pressure',
+            label: t('patient_dashboard.bloodPressure'),
             value: latestLog?.systolic_bp ? `${latestLog.systolic_bp}/${latestLog.diastolic_bp}` : (latestLog?.vitals?.bloodPressure || 'N/A'),
             icon: Activity,
             color: 'text-slate-400',
-            sub: latestLog?.created_at ? `Latest update: ${format(new Date(latestLog.created_at), 'MMM d, p')}` : (latestLog?.date ? `Record from ${format(new Date(latestLog.date), 'MMM d')}` : 'No records yet')
+            sub: latestLog?.created_at ? `${t('common.date')}: ${format(new Date(latestLog.created_at), 'MMM d, p')}` : (latestLog?.date ? `Record from ${format(new Date(latestLog.date), 'MMM d')}` : t('common.noData'))
           },
           {
-            label: 'Heart Rate',
+            label: t('patient_dashboard.heartRate'),
             value: `${latestLog?.heart_rate || latestLog?.vitals?.heartRate || 'N/A'} bpm`,
             icon: Heart,
             color: 'text-red-400',
-            sub: latestLog?.created_at ? `Latest update: ${format(new Date(latestLog.created_at), 'MMM d')}` : 'Resting rate'
+            sub: latestLog?.created_at ? `${t('common.date')}: ${format(new Date(latestLog.created_at), 'MMM d')}` : t('common.noData')
           },
           {
-            label: 'Temperature',
+            label: t('patient_dashboard.temperature'),
             value: `${latestLog?.temperature || latestLog?.vitals?.temperature || 'N/A'}°C`,
             icon: Thermometer,
             color: 'text-orange-400',
-            sub: latestLog?.created_at ? `Latest update: ${format(new Date(latestLog.created_at), 'MMM d')}` : 'Last checked'
+            sub: latestLog?.created_at ? `${t('common.date')}: ${format(new Date(latestLog.created_at), 'MMM d')}` : t('common.noData')
           },
           {
-            label: 'Oxygen Level',
+            label: t('patient_dashboard.oxygenLevel'),
             value: `${latestLog?.oxygen_level || latestLog?.vitals?.oxygenLevel || 'N/A'}%`,
             icon: Droplet,
             color: 'text-blue-400',
-            sub: latestLog?.created_at ? `Latest update: ${format(new Date(latestLog.created_at), 'MMM d')}` : 'SpO2'
+            sub: latestLog?.created_at ? `${t('common.date')}: ${format(new Date(latestLog.created_at), 'MMM d')}` : t('common.noData')
           },
         ].map(vital => (
           <div key={vital.label} className="bg-white dark:bg-slate-900 overflow-hidden shadow dark:shadow-xl rounded-lg">
@@ -629,7 +630,7 @@ export function PatientDashboard() {
           <div className="bg-white dark:bg-slate-900 rounded-xl shadow p-6 border border-slate-200 dark:border-slate-800">
             <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-4 uppercase flex items-center gap-2">
               <Activity className="h-4 w-4 text-blue-500" />
-              Current Condition
+              {t('patient_dashboard.currentCondition')}
             </h4>
             <div className="flex items-center gap-4 mb-4">
               <div className="text-3xl">
@@ -639,8 +640,8 @@ export function PatientDashboard() {
                       latestLog.mood === 'poor' ? '☹️' : '🤒'}
               </div>
               <div>
-                <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">Feeling {latestLog.mood || 'stable'}</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">Reported on {format(new Date(latestLog.created_at || latestLog.date || ''), 'MMM d, h:mm a')}</p>
+                <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">{t('patient_dashboard.currentCondition')} {t(`professional_dashboard.${latestLog.mood || 'stable'}Status`) || latestLog.mood}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">{t('common.date')}: {format(new Date(latestLog.created_at || latestLog.date || ''), 'MMM d, h:mm a')}</p>
               </div>
             </div>
             {(Array.isArray(latestLog.symptoms) ? latestLog.symptoms : JSON.parse((latestLog.symptoms as string) || '[]')).length > 0 ? (
@@ -657,7 +658,7 @@ export function PatientDashboard() {
           </div>
           {latestLog.notes && (
             <div className="bg-white dark:bg-slate-900 rounded-xl shadow p-6 border border-slate-200 dark:border-slate-800">
-              <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-2 uppercase">Additional Notes</h4>
+              <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-2 uppercase">{t('patient_dashboard.additionalNotes')}</h4>
               <p className="text-sm text-slate-600 dark:text-slate-400 italic leading-relaxed">
                 "{latestLog.notes}"
               </p>
@@ -673,9 +674,9 @@ export function PatientDashboard() {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <FlaskConical className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-              <h4 className="font-semibold text-slate-900 dark:text-white text-sm">Lab Tests</h4>
+              <h4 className="font-semibold text-slate-900 dark:text-white text-sm">{t('patient_dashboard.labTests')}</h4>
             </div>
-            <Link to="/patient/lab-results" className="text-xs text-blue-600 dark:text-blue-400 hover:underline">View all</Link>
+            <Link to="/patient/lab-results" className="text-xs text-blue-600 dark:text-blue-400 hover:underline">{t('common.viewAll')}</Link>
           </div>
           {labTests.length === 0 ? (
             <p className="text-xs text-slate-500 dark:text-slate-400">No lab tests ordered.</p>
@@ -698,9 +699,9 @@ export function PatientDashboard() {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <ClipboardList className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-              <h4 className="font-semibold text-slate-900 dark:text-white text-sm">Care Orders</h4>
+              <h4 className="font-semibold text-slate-900 dark:text-white text-sm">{t('patient_dashboard.careOrders')}</h4>
             </div>
-            <span className="text-xs font-bold text-blue-600 dark:text-blue-400">{activeOrders.length} active</span>
+            <span className="text-xs font-bold text-blue-600 dark:text-blue-400">{activeOrders.length} {t('common.active')}</span>
           </div>
           {activeOrders.length === 0 ? (
             <p className="text-xs text-slate-500 dark:text-slate-400">No active orders.</p>
@@ -723,9 +724,9 @@ export function PatientDashboard() {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <HistoryIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-              <h4 className="font-semibold text-slate-900 dark:text-white text-sm">Nurse Reports</h4>
+              <h4 className="font-semibold text-slate-900 dark:text-white text-sm">{t('patient_dashboard.nurseReports')}</h4>
             </div>
-            <span className="text-xs font-bold text-blue-600 dark:text-blue-400">{nurseReports.length} total</span>
+            <span className="text-xs font-bold text-blue-600 dark:text-blue-400">{nurseReports.length} {t('common.total')}</span>
           </div>
           {nurseReports.length === 0 ? (
             <p className="text-xs text-slate-500 dark:text-slate-400">No nurse reports yet.</p>
@@ -763,10 +764,10 @@ export function PatientDashboard() {
           <div className="flex items-center justify-between">
             <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
               <Calendar className="h-5 w-5 text-blue-500" />
-              My Appointments
+              {t('patient_dashboard.myAppointments')}
             </h3>
             <Link to="/patient/appointments" className="text-xs font-black text-blue-600 hover:underline flex items-center gap-1">
-              View all <ChevronRight className="h-3 w-3" />
+              {t('common.viewAll')} <ChevronRight className="h-3 w-3" />
             </Link>
           </div>
 
@@ -1034,7 +1035,7 @@ export function PatientDashboard() {
               className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-200 dark:border-slate-800"
             >
               <div className="p-6 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-blue-600">
-                <h3 className="text-xl font-bold text-white">Daily Health Log</h3>
+                <h3 className="text-xl font-bold text-white">{t('patient_dashboard.logFormTitle')}</h3>
                 <button onClick={() => setIsLogFormOpen(false)} className="text-white/80 hover:text-white transition-colors">
                   <Plus className="h-6 w-6 rotate-45" />
                 </button>
@@ -1042,13 +1043,13 @@ export function PatientDashboard() {
               <form onSubmit={handleLogSubmit} className="p-6 space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Systolic BP</label>
+                    <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">{t('patient_dashboard.systolicBP')}</label>
                     <input type="number" required placeholder="e.g. 120" value={logFormData.systolic}
                       onChange={(e) => setLogFormData({ ...logFormData, systolic: e.target.value })}
                       className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500" />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Diastolic BP</label>
+                    <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">{t('patient_dashboard.diastolicBP')}</label>
                     <input type="number" required placeholder="e.g. 80" value={logFormData.diastolic}
                       onChange={(e) => setLogFormData({ ...logFormData, diastolic: e.target.value })}
                       className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500" />
@@ -1056,26 +1057,26 @@ export function PatientDashboard() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Heart Rate</label>
+                    <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">{t('patient_dashboard.heartRateBPM')}</label>
                     <input type="number" required placeholder="e.g. 72" value={logFormData.heartRate}
                       onChange={(e) => setLogFormData({ ...logFormData, heartRate: e.target.value })}
                       className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500" />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Temp (°C)</label>
+                    <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">{t('patient_dashboard.temperatureC')}</label>
                     <input type="number" step="0.1" required placeholder="e.g. 36.5" value={logFormData.temperature}
                       onChange={(e) => setLogFormData({ ...logFormData, temperature: e.target.value })}
                       className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500" />
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Oxygen (SpO2 %)</label>
+                  <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">{t('patient_dashboard.oxygenLevelPct')}</label>
                   <input type="number" required placeholder="e.g. 98" value={logFormData.oxygenLevel}
                     onChange={(e) => setLogFormData({ ...logFormData, oxygenLevel: e.target.value })}
                     className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500" />
                 </div>
                 <div className="space-y-3">
-                  <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">How are you feeling overall?</label>
+                  <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">{t('patient_dashboard.mood')}</label>
                   <div className="flex justify-between gap-2">
                     {(['great', 'good', 'okay', 'poor', 'bad'] as const).map((mood) => (
                       <button
@@ -1090,14 +1091,14 @@ export function PatientDashboard() {
                         <span className="block text-xl">
                           {mood === 'great' ? '😊' : mood === 'good' ? '🙂' : mood === 'okay' ? '😐' : mood === 'poor' ? '☹️' : '🤒'}
                         </span>
-                        <span className="text-[10px] font-bold uppercase">{mood}</span>
+                        <span className="text-[10px] font-bold uppercase">{t(`patient_dashboard.mood${mood.charAt(0).toUpperCase() + mood.slice(1)}`)}</span>
                       </button>
                     ))}
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Select any symptoms:</label>
+                  <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">{t('patient_dashboard.symptoms')}</label>
                   <div className="flex flex-wrap gap-2">
                     {availableSymptoms.map((symptom) => (
                       <button
@@ -1109,14 +1110,14 @@ export function PatientDashboard() {
                           : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:border-red-400'
                         }`}
                       >
-                        {symptom}
+                        {t(`patient_dashboard.${symptom.toLowerCase().replace(/\s+/g, '')}`)}
                       </button>
                     ))}
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Additional Notes</label>
+                  <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">{t('patient_dashboard.additionalNotes')}</label>
                   <textarea
                     placeholder="Anything else you'd like to share with your doctor?"
                     value={logFormData.notes}
@@ -1131,10 +1132,10 @@ export function PatientDashboard() {
                     onClick={() => setIsLogFormOpen(false)}
                     className="flex-1 py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-200"
                   >
-                    Cancel
+                    {t('common_buttons.cancel')}
                   </button>
                   <button type="submit" className="flex-[2] py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-500/20">
-                    Save Log
+                    {t('patient_dashboard.submitLog')}
                   </button>
                 </div>
               </form>

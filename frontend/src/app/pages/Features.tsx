@@ -255,7 +255,7 @@ export function Features() {
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
             className="inline-flex items-center gap-2 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-full px-4 py-1.5 mb-6">
             <Zap className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-            <span className="text-sm font-semibold text-blue-700 dark:text-blue-300">25+ Features across 4 roles</span>
+            <span className="text-sm font-semibold text-blue-700 dark:text-blue-300">{t('features_page.badge')}</span>
           </motion.div>
           <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
             className="text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-6xl mb-6">
@@ -263,7 +263,7 @@ export function Features() {
           </motion.h1>
           <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}
             className="text-xl text-slate-600 dark:text-slate-400 max-w-3xl mx-auto font-light leading-relaxed">
-            From booking a hospital appointment to receiving lab results in real time — I-CAMS covers the full care journey for patients, nurses, doctors, and hospital admins across Sri Lanka.
+            {t('features_page.descriptionExtra')}
           </motion.p>
         </div>
       </section>
@@ -296,7 +296,7 @@ export function Features() {
               <button key={tab} onClick={() => setActiveTab(tab)}
                 className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-semibold text-sm transition-all duration-200 border-2 ${tabStyles[color]}`}>
                 <Icon className="h-4 w-4" />
-                {tab}
+                {t(`features_page.tab${tab.replace(/\s+/g, '')}`)}
               </button>
             );
           })}
@@ -314,6 +314,7 @@ export function Features() {
               slate: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400',
             };
             const colorClass = featureStyles[feature.color];
+            const originalIndex = ALL_FEATURES.indexOf(feature);
 
             return (
               <motion.div key={`${feature.name}-${activeTab}`}
@@ -325,13 +326,13 @@ export function Features() {
                 </div>
                 <div className="flex items-center gap-2 mb-1">
                   <span className={`text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${colorClass.split(' ').slice(0, 2).join(' ')} ${colorClass.split(' ').slice(2).join(' ')}`}>
-                    {feature.tab === 'All Features' ? 'Platform' : feature.tab}
+                    {feature.tab === 'All Features' ? t('features_page.platform') : t(`features_page.tab${feature.tab.replace(/\s+/g, '')}`)}
                   </span>
                 </div>
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3">{feature.name}</h3>
-                <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed mb-4 flex-1">{feature.desc}</p>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3">{t(`features_list.feature_${originalIndex}_name`) || feature.name}</h3>
+                <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed mb-4 flex-1">{t(`features_list.feature_${originalIndex}_desc`) || feature.desc}</p>
                 <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-wrap gap-2">
-                  {feature.tags.map(tag => (
+                  {(t(`features_list.feature_${originalIndex}_tags`) || feature.tags.join('||')).split('||').map(tag => (
                     <span key={tag} className="text-xs px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-medium">
                       {tag}
                     </span>
@@ -346,8 +347,8 @@ export function Features() {
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} viewport={{ once: true }}
           className="mt-20 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-sm">
           <div className="bg-gradient-to-r from-blue-600 to-cyan-600 px-10 py-8">
-            <h2 className="text-2xl font-bold text-white mb-2">The Complete Care Journey</h2>
-            <p className="text-blue-100">See how every feature connects — from appointment to results.</p>
+            <h2 className="text-2xl font-bold text-white mb-2">{t('features_page.completeJourney')}</h2>
+            <p className="text-blue-100">{t('features_page.journeyDesc')}</p>
           </div>
           <div className="p-10">
             <div className="flex flex-col md:flex-row items-start md:items-center gap-4 flex-wrap">
@@ -380,16 +381,16 @@ export function Features() {
         <motion.div initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }} viewport={{ once: true }}
           className="mt-12 p-12 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-3xl text-center text-white shadow-2xl overflow-hidden relative">
           <div className="relative z-10">
-            <h2 className="text-3xl font-bold mb-4">Engineered for Simplicity. Built for Impact.</h2>
+            <h2 className="text-3xl font-bold mb-4">{t('features_page.engineeredTitle')}</h2>
             <p className="text-xl text-blue-100 max-w-2xl mx-auto font-light mb-8">
-              I-CAMS replaces fragmented paper records, phone calls, and delayed results with a single connected platform — improving outcomes for every Sri Lankan involved in a care journey.
+              {t('features_page.engineeredDesc')}
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <Link to="/login" className="px-8 py-3 bg-white text-blue-600 rounded-xl font-semibold hover:bg-blue-50 transition-colors shadow-lg">
-                Get Started Free →
+                {t('features_page.getStartedFree')}
               </Link>
               <Link to="/about" className="px-8 py-3 border-2 border-white/50 text-white rounded-xl font-semibold hover:bg-white/10 transition-colors">
-                Learn About I-CAMS
+                {t('features_page.learnAbout')}
               </Link>
             </div>
           </div>

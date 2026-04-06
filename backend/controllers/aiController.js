@@ -89,7 +89,7 @@ Current User Role: ${user ? user.role : 'GUEST'}
 `;
 
       const model = genAI.getGenerativeModel({ 
-        model: "gemini-2.5-flash",
+        model: "gemini-2.0-flash",
         systemInstruction: systemPrompt
       });
 
@@ -108,9 +108,26 @@ Current User Role: ${user ? user.role : 'GUEST'}
     } catch (error) {
       console.error('🔥 AI Chat Error Details:', {
         message: error.message,
-        stack: error.stack,
+        status: error.status,
         apiKeyExists: !!process.env.GEMINI_API_KEY
       });
+
+      // Handle rate limit errors (429) with a user-friendly message
+      if (error.status === 429 || (error.message && error.message.includes('429'))) {
+        return res.status(429).json({
+          error: 'Rate limit reached',
+          details: 'The AI service is temporarily busy. Please wait a moment and try again.'
+        });
+      }
+
+      // Handle invalid API key / auth errors
+      if (error.status === 400 || error.status === 403) {
+        return res.status(503).json({
+          error: 'AI service configuration error',
+          details: 'There is a configuration issue with the AI service. Please contact support.'
+        });
+      }
+
       res.status(500).json({ 
         error: 'Failed to get AI response', 
         details: error.message 
