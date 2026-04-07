@@ -8,6 +8,8 @@ import { TermsOfService } from './pages/TermsOfService';
 import { Register } from './pages/Register';
 import { Login } from './pages/Login';
 import { LoginForm } from './pages/LoginForm';
+import { ForgotPassword } from './pages/ForgotPassword';
+import { VerifyEmail } from './pages/VerifyEmail';
 import { DashboardLayout } from './components/DashboardLayout';
 import { PatientDashboard } from './pages/patient/Dashboard';
 import { HealthLog } from './pages/patient/HealthLog';
@@ -60,6 +62,8 @@ export const router = createBrowserRouter([
       { path: 'register', Component: Register },
       { path: 'login', Component: Login },
       { path: 'login/:role', Component: LoginForm },
+      { path: 'forgot-password/:role', Component: ForgotPassword },
+      { path: 'verify-email', Component: VerifyEmail },
 
       // ─── Patient ───────────────────────────────────────────────────────────
       {

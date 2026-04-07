@@ -47,6 +47,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { HealthTrendChart } from '../../components/HealthTrendChart';
 import { MessagingSection } from '../../components/MessagingSection';
 import { HealthLog } from '../../lib/mockData';
+import { OnboardingTour } from '../../components/OnboardingTour';
 
 interface DbHealthLog {
   id: string | number;
@@ -376,6 +377,7 @@ export function PatientDashboard() {
 
   return (
     <div className="space-y-6">
+      <OnboardingTour />
       {/* Notifications Panel (FR35) */}
       {notifications.filter(n => !n.is_read).length > 0 && (
         <div className="bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-blue-100 dark:border-blue-900 overflow-hidden">
@@ -400,7 +402,7 @@ export function PatientDashboard() {
       )}
 
       {/* Welcome Header */}
-      <div className="md:flex md:items-center md:justify-between">
+      <div id="onboarding-welcome" className="md:flex md:items-center md:justify-between">
         <div className="flex-1 min-w-0">
           <h2 className="text-2xl font-bold leading-7 text-slate-900 dark:text-white sm:text-3xl sm:truncate">
             {t('patient_dashboard.greeting')}, {patient.name.split(' ')[0]}!
@@ -576,7 +578,7 @@ export function PatientDashboard() {
       )}
 
       {/* Vitals Cards */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <div id="onboarding-vitals" className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {[
           {
             label: t('patient_dashboard.bloodPressure'),
@@ -668,7 +670,7 @@ export function PatientDashboard() {
       )}
 
       {/* Quick Action Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div id="onboarding-actions" className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Lab Tests Card */}
         <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 flex flex-col h-full">
           <div className="flex items-center justify-between mb-3">
@@ -751,7 +753,7 @@ export function PatientDashboard() {
       {/* Charts + Appointments */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Health Trends chart */}
-        <div className="lg:col-span-2">
+        <div id="onboarding-charts" className="lg:col-span-2">
           <HealthTrendChart 
             logs={allLogsForChart} 
             title="Comprehensive Health Trends Analysis"
@@ -759,7 +761,7 @@ export function PatientDashboard() {
         </div>
 
         {/* Appointments + Medications */}
-        <div className="bg-white dark:bg-slate-900 shadow dark:shadow-xl rounded-xl p-6 space-y-5">
+        <div id="onboarding-appointments" className="bg-white dark:bg-slate-900 shadow dark:shadow-xl rounded-xl p-6 space-y-5">
           {/* Header */}
           <div className="flex items-center justify-between">
             <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">

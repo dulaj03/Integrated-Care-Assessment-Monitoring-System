@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Sidebar } from '../components/Sidebar';
 import { UserTable } from '../components/UserTable';
 import { AddHospitalModal } from '../components/AddHospitalModal';
@@ -31,7 +31,7 @@ export const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
   const [currentAdmin, setCurrentAdmin] = useState<{ full_name: string; username: string } | null>(null);
 
   const fetchCurrentAdmin = async () => {
-    const token = localStorage.getItem('admin_token');
+    const token = sessionStorage.getItem('admin_token');
     try {
       const res = await fetch('http://localhost:5000/api/auth/me', {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -43,9 +43,9 @@ export const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
     }
   };
 
-  const fetchUsers = async () => {
-    setLoading(true);
-    const token = localStorage.getItem('admin_token');
+  const fetchUsers = async (silent = false) => {
+    if (!silent) setLoading(true);
+    const token = sessionStorage.getItem('admin_token');
     try {
       const res = await fetch('http://localhost:5000/api/admin/users', {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -75,21 +75,28 @@ export const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
 
       setUsers(allUsers);
     } catch (err) {
-      if (err instanceof Error) {
+      if (!silent && err instanceof Error) {
         toast.error(err.message);
       }
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchCurrentAdmin();
     fetchUsers();
+
+    // Auto-refresh every 1 second
+    const interval = setInterval(() => {
+      fetchUsers(true); // Silent refresh
+    }, 1000);
+
+    return () => clearInterval(interval);
   }, []);
 
-  const handleUpdateStatus = async (id: string, role: string, status: UserStatus) => {
-    const token = localStorage.getItem('admin_token');
+  const handleUpdateStatus = async (id: string, role: string, status: UserStatus, reason?: string) => {
+    const token = sessionStorage.getItem('admin_token');
     try {
       const res = await fetch('http://localhost:5000/api/admin/users/update-status', {
         method: 'POST',
@@ -97,7 +104,7 @@ export const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ id, role: role.toLowerCase(), status }),
+        body: JSON.stringify({ id, role: role.toLowerCase(), status, reason }),
       });
 
       const data = await res.json();
@@ -117,7 +124,7 @@ export const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
   };
 
   const handleDeactivate = async (id: string, role: string) => {
-    const token = localStorage.getItem('admin_token');
+    const token = sessionStorage.getItem('admin_token');
     try {
       const requestBody = { id: String(id), role: role.toLowerCase() };
       const res = await fetch('http://localhost:5000/api/admin/users/deactivate', {
@@ -142,7 +149,7 @@ export const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
   const handleDelete = async (id: string, role: string) => {
     if (!confirm(`Are you sure you want to delete this ${role.toLowerCase()}? This action cannot be undone.`)) return;
 
-    const token = localStorage.getItem('admin_token');
+    const token = sessionStorage.getItem('admin_token');
     try {
       const requestBody = { id: String(id), role: role.toLowerCase() };
       const res = await fetch('http://localhost:5000/api/admin/users/delete', {
@@ -298,8 +305,8 @@ export const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
               handleUpdateStatus(id, role, 'ACTIVE');
               setReviewUser(null);
             }}
-            onReject={(id, role) => {
-              handleUpdateStatus(id, role, 'REJECTED');
+            onReject={(id, role, reason) => {
+              handleUpdateStatus(id, role, 'REJECTED', reason);
               setReviewUser(null);
             }}
           />

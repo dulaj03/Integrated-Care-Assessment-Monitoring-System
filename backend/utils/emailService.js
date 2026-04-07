@@ -322,3 +322,269 @@ exports.sendLabResultNotification = async (recipients, patientName, testName, ho
   };
   return transporter.sendMail(mailOptions);
 };
+
+/**
+ * Send OTP Email for Password Reset
+ */
+exports.sendOTPEmail = async (email, name, otp) => {
+  const mailOptions = {
+    from: `"I-CAMS Security" <${process.env.EMAIL_USER}>`,
+    to: email,
+    subject: `Your I-CAMS Password Reset OTP: ${otp}`,
+    html: `
+      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #1e293b; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); color: white; padding: 30px; text-align: center;">
+          <h2 style="margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">🔐 Password Reset Request</h2>
+          <p style="margin: 8px 0 0; opacity: 0.85; font-size: 14px;">I-CAMS Integrated Clinical Management System</p>
+        </div>
+        <div style="padding: 35px 30px; background-color: #ffffff;">
+          <p style="font-size: 16px; margin-top: 0;">Dear <strong>${name}</strong>,</p>
+          <p style="color: #475569;">We received a request to reset your I-CAMS account password. Use the one-time password (OTP) below to proceed. This code is valid for <strong>10 minutes</strong> only.</p>
+
+          <div style="text-align: center; margin: 35px 0;">
+            <div style="display: inline-block; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 2px dashed #2563eb; border-radius: 16px; padding: 25px 40px;">
+              <p style="margin: 0 0 8px; font-size: 12px; font-weight: 700; color: #2563eb; text-transform: uppercase; letter-spacing: 0.15em;">Your OTP Code</p>
+              <p style="margin: 0; font-size: 48px; font-weight: 900; color: #1e3a8a; letter-spacing: 12px; font-family: 'Courier New', monospace;">${otp}</p>
+              <p style="margin: 10px 0 0; font-size: 12px; color: #64748b;">Valid for 10 minutes</p>
+            </div>
+          </div>
+
+          <div style="background-color: #fef9c3; border-left: 4px solid #f59e0b; border-radius: 4px; padding: 15px 20px; margin: 25px 0;">
+            <p style="margin: 0; font-size: 13px; color: #78350f;"><strong>⚠️ Security Notice:</strong> Never share this OTP with anyone. I-CAMS staff will NEVER ask for your OTP. If you did not request this reset, please ignore this email — your password will remain unchanged.</p>
+          </div>
+
+          <p style="font-size: 14px; color: #64748b;">If you did not request a password reset, no action is required. Your account remains secure.</p>
+
+          <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #f1f5f9; text-align: center;">
+            <p style="margin: 0; color: #94a3b8; font-size: 11px;">© 2026 I-CAMS Sri Lanka. Integrated Healthcare Management.</p>
+            <p style="margin: 4px 0 0; color: #cbd5e1; font-size: 11px;">This is an automated security email. Please do not reply.</p>
+          </div>
+        </div>
+      </div>
+    `,
+  };
+
+  return transporter.sendMail(mailOptions);
+};
+
+/**
+ * Send Patient Email Verification Link
+ */
+exports.sendEmailVerification = async (email, name, verificationToken) => {
+  const verifyUrl = `http://localhost:5173/verify-email?token=${verificationToken}`;
+
+  const mailOptions = {
+    from: `"I-CAMS Accounts" <${process.env.EMAIL_USER}>`,
+    to: email,
+    subject: 'Verify Your Email Address – I-CAMS Patient Registration',
+    html: `
+      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #1e293b; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.08);">
+        <div style="background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 60%, #3b82f6 100%); padding: 40px 30px; text-align: center;">
+          <div style="display: inline-block; background: rgba(255,255,255,0.15); border-radius: 16px; padding: 12px 24px; margin-bottom: 16px;">
+            <span style="color: white; font-size: 26px; font-weight: 900; letter-spacing: -1px;">I-CAMS</span>
+          </div>
+          <h1 style="margin: 0; color: white; font-size: 22px; font-weight: 700;">Confirm Your Email Address</h1>
+          <p style="margin: 8px 0 0; color: rgba(255,255,255,0.8); font-size: 14px;">Sri Lanka's Integrated Clinical & Administrative Management System</p>
+        </div>
+
+        <div style="padding: 40px 35px; background: #ffffff;">
+          <p style="font-size: 16px; margin-top: 0; color: #1e293b;">Hello <strong>${name}</strong> 👋</p>
+          <p style="color: #475569; line-height: 1.7; margin-bottom: 30px;">
+            You're almost ready to access your I-CAMS Patient Portal. To complete your registration and secure your account, please verify your email address by clicking the button below.
+          </p>
+
+          <div style="text-align: center; margin: 35px 0;">
+            <a href="${verifyUrl}" style="
+              display: inline-block;
+              background: linear-gradient(135deg, #1e3a8a, #2563eb);
+              color: #ffffff;
+              text-decoration: none;
+              font-size: 16px;
+              font-weight: 700;
+              padding: 16px 42px;
+              border-radius: 12px;
+              letter-spacing: 0.02em;
+              box-shadow: 0 4px 20px rgba(37,99,235,0.45);
+            ">✅ Verify Email Address</a>
+          </div>
+
+          <p style="font-size: 13px; color: #94a3b8; text-align: center; margin: 0 0 6px;">Or copy and paste this link into your browser:</p>
+          <p style="font-size: 12px; color: #2563eb; text-align: center; word-break: break-all; margin: 0 0 30px;">${verifyUrl}</p>
+
+          <div style="background: #fef9c3; border-left: 4px solid #f59e0b; border-radius: 6px; padding: 14px 18px; margin: 25px 0;">
+            <p style="margin: 0; font-size: 13px; color: #78350f;">
+              <strong>⚠️ Important:</strong> This verification link expires in <strong>30 minutes</strong>. If you did not create an I-CAMS account, please ignore this email.
+            </p>
+          </div>
+
+          <p style="font-size: 14px; color: #64748b; line-height: 1.6;">Once verified, you will be prompted to set your password and gain access to your personalised Patient Dashboard.</p>
+        </div>
+
+        <div style="background: #f8fafc; padding: 20px 30px; text-align: center; border-top: 1px solid #e2e8f0;">
+          <p style="margin: 0; color: #94a3b8; font-size: 11px;">© 2026 I-CAMS Sri Lanka · Integrated Healthcare Management</p>
+          <p style="margin: 4px 0 0; color: #cbd5e1; font-size: 11px;">This is an automated email. Please do not reply directly.</p>
+        </div>
+      </div>
+    `,
+  };
+
+  return transporter.sendMail(mailOptions);
+};
+
+/**
+ * Send Professional Welcome & Guideline Email to New Patients
+ */
+exports.sendPatientWelcomeEmail = async (email, name) => {
+  const mailOptions = {
+    from: `"I-CAMS Welcome Team" <${process.env.EMAIL_USER}>`,
+    to: email,
+    subject: 'Welcome to I-CAMS! 🚀 Your Journey to Integrated Healthcare Starts Here',
+    html: `
+      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #1e293b; max-width: 650px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 24px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+        
+        <!-- Header -->
+        <div style="background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 60%, #3b82f6 100%); padding: 50px 40px; text-align: center;">
+          <div style="display: inline-block; background: rgba(255,255,255,0.2); border-radius: 20px; padding: 12px 24px; margin-bottom: 20px; backdrop-filter: blur(10px);">
+             <span style="color: white; font-size: 32px; font-weight: 900; letter-spacing: -1px;">I-CAMS</span>
+          </div>
+          <h1 style="margin: 0; color: white; font-size: 26px; font-weight: 800; letter-spacing: -0.5px;">Welcome to the Future of Care!</h1>
+          <p style="margin: 10px 0 0; color: rgba(255,255,255,0.9); font-size: 16px;">We're thrilled to have you as part of our integrated healthcare community.</p>
+        </div>
+
+        <!-- Body -->
+        <div style="padding: 45px 40px; background: #ffffff;">
+          <h2 style="font-size: 20px; color: #1e3a8a; margin-top: 0;">Hello ${name},</h2>
+          <p style="color: #475569; line-height: 1.8; font-size: 15px; margin-bottom: 30px;">
+            Your I-CAMS account is now active. Whether you're at home or on the go, your health data is now at your fingertips. Here is your comprehensive guide to mastering the <strong>Patient Dashboard</strong>:
+          </p>
+
+          <!-- Feature List -->
+          <div style="margin-bottom: 20px;">
+            
+            <!-- Vitals -->
+            <div style="background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 16px; padding: 20px; margin-bottom: 15px; display: flex; align-items: flex-start;">
+              <div style="font-size: 24px; margin-right: 15px;">📊</div>
+              <div>
+                <h3 style="margin: 0 0 5px; font-size: 16px; color: #1e293b;">Precision Health Monitoring</h3>
+                <p style="margin: 0; font-size: 13px; color: #64748b; line-height: 1.5;">Track your vitals (BP, Heart Rate, Oxygen) with high-fidelity charts. Always stay informed about your health trends with real-time data synchronization directly from clinical sources.</p>
+              </div>
+            </div>
+
+            <!-- Care Team -->
+            <div style="background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 16px; padding: 20px; margin-bottom: 15px; display: flex; align-items: flex-start;">
+              <div style="font-size: 24px; margin-right: 15px;">👨‍⚕️</div>
+              <div>
+                <h3 style="margin: 0 0 5px; font-size: 16px; color: #1e293b;">Interactive Care Team Access</h3>
+                <p style="margin: 0; font-size: 13px; color: #64748b; line-height: 1.5;">Your dashboard lists every <strong>Doctor</strong> and <strong>Nurse</strong> within your care circle. You can view their professional credentials, real-time availability, and clinical reports written specifically for you.</p>
+              </div>
+            </div>
+
+            <!-- Messaging -->
+            <div style="background: #eff6ff; border: 1px solid #dbeafe; border-radius: 16px; padding: 20px; margin-bottom: 15px; display: flex; align-items: flex-start;">
+              <div style="font-size: 24px; margin-right: 15px;">💬</div>
+              <div>
+                <h3 style="margin: 0 0 5px; font-size: 16px; color: #1e3a8a;">Direct Secure Messaging</h3>
+                <p style="margin: 0; font-size: 13px; color: #3b82f6; line-height: 1.5;">No more waiting on hold! Use the <strong>Integrated Messaging</strong> section to send secure, encrypted messages to your care team. Get updates on your treatments or ask health queries with confidence.</p>
+              </div>
+            </div>
+
+            <!-- AI Assistant -->
+            <div style="background: #fdf4ff; border: 1px solid #fae8ff; border-radius: 16px; padding: 20px; margin-bottom: 15px; display: flex; align-items: flex-start;">
+              <div style="font-size: 24px; margin-right: 15px;">🤖</div>
+              <div>
+                <h3 style="margin: 0 0 5px; font-size: 16px; color: #86198f;">Dr. I-CAMS: AI Assistant</h3>
+                <p style="margin: 0; font-size: 13px; color: #a21caf; line-height: 1.5;">Meet your 24/7 AI health companion. Use the floating chat assistant for instant first-aid guidance, medicine reminders, and answers to common medical questions tailored to your history.</p>
+              </div>
+            </div>
+
+            <!-- Lab Results -->
+            <div style="background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 16px; padding: 20px; margin-bottom: 15px; display: flex; align-items: flex-start;">
+              <div style="font-size: 24px; margin-right: 15px;">🧪</div>
+              <div>
+                <h3 style="margin: 0 0 5px; font-size: 16px; color: #1e293b;">Digital Diagnostics & Reports</h3>
+                <p style="margin: 0; font-size: 13px; color: #64748b; line-height: 1.5;">View and download your <strong>Lab Reports</strong> and <strong>Clinical Orders</strong> the moment they are released by the hospital. Keep a portable digital history of your medical journey.</p>
+              </div>
+            </div>
+
+            <!-- Logs -->
+            <div style="background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 16px; padding: 20px; margin-bottom: 15px; display: flex; align-items: flex-start;">
+              <div style="font-size: 24px; margin-right: 15px;">📝</div>
+              <div>
+                <h3 style="margin: 0 0 5px; font-size: 16px; color: #1e293b;">Proactive Health Logging</h3>
+                <p style="margin: 0; font-size: 13px; color: #64748b; line-height: 1.5;">Use the "Log Health Vitals" button to store your daily well-being. These records are instantly visible to your care team, enabling them to provide faster, more accurate medical interventions.</p>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Closing -->
+          <p style="font-size: 14px; color: #64748b; line-height: 1.6; border-top: 1px solid #f1f5f9; padding-top: 25px;">
+            We are committed to providing you with the highest level of care through technology. Your dashboard is more than just a page—it's your dedicated health command center.
+          </p>
+        </div>
+
+        <!-- Footer -->
+        <div style="background: #f1f5f9; padding: 35px 40px; text-align: center; border-top: 1px solid #e2e8f0;">
+          <p style="margin: 0; color: #94a3b8; font-size: 12px; line-height: 1.6;">
+            © 2026 I-CAMS Sri Lanka. All rights reserved.<br>
+            Sri Lanka's First Integrated Clinical & Administrative Management System.
+          </p>
+        </div>
+      </div>
+    `,
+  };
+
+  return transporter.sendMail(mailOptions);
+};
+
+/**
+ * Send Professional Rejection Email (Doctors/Nurses)
+ */
+exports.sendProfessionalRejectionEmail = async (email, name, role, reason) => {
+  const mailOptions = {
+    from: `"I-CAMS Admissions" <${process.env.EMAIL_USER}>`,
+    to: email,
+    subject: `Update regarding your I-CAMS ${role} registration`,
+    html: `
+      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #1e293b; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+        <div style="background: #f8fafc; padding: 40px; text-align: center; border-bottom: 2px solid #f1f5f9;">
+          <div style="display: inline-block; background: #e2e8f0; border-radius: 12px; padding: 10px 20px; margin-bottom: 20px;">
+             <span style="color: #1e3a8a; font-size: 24px; font-weight: 800; letter-spacing: -1px;">I-CAMS</span>
+          </div>
+          <h1 style="margin: 0; color: #1e293b; font-size: 22px; font-weight: 700;">Registration Status Update</h1>
+        </div>
+
+        <div style="padding: 40px; background: #ffffff;">
+          <p style="font-size: 16px; color: #475569; margin-top: 0;">Dear ${name},</p>
+          <p style="font-size: 15px; color: #475569; line-height: 1.6;">
+            Thank you for your interest in joining the I-CAMS clinical network as a <strong>${role}</strong>. 
+            Our administrative team has completed the formal review of your application and supporting documentation.
+          </p>
+
+          <p style="font-size: 15px; color: #475569; line-height: 1.6;">
+            At this time, we are unable to approve your registration for the following reason(s):
+          </p>
+
+          <div style="background: #fff1f2; border: 1px solid #ffe4e6; border-radius: 12px; padding: 20px; margin: 25px 0;">
+            <p style="margin: 0; color: #be123c; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Reason for Rejection:</p>
+            <p style="margin: 0; color: #9f1239; font-size: 15px; line-height: 1.6; font-style: italic;">"${reason}"</p>
+          </div>
+
+          <p style="font-size: 15px; color: #475569; line-height: 1.6; margin-bottom: 30px;">
+            We appreciate the time you took to apply. If you believe this decision was made in error or if you have updated information to provide, you are welcome to submit a new registration with the necessary corrections.
+          </p>
+
+          <div style="margin-top: 40px; padding-top: 30px; border-top: 1px solid #f1f5f9; text-align: center;">
+            <p style="margin: 0; color: #94a3b8; font-size: 13px;">Best regards,<br><strong>I-CAMS Administration Team</strong></p>
+          </div>
+        </div>
+
+        <div style="background: #f8fafc; padding: 25px; text-align: center; color: #94a3b8; font-size: 12px;">
+          © 2026 I-CAMS Clinical Operations. All rights reserved.
+        </div>
+      </div>
+    `,
+  };
+
+  return transporter.sendMail(mailOptions);
+};

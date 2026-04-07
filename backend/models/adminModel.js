@@ -9,6 +9,15 @@ const findByUsername = async (username) => {
   return result.rows[0]; // returns the admin row or undefined
 };
 
+// Find admin by email
+const findByEmail = async (email) => {
+  const result = await pool.query(
+    'SELECT * FROM admin_users WHERE LOWER(email) = LOWER($1)',
+    [email]
+  );
+  return result.rows[0];
+};
+
 // Find admin by id
 const findById = async (id) => {
   const result = await pool.query(
@@ -34,4 +43,4 @@ const update = async (id, { username, email, fullName, password }) => {
   return result.rows[0];
 };
 
-module.exports = { findByUsername, findById, update };
+module.exports = { findByUsername, findByEmail, findById, update };

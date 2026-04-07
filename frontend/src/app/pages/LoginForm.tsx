@@ -222,6 +222,7 @@ export function LoginForm() {
               </label>
               <button
                 type="button"
+                onClick={() => navigate(`/forgot-password/${role}`)}
                 className="text-sm font-medium text-blue-600 dark:text-blue-500 hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
                 disabled={loading}
               >

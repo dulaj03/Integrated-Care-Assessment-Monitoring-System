@@ -52,6 +52,9 @@ export function Register() {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  // Patient email verification pending screen
+  const [pendingVerification, setPendingVerification] = useState(false);
+  const [verificationEmail, setVerificationEmail] = useState('');
 
   const isProfessional = formData.role === 'doctor' || formData.role === 'nurse';
 
@@ -113,9 +116,13 @@ export function Register() {
     if (!formData.name.trim()) newErrors.name = 'Full name is required';
     if (!formData.email.trim()) newErrors.email = 'Email is required';
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = 'Please enter a valid email';
-    if (!formData.password) newErrors.password = 'Password is required';
-    if (formData.password.length < 8) newErrors.password = 'Password must be at least 8 characters';
-    if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = 'Passwords do not match';
+
+    // Password only required for non-patient (patient sets it after email verify)
+    if (formData.role !== 'patient') {
+      if (!formData.password) newErrors.password = 'Password is required';
+      if (formData.password.length < 8) newErrors.password = 'Password must be at least 8 characters';
+      if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = 'Passwords do not match';
+    }
 
     // Professional validation
     if (isProfessional) {
@@ -134,14 +141,28 @@ export function Register() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!validateForm()) return;
-
     setLoading(true);
+
     try {
-      let response;
       const baseUrl = 'http://localhost:5000/api/auth';
 
+      // ── Patient: 2-step email-verify flow ──────────────────────────
+      if (formData.role === 'patient') {
+        const res = await fetch(`${baseUrl}/patient/initiate-registration`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ full_name: formData.name, email: formData.email }),
+        });
+        const result = await res.json();
+        if (!res.ok) throw new Error(result.error || 'Registration failed');
+        setVerificationEmail(formData.email);
+        setPendingVerification(true);
+        return;
+      }
+
+      // ── Professional: FormData upload ──────────────────────────────
+      let response;
       if (isProfessional) {
         const data = new FormData();
         data.append('full_name', formData.name);
@@ -154,24 +175,8 @@ export function Register() {
         data.append('institution_name', formData.hospital_ids.map(id => hospitals.find(h => String(h.id) === String(id))?.name).filter(Boolean).join(', '));
         data.append('hospital_ids', JSON.stringify(formData.hospital_ids));
         data.append('registration_number', formData.registrationNumber);
-        if (formData.licenseDocument) {
-          data.append('licenseDocument', formData.licenseDocument);
-        }
-
-        response = await fetch(`${baseUrl}/register/${formData.role}`, {
-          method: 'POST',
-          body: data,
-        });
-      } else if (formData.role === 'patient') {
-        response = await fetch(`${baseUrl}/register/patient`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            full_name: formData.name,
-            email: formData.email,
-            password: formData.password
-          }),
-        });
+        if (formData.licenseDocument) data.append('licenseDocument', formData.licenseDocument);
+        response = await fetch(`${baseUrl}/register/${formData.role}`, { method: 'POST', body: data });
       } else {
         response = await fetch(`${baseUrl}/register/${formData.role}`, {
           method: 'POST',
@@ -181,21 +186,14 @@ export function Register() {
       }
 
       const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Registration failed');
 
-      if (!response.ok) {
-        throw new Error(result.error || 'Registration failed');
-      }
-
-      // Store user data
       sessionStorage.setItem('userRole', formData.role);
       sessionStorage.setItem('userEmail', formData.email);
       sessionStorage.setItem('userName', formData.name);
 
-      if (formData.role === 'patient') {
-        navigate('/login/patient');
-      } else if (isProfessional) {
+      if (isProfessional) {
         sessionStorage.setItem('verificationStatus', 'pending');
-        // Show success message or redirect
         toast.success('Registration successful!', {
           description: 'Your account is pending verification by our clinical team.',
         });
@@ -210,6 +208,90 @@ export function Register() {
       setLoading(false);
     }
   };
+
+
+  // ─── Pending email verification screen ──────────────────────────
+  if (pendingVerification) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-6">
+        <div className="w-full max-w-md">
+          <div style={{
+            background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+            borderRadius: '24px',
+            border: '1px solid rgba(255,255,255,0.08)',
+            padding: '2.5rem 2rem',
+            boxShadow: '0 25px 50px rgba(0,0,0,0.4)',
+            textAlign: 'center',
+          }}>
+            {/* Animated envelope */}
+            <div style={{
+              width: '88px', height: '88px', borderRadius: '50%', margin: '0 auto 1.5rem',
+              background: 'rgba(37,99,235,0.15)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              border: '2px solid rgba(37,99,235,0.35)',
+              boxShadow: '0 0 40px rgba(37,99,235,0.3)',
+              fontSize: '38px',
+              animation: 'bounceSlow 2s ease-in-out infinite',
+            }}>📧</div>
+
+            <h2 style={{ color: '#f1f5f9', fontSize: '1.5rem', fontWeight: 800, margin: '0 0 0.75rem' }}>
+              Check Your Email!
+            </h2>
+            <p style={{ color: '#94a3b8', fontSize: '0.95rem', lineHeight: 1.6, margin: '0 0 0.5rem' }}>
+              We've sent a verification link to:
+            </p>
+            <p style={{
+              color: '#60a5fa', fontWeight: 700, fontSize: '1rem',
+              background: 'rgba(37,99,235,0.12)', borderRadius: '8px',
+              padding: '8px 16px', display: 'inline-block', margin: '0 0 1.5rem',
+              border: '1px solid rgba(37,99,235,0.25)',
+            }}>{verificationEmail}</p>
+
+            <div style={{
+              background: 'rgba(15,23,42,0.6)', borderRadius: '12px',
+              padding: '16px 20px', margin: '0 0 2rem',
+              border: '1px solid #334155', textAlign: 'left',
+            }}>
+              <p style={{ color: '#94a3b8', fontSize: '0.875rem', margin: '0 0 10px', fontWeight: 600 }}>Next steps:</p>
+              {['Open the email from I-CAMS in your inbox', "Click the \"Verify Email Address\" button in the email", 'Set your password on the verification page', 'You\'ll be logged in automatically'].map((step, i) => (
+                <div key={i} style={{ display: 'flex', gap: '10px', marginBottom: i < 3 ? '8px' : 0, alignItems: 'flex-start' }}>
+                  <span style={{
+                    width: '22px', height: '22px', borderRadius: '50%', flexShrink: 0,
+                    background: 'linear-gradient(135deg, #1e3a8a, #2563eb)',
+                    color: '#fff', fontSize: '0.7rem', fontWeight: 800,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>{i + 1}</span>
+                  <span style={{ color: '#64748b', fontSize: '0.85rem', lineHeight: 1.4 }}>{step}</span>
+                </div>
+              ))}
+            </div>
+
+            <p style={{ color: '#475569', fontSize: '0.8rem', margin: '0 0 1.5rem' }}>
+              Didn't receive an email? Check your spam folder. The link expires in <strong style={{ color: '#94a3b8' }}>30 minutes</strong>.
+            </p>
+
+            <button
+              onClick={() => setPendingVerification(false)}
+              style={{
+                background: 'none', border: '1px solid #334155', borderRadius: '10px',
+                color: '#64748b', fontSize: '0.875rem', padding: '10px 20px',
+                cursor: 'pointer', transition: 'all 0.2s',
+              }}
+              onMouseOver={(e) => { e.currentTarget.style.borderColor = '#475569'; e.currentTarget.style.color = '#94a3b8'; }}
+              onMouseOut={(e) => { e.currentTarget.style.borderColor = '#334155'; e.currentTarget.style.color = '#64748b'; }}
+            >← Back to Register</button>
+          </div>
+
+          <style>{`
+            @keyframes bounceSlow {
+              0%, 100% { transform: translateY(0); }
+              50% { transform: translateY(-10px); }
+            }
+          `}</style>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
@@ -626,45 +708,60 @@ export function Register() {
                 </div>
               )}
 
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium leading-6 text-slate-900 dark:text-white">
-                  {t('register.password')}
-                </label>
-                <div className="mt-2">
-                  <input
-                    id="password"
-                    name="password"
-                    type="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    autoComplete="new-password"
-                    required
-                    disabled={loading}
-                    className="block w-full rounded-md border-0 py-1.5 text-slate-900 dark:text-white shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-blue-600 dark:focus:ring-blue-500 bg-white dark:bg-slate-800 sm:text-sm sm:leading-6 disabled:opacity-50 transition-colors duration-200"
-                  />
-                  {errors.password && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.password}</p>}
-                </div>
-              </div>
+              {/* Password fields — only shown for professionals (patients set password via email verification) */}
+              {formData.role !== 'patient' && (
+                <>
+                  <div>
+                    <label htmlFor="password" className="block text-sm font-medium leading-6 text-slate-900 dark:text-white">
+                      {t('register.password')}
+                    </label>
+                    <div className="mt-2">
+                      <input
+                        id="password"
+                        name="password"
+                        type="password"
+                        value={formData.password}
+                        onChange={handleChange}
+                        autoComplete="new-password"
+                        required
+                        disabled={loading}
+                        className="block w-full rounded-md border-0 py-1.5 text-slate-900 dark:text-white shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-blue-600 dark:focus:ring-blue-500 bg-white dark:bg-slate-800 sm:text-sm sm:leading-6 disabled:opacity-50 transition-colors duration-200"
+                      />
+                      {errors.password && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.password}</p>}
+                    </div>
+                  </div>
 
-              <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium leading-6 text-slate-900 dark:text-white">
-                  {t('register.confirmPassword')}
-                </label>
-                <div className="mt-2">
-                  <input
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    type="password"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    autoComplete="new-password"
-                    required
-                    disabled={loading}
-                    className="block w-full rounded-md border-0 py-1.5 text-slate-900 dark:text-white shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-blue-600 dark:focus:ring-blue-500 bg-white dark:bg-slate-800 sm:text-sm sm:leading-6 disabled:opacity-50 transition-colors duration-200"
-                  />
-                  {errors.confirmPassword && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.confirmPassword}</p>}
+                  <div>
+                    <label htmlFor="confirmPassword" className="block text-sm font-medium leading-6 text-slate-900 dark:text-white">
+                      {t('register.confirmPassword')}
+                    </label>
+                    <div className="mt-2">
+                      <input
+                        id="confirmPassword"
+                        name="confirmPassword"
+                        type="password"
+                        value={formData.confirmPassword}
+                        onChange={handleChange}
+                        autoComplete="new-password"
+                        required
+                        disabled={loading}
+                        className="block w-full rounded-md border-0 py-1.5 text-slate-900 dark:text-white shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-blue-600 dark:focus:ring-blue-500 bg-white dark:bg-slate-800 sm:text-sm sm:leading-6 disabled:opacity-50 transition-colors duration-200"
+                      />
+                      {errors.confirmPassword && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.confirmPassword}</p>}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Patient: info banner explaining email verification */}
+              {formData.role === 'patient' && (
+                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/50 rounded-lg">
+                  <p className="text-sm text-blue-800 dark:text-blue-300 font-semibold mb-1">📧 Email Verification Required</p>
+                  <p className="text-xs text-blue-700 dark:text-blue-400 leading-relaxed">
+                    We'll send a verification link to your email. Click it to verify your address, then set your password securely on the next page.
+                  </p>
                 </div>
-              </div>
+              )}
 
               <div>
                 <button
@@ -672,7 +769,9 @@ export function Register() {
                   disabled={loading}
                   className="flex w-full justify-center rounded-md bg-blue-600 dark:bg-blue-700 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-blue-500 dark:hover:bg-blue-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:focus-visible:outline-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                 >
-                  {loading ? (isProfessional ? 'Submitting for Verification...' : 'Creating account...') : t('register.createAccount')}
+                  {loading
+                    ? (formData.role === 'patient' ? 'Sending verification email...' : isProfessional ? 'Submitting for Verification...' : 'Creating account...')
+                    : (formData.role === 'patient' ? '📧 Send Verification Email' : t('register.createAccount'))}
                 </button>
               </div>
             </form>

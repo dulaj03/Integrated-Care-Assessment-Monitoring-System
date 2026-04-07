@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { 
   X, 
   CheckCircle2, 
@@ -8,23 +9,37 @@ import {
   Briefcase, 
   GraduationCap, 
   Fingerprint,
-  Building 
+  Building,
+  AlertTriangle,
+  ArrowLeft
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import type { AdminUser } from '../types/user';
+import { toast } from 'sonner';
 
 interface PendingReviewModalProps {
   user: AdminUser;
   onClose: () => void;
   onApprove: (id: string, role: string) => void;
-  onReject: (id: string, role: string) => void;
+  onReject: (id: string, role: string, reason: string) => void;
 }
 
 export const PendingReviewModal = ({ user, onClose, onApprove, onReject }: PendingReviewModalProps) => {
+  const [showRejectionForm, setShowRejectionForm] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState('');
+
   const isDoctorOrNurse = user.role === 'DOCTOR' || user.role === 'NURSE';
   const licensePath = (user as any).license_document;
   const imageUrl = licensePath ? `http://localhost:5000/${licensePath.replace(/\\/g, '/')}` : null;
   const isPdf = licensePath?.toLowerCase().endsWith('.pdf');
+
+  const handleConfirmReject = () => {
+    if (!rejectionReason.trim()) {
+      toast.error('Please enter a rejection reason.');
+      return;
+    }
+    onReject(user.id, user.role, rejectionReason);
+  };
 
   return (
     <AnimatePresence>
@@ -54,113 +69,160 @@ export const PendingReviewModal = ({ user, onClose, onApprove, onReject }: Pendi
             </button>
           </div>
 
-          {/* Content */}
-          <div className="flex-1 overflow-y-auto p-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Details Section */}
-            <div className="space-y-6">
-              <h3 className="text-sm font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                <FileText className="w-4 h-4" /> Personal & Professional Details
-              </h3>
-              
-              <div className="grid grid-cols-1 gap-4">
-                <DetailItem icon={Mail} label="Email Address" value={user.email} />
-                <DetailItem icon={Calendar} label="Date Registered" value={user.createdAt} />
-                
-                {isDoctorOrNurse && (
-                  <>
-                    <DetailItem icon={Fingerprint} label="License Number" value={(user as any).license_number} />
-                    <DetailItem icon={Fingerprint} label="Reg Number" value={(user as any).registration_number} />
-                    <DetailItem icon={Briefcase} label="Specialization" value={(user as any).specialization || (user as any).qualification} />
-                    <DetailItem icon={GraduationCap} label="Experience" value={`${(user as any).years_of_experience} Years`} />
-                    <DetailItem icon={Building} label="Institution" value={(user as any).institution_name} />
-                  </>
-                )}
-                
-                {user.role === 'HOSPITAL' && (
-                  <>
-                    <DetailItem icon={Fingerprint} label="Reg Number" value={(user as any).registration_number || (user as any).registrationNumber} />
-                    <DetailItem icon={Building} label="Hospital Type" value={(user as any).type} />
-                  </>
-                )}
-              </div>
-            </div>
+          {!showRejectionForm ? (
+            <>
+              {/* Content (Default View) */}
+              <div className="flex-1 overflow-y-auto p-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Details Section */}
+                <div className="space-y-6">
+                  <h3 className="text-sm font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                    <FileText className="w-4 h-4" /> Personal & Professional Details
+                  </h3>
+                  
+                  <div className="grid grid-cols-1 gap-4">
+                    <DetailItem icon={Mail} label="Email Address" value={user.email} />
+                    <DetailItem icon={Calendar} label="Date Registered" value={user.createdAt} />
+                    
+                    {isDoctorOrNurse && (
+                      <>
+                        <DetailItem icon={Fingerprint} label="License Number" value={(user as any).license_number} />
+                        <DetailItem icon={Fingerprint} label="Reg Number" value={(user as any).registration_number} />
+                        <DetailItem icon={Briefcase} label="Specialization" value={(user as any).specialization || (user as any).qualification} />
+                        <DetailItem icon={GraduationCap} label="Experience" value={`${(user as any).years_of_experience} Years`} />
+                        <DetailItem icon={Building} label="Institution" value={(user as any).institution_name} />
+                      </>
+                    )}
+                    
+                    {user.role === 'HOSPITAL' && (
+                      <>
+                        <DetailItem icon={Fingerprint} label="Reg Number" value={(user as any).registration_number || (user as any).registrationNumber} />
+                        <DetailItem icon={Building} label="Hospital Type" value={(user as any).type} />
+                      </>
+                    )}
+                  </div>
+                </div>
 
-            {/* Document Section */}
-            <div className="space-y-6">
-              <h3 className="text-sm font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                <Shield className="w-4 h-4 text-emerald-500" /> Submitted License Document
-              </h3>
-              
-              <div className="aspect-[4/3] bg-slate-950 rounded-2xl border border-white/10 overflow-hidden flex items-center justify-center group relative">
-                {imageUrl ? (
-                  isPdf ? (
-                    <div className="flex flex-col items-center gap-4 text-slate-400">
-                      <FileText className="w-16 h-16 text-rose-500" />
-                      <p className="text-sm font-medium">PDF Document Submitted</p>
-                      <a 
-                        href={imageUrl} 
-                        target="_blank" 
-                        rel="noreferrer"
-                        className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-xs font-bold transition-all"
-                      >
-                        VIEW FULL PDF
-                      </a>
-                    </div>
-                  ) : (
-                    <img 
-                      src={imageUrl} 
-                      alt="License Document" 
-                      className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110"
-                      onError={(e) => {
-                        console.error('Image load error:', imageUrl);
-                        e.currentTarget.src = 'https://placehold.co/600x400/1e293b/475569?text=Image+Load+Failed';
-                      }}
-                    />
-                  )
-                ) : (
-                  <div className="text-slate-500 text-sm italic">No document uploaded</div>
-                )}
-                
-                {imageUrl && !isPdf && (
-                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <a 
-                        href={imageUrl} 
-                        target="_blank" 
-                        rel="noreferrer"
-                        className="px-4 py-2 bg-white text-black font-bold rounded-xl text-xs flex items-center gap-2"
-                      >
-                        VIEW FULL SIZE
-                      </a>
-                   </div>
-                )}
+                {/* Document Section */}
+                <div className="space-y-6">
+                  <h3 className="text-sm font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                    <Shield className="w-4 h-4 text-emerald-500" /> Submitted License Document
+                  </h3>
+                  
+                  <div className="aspect-[4/3] bg-slate-950 rounded-2xl border border-white/10 overflow-hidden flex items-center justify-center group relative">
+                    {imageUrl ? (
+                      isPdf ? (
+                        <div className="flex flex-col items-center gap-4 text-slate-400">
+                          <FileText className="w-16 h-16 text-rose-500" />
+                          <p className="text-sm font-medium">PDF Document Submitted</p>
+                          <a 
+                            href={imageUrl} 
+                            target="_blank" 
+                            rel="noreferrer"
+                            className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-xs font-bold transition-all"
+                          >
+                            VIEW FULL PDF
+                          </a>
+                        </div>
+                      ) : (
+                        <img 
+                          src={imageUrl} 
+                          alt="License Document" 
+                          className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110"
+                          onError={(e) => {
+                            console.error('Image load error:', imageUrl);
+                            e.currentTarget.src = 'https://placehold.co/600x400/1e293b/475569?text=Image+Load+Failed';
+                          }}
+                        />
+                      )
+                    ) : (
+                      <div className="text-slate-500 text-sm italic">No document uploaded</div>
+                    )}
+                    
+                    {imageUrl && !isPdf && (
+                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <a 
+                            href={imageUrl} 
+                            target="_blank" 
+                            rel="noreferrer"
+                            className="px-4 py-2 bg-white text-black font-bold rounded-xl text-xs flex items-center gap-2"
+                          >
+                            VIEW FULL SIZE
+                          </a>
+                       </div>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
 
-          {/* Footer - Actions */}
-          <div className="p-6 border-t border-white/5 bg-slate-800/30 flex items-center justify-between">
-            <div className="flex items-center gap-2 text-amber-400">
-              <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
-              <span className="text-xs font-bold uppercase tracking-tight">Reviewing Case #{user.id}</span>
-            </div>
-            
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => onReject(user.id, user.role)}
-                className="px-6 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 border border-rose-500/20 rounded-xl text-xs font-black transition-all flex items-center gap-2"
-              >
-                <XCircle className="w-4 h-4" />
-                REJECT APPLICATION
-              </button>
-              <button
-                onClick={() => onApprove(user.id, user.role)}
-                className="px-8 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black transition-all flex items-center gap-2 shadow-lg shadow-emerald-500/20"
-              >
-                <CheckCircle2 className="w-4 h-4" />
-                APPROVE ACCOUNT
-              </button>
-            </div>
-          </div>
+              {/* Footer - Actions */}
+              <div className="p-6 border-t border-white/5 bg-slate-800/30 flex items-center justify-between">
+                <div className="flex items-center gap-2 text-amber-400">
+                  <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
+                  <span className="text-xs font-bold uppercase tracking-tight">Reviewing Case #{user.id}</span>
+                </div>
+                
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setShowRejectionForm(true)}
+                    className="px-6 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 border border-rose-500/20 rounded-xl text-xs font-black transition-all flex items-center gap-2"
+                  >
+                    <XCircle className="w-4 h-4" />
+                    REJECT APPLICATION
+                  </button>
+                  <button
+                    onClick={() => onApprove(user.id, user.role)}
+                    className="px-8 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black transition-all flex items-center gap-2 shadow-lg shadow-emerald-500/20"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    APPROVE ACCOUNT
+                  </button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <motion.div 
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="flex-1 p-8 flex flex-col justify-center items-center max-w-2xl mx-auto w-full"
+            >
+              <div className="w-16 h-16 bg-rose-500/10 rounded-full flex items-center justify-center mb-6">
+                <AlertTriangle className="w-8 h-8 text-rose-500" />
+              </div>
+              <h3 className="text-2xl font-black text-white mb-2">Decline Registration</h3>
+              <p className="text-slate-400 text-center mb-8">
+                Please provide a clear and professional reason for declining <strong>{user.name}</strong>'s application. This message will be sent directly to their email address.
+              </p>
+
+              <div className="w-full space-y-4">
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Rejection Reason</label>
+                  <textarea
+                    autoFocus
+                    placeholder="Example: The submitted license document is expired or could not be verified with the medical council."
+                    className="w-full bg-slate-950 border border-white/10 rounded-2xl p-4 text-slate-200 focus:ring-2 focus:ring-rose-500/50 outline-none transition-all min-h-[150px] resize-none text-sm leading-relaxed"
+                    value={rejectionReason}
+                    onChange={(e) => setRejectionReason(e.target.value)}
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <button
+                    onClick={() => setShowRejectionForm(false)}
+                    className="flex-1 py-3 px-6 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-black flex items-center justify-center gap-2 transition-all"
+                  >
+                    <ArrowLeft className="w-4 h-4" /> BACK TO REVIEW
+                  </button>
+                  <button
+                    onClick={handleConfirmReject}
+                    disabled={!rejectionReason.trim()}
+                    className="flex-1 py-3 px-6 bg-rose-600 hover:bg-rose-500 disabled:opacity-50 disabled:grayscale text-white rounded-xl text-xs font-black flex items-center justify-center gap-2 transition-all shadow-lg shadow-rose-600/20"
+                  >
+                    CONFIRM REJECTION
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
         </motion.div>
       </div>
     </AnimatePresence>

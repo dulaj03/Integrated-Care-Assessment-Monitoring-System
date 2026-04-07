@@ -37,7 +37,7 @@ class NurseModel {
 
   static async updateStatus(id, status) {
     const result = await pool.query(
-      'UPDATE nurses SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING id, full_name, status',
+      'UPDATE nurses SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING id, full_name, email, status',
       [status, id]
     );
     return result.rows[0];

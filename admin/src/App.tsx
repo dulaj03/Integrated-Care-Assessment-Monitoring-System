@@ -5,7 +5,7 @@ import { Toaster } from 'sonner';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(() => {
-    const auth = localStorage.getItem('admin_auth');
+    const auth = sessionStorage.getItem('admin_auth');
     return auth === 'true';
   });
 
@@ -14,7 +14,8 @@ function App() {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('admin_auth');
+    sessionStorage.removeItem('admin_auth');
+    sessionStorage.removeItem('admin_token');
     setIsAuthenticated(false);
   };
 

@@ -3,6 +3,7 @@ const NurseModel = require('../models/nurseModel');
 const HospitalModel = require('../models/hospitalModel');
 const PatientModel = require('../models/patientModel');
 const bcrypt = require('bcryptjs');
+const { sendProfessionalRejectionEmail } = require('../utils/emailService');
 
 // Get all users across all categories for admin overview
 const getAllUsers = async (req, res) => {
@@ -36,7 +37,7 @@ const getAllUsers = async (req, res) => {
 };
 
 const updateProfessionalStatus = async (req, res) => {
-  const { id, role, status } = req.body;
+  const { id, role, status, reason } = req.body;
   try {
     if (!id || !role || !status) {
       return res.status(400).json({ error: 'ID, role, and status are required' });
@@ -53,8 +54,21 @@ const updateProfessionalStatus = async (req, res) => {
 
     if (!updated) return res.status(404).json({ error: 'User not found' });
 
+    console.log(`Professional ${role} status updated to ${status}. Reason provided: ${reason}. Email: ${updated?.email}`);
+
+    // If rejected, send email with reason
+    if (status === 'REJECTED' && reason) {
+      console.log(`Triggering Rejection Email for ${updated.full_name} (${updated.email})`);
+      sendProfessionalRejectionEmail(updated.email, updated.full_name, role.toUpperCase(), reason).then(() => {
+        console.log('Rejection email sent successfully!');
+      }).catch(err => {
+        console.error('Failed to send rejection email:', err);
+      });
+    }
+
     res.json({ message: `User ${status} successfully`, user: updated });
   } catch (err) {
+    console.error('updateProfessionalStatus error:', err);
     res.status(500).json({ error: 'Server error updating status' });
   }
 };

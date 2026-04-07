@@ -49,10 +49,13 @@ export const LoginPage = ({ onLogin }: LoginPageProps) => {
         return;
       }
 
-      // Store token and admin info
-      localStorage.setItem('admin_token', data.token);
+      // Store token and admin info in sessionStorage (cleared on browser/tab close)
+      sessionStorage.setItem('admin_token', data.token);
+      sessionStorage.setItem('admin_auth', 'true');
+      
+      // Optionally store name in localStorage if needed for display across sessions, but auth should be session
       localStorage.setItem('admin_name', data.user.full_name);
-      localStorage.setItem('admin_auth', 'true');
+
       onLogin();
       toast.success(`Welcome back, ${data.user.full_name}!`);
 

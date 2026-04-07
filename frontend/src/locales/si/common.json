@@ -22,6 +22,7 @@
     "active": "ක්‍රියාකාරී",
     "inactive": "අකාර්ය",
     "pending": "අපේක්ෂිත",
+    "pendingdoctorapproval": "අනුමැතිය සඳහා රැඳී පවතී",
     "completed": "සම්පූර්ණ",
     "cancelled": "අවලංගු",
     "confirmed": "තහවුරු",
@@ -406,6 +407,11 @@
     "criticalStatus": "නිර්ණායක",
     "monitoringStatus": "අධීක්ෂණ",
     "stableStatus": "ස්ථිරයි",
+    "okayStatus": "සාමාන්‍ය",
+    "goodStatus": "හොඳයි",
+    "greatStatus": "ඉතා හොඳයි",
+    "poorStatus": "නරකයි",
+    "badStatus": "ඉතා නරකයි",
     "welcomeBack": "ආපැමිණිම ගෙව"
   },
   "doctor_patients": {
