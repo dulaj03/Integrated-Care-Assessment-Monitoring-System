@@ -54,7 +54,7 @@ export function LabManagement() {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
-         },
+        },
         body: JSON.stringify({ status: newStatus, ...payload })
       });
       if (res.ok) {

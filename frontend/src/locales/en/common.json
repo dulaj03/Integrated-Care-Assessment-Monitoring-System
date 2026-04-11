@@ -297,6 +297,7 @@
     "tabDoctor": "Doctor",
     "tabHospital": "Hospital Admin",
     "tabHospitalAdmin": "Hospital Admin",
+    "platform": "Platform",
     "symptomTracking": "Real-time Symptom Tracking",
     "symptomBenefit": "Enables early detection of deterioration through continuous patient data.",
     "roleAccess": "Role-based Professional Access",
@@ -312,8 +313,7 @@
     "engineeredTitle": "Engineered for Simplicity. Built for Impact.",
     "engineeredDesc": "I-CAMS replaces fragmented paper records, phone calls, and delayed results with a single connected platform — improving outcomes for every Sri Lankan involved in a care journey.",
     "getStartedFree": "Get Started Free →",
-    "learnAbout": "Learn About I-CAMS",
-    "platform": "Platform"
+    "learnAbout": "Learn About I-CAMS"
   },
   "contact": {
     "title": "Contact & Support",
