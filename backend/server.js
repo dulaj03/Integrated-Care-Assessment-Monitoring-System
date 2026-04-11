@@ -7,7 +7,7 @@ const http = require('http');
 require('dotenv').config();
 
 // Import DB connection (runs the test on startup)
-const pool = require('./config/db');
+require('./config/db');
 const { initSocket } = require('./utils/socket');
 
 const app = express();
@@ -66,7 +66,7 @@ app.use((req, res) => {
 });
 
 // ─── Global Error Handler ─────────────────────────────────────
-app.use((err, req, res, next) => {
+app.use((err, req, res, _next) => {
   console.error('🔥 Error:', err.message);
   res.status(err.status || 500).json({
     error: err.message || 'Internal Server Error',

@@ -92,7 +92,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: ./frontend
-        run: npm ci
+        run: npm install --legacy-peer-deps
 
       - name: Run ESLint
         working-directory: ./frontend
@@ -163,7 +163,7 @@ jobs:
       - name: Build Frontend Application
         working-directory: ./frontend
         run: |
-          npm ci
+          npm install --legacy-peer-deps
           npm run build
 
       - name: Build Admin Application
