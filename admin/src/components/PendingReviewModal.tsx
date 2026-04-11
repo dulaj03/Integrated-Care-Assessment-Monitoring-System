@@ -14,7 +14,7 @@ import {
   ArrowLeft
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import type { AdminUser } from '../types/user';
+import type { AdminUser, Doctor, Nurse, Hospital } from '../types/user';
 import { toast } from 'sonner';
 
 interface PendingReviewModalProps {
@@ -29,7 +29,7 @@ export const PendingReviewModal = ({ user, onClose, onApprove, onReject }: Pendi
   const [rejectionReason, setRejectionReason] = useState('');
 
   const isDoctorOrNurse = user.role === 'DOCTOR' || user.role === 'NURSE';
-  const licensePath = (user as any).license_document;
+  const licensePath = (isDoctorOrNurse) ? (user as Doctor | Nurse).license_document : null;
   const imageUrl = licensePath ? `http://localhost:5000/${licensePath.replace(/\\/g, '/')}` : null;
   const isPdf = licensePath?.toLowerCase().endsWith('.pdf');
 
@@ -85,18 +85,18 @@ export const PendingReviewModal = ({ user, onClose, onApprove, onReject }: Pendi
                     
                     {isDoctorOrNurse && (
                       <>
-                        <DetailItem icon={Fingerprint} label="License Number" value={(user as any).license_number} />
-                        <DetailItem icon={Fingerprint} label="Reg Number" value={(user as any).registration_number} />
-                        <DetailItem icon={Briefcase} label="Specialization" value={(user as any).specialization || (user as any).qualification} />
-                        <DetailItem icon={GraduationCap} label="Experience" value={`${(user as any).years_of_experience} Years`} />
-                        <DetailItem icon={Building} label="Institution" value={(user as any).institution_name} />
+                        <DetailItem icon={Fingerprint} label="License Number" value={(user as Doctor | Nurse).license_number} />
+                        <DetailItem icon={Fingerprint} label="Reg Number" value={(user as Doctor | Nurse).registration_number} />
+                        <DetailItem icon={Briefcase} label="Specialization" value={(user as Doctor).specialization || (user as Nurse).institution_name} />
+                        <DetailItem icon={GraduationCap} label="Experience" value={`${(user as Doctor | Nurse).years_of_experience} Years`} />
+                        <DetailItem icon={Building} label="Institution" value={(user as Doctor | Nurse).institution_name} />
                       </>
                     )}
                     
                     {user.role === 'HOSPITAL' && (
                       <>
-                        <DetailItem icon={Fingerprint} label="Reg Number" value={(user as any).registration_number || (user as any).registrationNumber} />
-                        <DetailItem icon={Building} label="Hospital Type" value={(user as any).type} />
+                        <DetailItem icon={Fingerprint} label="Reg Number" value={(user as Hospital).registration_number} />
+                        <DetailItem icon={Building} label="Hospital Type" value={(user as Hospital).type} />
                       </>
                     )}
                   </div>
@@ -229,7 +229,7 @@ export const PendingReviewModal = ({ user, onClose, onApprove, onReject }: Pendi
   );
 };
 
-const DetailItem = ({ icon: Icon, label, value }: { icon: any, label: string, value: string | number | undefined }) => (
+const DetailItem = ({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value: string | number | undefined }) => (
   <div className="p-4 bg-white/2 border border-white/5 rounded-2xl flex items-center gap-4">
     <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-slate-400">
       <Icon className="w-4 h-4" />

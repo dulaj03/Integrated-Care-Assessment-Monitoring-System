@@ -19,7 +19,7 @@ export interface Patient extends BaseUser {
 export interface Doctor extends BaseUser {
   role: 'DOCTOR';
   specialization: string;
-  licenseNumber: string;
+  license_number: string;
   license_document?: string;
   years_of_experience?: number;
   institution_name?: string;
@@ -28,7 +28,7 @@ export interface Doctor extends BaseUser {
 
 export interface Nurse extends BaseUser {
   role: 'NURSE';
-  licenseNumber: string;
+  license_number: string;
   license_document?: string;
   years_of_experience?: number;
   institution_name?: string;
@@ -38,7 +38,7 @@ export interface Nurse extends BaseUser {
 export interface Hospital extends BaseUser {
   role: 'HOSPITAL';
   address: string;
-  registrationNumber: string;
+  registration_number: string;
   phone?: string;
   type?: string;
   specialties?: string[];

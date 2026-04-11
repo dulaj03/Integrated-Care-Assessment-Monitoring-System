@@ -30,8 +30,10 @@ export const AdminSettings = () => {
         email: data.user.email,
         full_name: data.user.full_name,
       });
-    } catch (err: any) {
-      toast.error(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        toast.error(err.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -71,8 +73,10 @@ export const AdminSettings = () => {
       
       // Update local storage user if needed or just refresh
       fetchProfile();
-    } catch (err: any) {
-      toast.error(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        toast.error(err.message);
+      }
     } finally {
       setSaving(false);
     }

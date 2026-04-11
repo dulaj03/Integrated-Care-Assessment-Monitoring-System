@@ -1,0 +1,11 @@
+check_*.js
+test_*.js
+migrate_*.js
+seed_*.js
+setup_*.js
+fix_db.js
+db_check.js
+find_model.js
+list_models.js
+update_db.js
+complete_db_setup.js
