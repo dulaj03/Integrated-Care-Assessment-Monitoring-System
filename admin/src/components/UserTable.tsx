@@ -43,7 +43,7 @@ export const UserTable = ({ users, onApprove, onReject, onEdit, onDelete, onActi
             <tr>
               <th className="px-6 py-4">User</th>
               <th className="px-6 py-4">Status</th>
-              <th className="px-6 py-4 text-center">Date Joined</th>
+              <th className="px-6 py-4 text-center hidden sm:table-cell">Date Joined</th>
               <th className="px-6 py-4 text-right">Actions</th>
             </tr>
           </thead>
@@ -73,11 +73,11 @@ export const UserTable = ({ users, onApprove, onReject, onEdit, onDelete, onActi
                 <td className="px-6 py-4">
                   <span className={`badge ${user.status === 'ACTIVE' ? 'badge-approved' :
                     user.status === 'PENDING' ? 'badge-pending' : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
-                    }`}>
+                  }`}>
                     {user.status}
                   </span>
                 </td>
-                <td className="px-6 py-4 text-center">
+                <td className="px-6 py-4 text-center hidden sm:table-cell">
                   <div className="text-sm text-slate-400 flex items-center justify-center gap-1.5">
                     <Calendar className="w-3.5 h-3.5" />
                     {user.createdAt}
@@ -114,7 +114,7 @@ export const UserTable = ({ users, onApprove, onReject, onEdit, onDelete, onActi
                         <Power className="w-4 h-4" />
                       </button>
                     )}
-                    {user.status !== 'ACTIVE' && user.status === 'REJECTED' && onActivate && (
+                    {user.status !== 'ACTIVE' && (user.status === 'REJECTED' || user.status === 'INACTIVE') && onActivate && (
                       <button
                         onClick={() => onActivate(user.id, user.role)}
                         className="p-2 hover:bg-emerald-500/10 rounded-lg text-emerald-400 hover:text-emerald-300 transition-all"

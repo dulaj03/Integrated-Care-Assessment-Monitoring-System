@@ -81,14 +81,14 @@ describe('Admin UI Components', () => {
   it('should validate form input', () => {
     const validateInput = (value: string, type: 'email' | 'phone' | 'name') => {
       switch (type) {
-        case 'email':
-          return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-        case 'phone':
-          return /^\d{10,}$/.test(value);
-        case 'name':
-          return value.length >= 2 && value.length <= 100;
-        default:
-          return false;
+      case 'email':
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+      case 'phone':
+        return /^\d{10,}$/.test(value);
+      case 'name':
+        return value.length >= 2 && value.length <= 100;
+      default:
+        return false;
       }
     };
 

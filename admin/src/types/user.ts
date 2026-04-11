@@ -1,6 +1,6 @@
 export type UserRole = 'PATIENT' | 'DOCTOR' | 'NURSE' | 'HOSPITAL' | 'ADMIN';
 
-export type UserStatus = 'PENDING' | 'ACTIVE' | 'REJECTED';
+export type UserStatus = 'PENDING' | 'ACTIVE' | 'REJECTED' | 'INACTIVE' | 'PENDINGADMINAPPROVAL';
 
 export interface BaseUser {
   id: string;

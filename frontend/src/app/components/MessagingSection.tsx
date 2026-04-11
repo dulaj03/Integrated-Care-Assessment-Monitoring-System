@@ -145,25 +145,25 @@ export function MessagingSection() {
               >
                 <div className={`h-12 w-12 rounded-full flex-shrink-0 flex items-center justify-center ${
                   conv.other_role === 'hospital' ? 'bg-indigo-100 text-indigo-600' : 
-                  conv.other_role === 'doctor' ? 'bg-purple-100 text-purple-600' :
-                  conv.other_role === 'nurse' ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'
+                    conv.other_role === 'doctor' ? 'bg-purple-100 text-purple-600' :
+                      conv.other_role === 'nurse' ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'
                 }`}>
                   {conv.other_role === 'hospital' ? <Building2 className="h-6 w-6" /> : <User className="h-6 w-6" />}
                 </div>
                 <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <h4 className="text-sm font-bold text-slate-900 dark:text-white truncate">
-                        {conv.other_name || `${conv.other_role} #${conv.other_id}`}
-                      </h4>
-                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider ${
-                        conv.other_role === 'hospital' ? 'bg-indigo-100 text-indigo-700' :
+                  <div className="flex items-center gap-2">
+                    <h4 className="text-sm font-bold text-slate-900 dark:text-white truncate">
+                      {conv.other_name || `${conv.other_role} #${conv.other_id}`}
+                    </h4>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider ${
+                      conv.other_role === 'hospital' ? 'bg-indigo-100 text-indigo-700' :
                         conv.other_role === 'doctor' ? 'bg-purple-100 text-purple-700' :
-                        conv.other_role === 'nurse' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'
-                      }`}>
-                        {conv.other_role}
-                      </span>
-                      {conv.is_incoming_unread && <div className="h-2 w-2 bg-blue-500 rounded-full flex-shrink-0" />}
-                    </div>
+                          conv.other_role === 'nurse' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'
+                    }`}>
+                      {conv.other_role}
+                    </span>
+                    {conv.is_incoming_unread && <div className="h-2 w-2 bg-blue-500 rounded-full flex-shrink-0" />}
+                  </div>
                   <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
                     {conv.message_text || 'New conversation'}
                   </p>
@@ -237,8 +237,8 @@ export function MessagingSection() {
                       >
                         <div className={`h-12 w-12 rounded-full flex-shrink-0 flex items-center justify-center ${
                           contact.role === 'hospital' ? 'bg-indigo-100 text-indigo-600' : 
-                          contact.role === 'doctor' ? 'bg-purple-100 text-purple-600' :
-                          contact.role === 'nurse' ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'
+                            contact.role === 'doctor' ? 'bg-purple-100 text-purple-600' :
+                              contact.role === 'nurse' ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'
                         }`}>
                           {contact.role === 'hospital' ? <Building2 className="h-6 w-6" /> : <User className="h-6 w-6" />}
                         </div>
@@ -247,8 +247,8 @@ export function MessagingSection() {
                             <p className="font-bold text-slate-900 dark:text-white truncate">{contact.name || contact.full_name}</p>
                             <span className={`text-[8px] px-1.5 py-0.5 rounded-full font-black uppercase tracking-[0.1em] ${
                               contact.role === 'hospital' ? 'bg-indigo-100 text-indigo-700' :
-                              contact.role === 'doctor' ? 'bg-purple-100 text-purple-700' :
-                              contact.role === 'nurse' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'
+                                contact.role === 'doctor' ? 'bg-purple-100 text-purple-700' :
+                                  contact.role === 'nurse' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'
                             }`}>
                               {contact.role}
                             </span>

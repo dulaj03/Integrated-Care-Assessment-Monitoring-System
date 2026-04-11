@@ -48,6 +48,10 @@ const updateProfessionalStatus = async (req, res) => {
       updated = await DoctorModel.updateStatus(id, status);
     } else if (role === 'nurse') {
       updated = await NurseModel.updateStatus(id, status);
+    } else if (role === 'patient') {
+      updated = await PatientModel.updateStatus(id, status);
+    } else if (role === 'hospital') {
+      updated = await HospitalModel.updateStatus(id, status);
     } else {
       return res.status(400).json({ error: 'Invalid role for status update' });
     }

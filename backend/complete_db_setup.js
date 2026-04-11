@@ -2,16 +2,16 @@ const pool = require('./config/db');
 
 async function setup() {
   try {
-    console.log("🛠️ Starting database synchronization...");
+    console.log('🛠️ Starting database synchronization...');
 
     // 1. Fix patients table (add profile fields)
     await pool.query("ALTER TABLE patients ADD COLUMN IF NOT EXISTS condition VARCHAR(50) DEFAULT 'stable'");
-    await pool.query("ALTER TABLE patients ADD COLUMN IF NOT EXISTS last_vital_check TIMESTAMP");
-    await pool.query("ALTER TABLE patients ADD COLUMN IF NOT EXISTS phone VARCHAR(20)");
-    await pool.query("ALTER TABLE patients ADD COLUMN IF NOT EXISTS age INTEGER");
-    await pool.query("ALTER TABLE patients ADD COLUMN IF NOT EXISTS gender VARCHAR(20)");
-    await pool.query("ALTER TABLE patients ADD COLUMN IF NOT EXISTS address TEXT");
-    await pool.query("ALTER TABLE patients ADD COLUMN IF NOT EXISTS profile_picture VARCHAR(255)");
+    await pool.query('ALTER TABLE patients ADD COLUMN IF NOT EXISTS last_vital_check TIMESTAMP');
+    await pool.query('ALTER TABLE patients ADD COLUMN IF NOT EXISTS phone VARCHAR(20)');
+    await pool.query('ALTER TABLE patients ADD COLUMN IF NOT EXISTS age INTEGER');
+    await pool.query('ALTER TABLE patients ADD COLUMN IF NOT EXISTS gender VARCHAR(20)');
+    await pool.query('ALTER TABLE patients ADD COLUMN IF NOT EXISTS address TEXT');
+    await pool.query('ALTER TABLE patients ADD COLUMN IF NOT EXISTS profile_picture VARCHAR(255)');
     
     // 2. Create appointments table
     await pool.query(`
@@ -64,9 +64,9 @@ async function setup() {
       )
     `);
 
-    console.log("✅ Database tables synchronized successfully!");
+    console.log('✅ Database tables synchronized successfully!');
   } catch (err) {
-    console.error("❌ Synchronization failed:", err.message);
+    console.error('❌ Synchronization failed:', err.message);
   } finally {
     process.exit();
   }

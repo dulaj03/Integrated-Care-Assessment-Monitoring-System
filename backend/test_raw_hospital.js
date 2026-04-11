@@ -7,9 +7,9 @@ async function test() {
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
       ['T', `t${Date.now()}@t.com`, 'p', 'r', 'a', 'p', 'P', JSON.stringify(['A'])]
     );
-    console.log("SUCCESS");
+    console.log('SUCCESS');
   } catch (e) {
-    console.error("FAIL:", e.message);
+    console.error('FAIL:', e.message);
   } finally {
     process.exit();
   }

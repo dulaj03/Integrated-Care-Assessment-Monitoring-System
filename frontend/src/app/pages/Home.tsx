@@ -96,11 +96,11 @@ export function Landing() {
 
   const getDashboardPath = () => {
     switch (userRole) {
-      case 'patient': return '/patient/dashboard';
-      case 'doctor': return '/doctor/dashboard';
-      case 'nurse': return '/nurse/dashboard';
-      case 'hospital': return '/hospital/dashboard';
-      default: return '/login';
+    case 'patient': return '/patient/dashboard';
+    case 'doctor': return '/doctor/dashboard';
+    case 'nurse': return '/nurse/dashboard';
+    case 'hospital': return '/hospital/dashboard';
+    default: return '/login';
     }
   };
 
@@ -150,9 +150,9 @@ export function Landing() {
                     <AnimatePresence>
                       <motion.span
                         key={rollingIndex}
-                        initial={{ y: "120%", opacity: 0 }}
-                        animate={{ y: "0%", opacity: 1 }}
-                        exit={{ y: "-120%", opacity: 0 }}
+                        initial={{ y: '120%', opacity: 0 }}
+                        animate={{ y: '0%', opacity: 1 }}
+                        exit={{ y: '-120%', opacity: 0 }}
                         transition={{ duration: 0.45, ease: [0.65, 0, 0.35, 1] }}
                         className="col-start-1 row-start-1 py-1"
                       >
@@ -167,7 +167,7 @@ export function Landing() {
                 </motion.p>
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.3 }}
                   className="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start gap-3">
-                  <Link to={isLoggedIn ? getDashboardPath() : "/login"}
+                  <Link to={isLoggedIn ? getDashboardPath() : '/login'}
                     className="flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 md:py-4 md:text-lg md:px-10 transition-colors duration-200 shadow-lg">
                     {isLoggedIn ? 'Go to Dashboard' : t('common.getStarted')}
                   </Link>
@@ -595,7 +595,7 @@ export function Landing() {
             {t('landing.cta.desc')}
           </motion.p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Link to={isLoggedIn ? getDashboardPath() : "/login"}
+            <Link to={isLoggedIn ? getDashboardPath() : '/login'}
               className="inline-flex items-center justify-center px-8 py-4 border border-transparent text-base font-semibold rounded-xl text-blue-600 bg-white hover:bg-blue-50 dark:bg-slate-100 dark:hover:bg-slate-200 transition-colors duration-200 shadow-lg">
               {isLoggedIn ? 'Go to Dashboard' : t('landing.cta.button')}
             </Link>

@@ -60,7 +60,7 @@ const createHealthLog = async (req, res) => {
       const nurses = await CareTeamModel.getNursesByPatientId(patient_id);
       for (const nurse of nurses) {
         await NotificationModel.create({
-           user_id: nurse.id, user_role: 'nurse', title, message, type: 'critical'
+          user_id: nurse.id, user_role: 'nurse', title, message, type: 'critical'
         });
       }
 

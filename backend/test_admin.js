@@ -6,15 +6,15 @@ const PatientModel = require('./models/patientModel');
 async function test() {
   try {
     const doctors = await DoctorModel.findAll();
-    console.log("Doctors found:", doctors.length);
+    console.log('Doctors found:', doctors.length);
     const nurses = await NurseModel.findAll();
-    console.log("Nurses found:", nurses.length);
+    console.log('Nurses found:', nurses.length);
     const patients = await PatientModel.findAll();
-    console.log("Patients found:", patients.length);
+    console.log('Patients found:', patients.length);
     const hospitals = await HospitalModel.findAll();
-    console.log("Hospitals found:", hospitals.length);
+    console.log('Hospitals found:', hospitals.length);
   } catch (e) {
-    console.error("FAIL:", e.message);
+    console.error('FAIL:', e.message);
   } finally {
     process.exit();
   }

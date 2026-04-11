@@ -87,7 +87,7 @@ export function DashboardLayout({ role, userName: initialUserName = '' }: Dashbo
         setNotifications(mapped);
       }
     } catch (error) {
-       console.error('Failed to fetch notifications:', error);
+      console.error('Failed to fetch notifications:', error);
     }
   }, []);
 
@@ -112,16 +112,16 @@ export function DashboardLayout({ role, userName: initialUserName = '' }: Dashbo
     };
 
     const handleNewNotification = (notif: any) => {
-        const mapped: Notification = {
-          id: String(notif.id),
-          patientName: notif.title,
-          message: notif.message,
-          timestamp: new Date(notif.created_at),
-          status: notif.type === 'critical' || notif.type === 'error' ? 'High' : notif.type === 'warning' ? 'Moderate' : 'Normal',
-          isRead: notif.is_read
-        };
-        setNotifications(prev => [mapped, ...prev]);
-        toast.info(notif.title, { description: notif.message });
+      const mapped: Notification = {
+        id: String(notif.id),
+        patientName: notif.title,
+        message: notif.message,
+        timestamp: new Date(notif.created_at),
+        status: notif.type === 'critical' || notif.type === 'error' ? 'High' : notif.type === 'warning' ? 'Moderate' : 'Normal',
+        isRead: notif.is_read
+      };
+      setNotifications(prev => [mapped, ...prev]);
+      toast.info(notif.title, { description: notif.message });
     };
 
     socket?.on('new_message', handleNewMessage);
@@ -145,13 +145,13 @@ export function DashboardLayout({ role, userName: initialUserName = '' }: Dashbo
     const token = sessionStorage.getItem('token');
     if (!token) return;
     try {
-        await fetch(`http://localhost:5000/api/notifications/mark-read/${notificationId}`, {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        setNotifications(prev => prev.map(n => n.id === notificationId ? { ...n, isRead: true } : n));
+      await fetch(`http://localhost:5000/api/notifications/mark-read/${notificationId}`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      setNotifications(prev => prev.map(n => n.id === notificationId ? { ...n, isRead: true } : n));
     } catch (e) {
-        console.error('Failed to mark read:', e);
+      console.error('Failed to mark read:', e);
     }
   };
 

@@ -10,10 +10,10 @@ async function finalFix() {
     console.log(`Updated ${res.rowCount} admin accounts.`);
     
     const list = await pool.query('SELECT username FROM admin_users');
-    console.log("Admins now active:", list.rows.map(r => r.username).join(', '));
-    console.log("Both can now login with password: admin123");
+    console.log('Admins now active:', list.rows.map(r => r.username).join(', '));
+    console.log('Both can now login with password: admin123');
   } catch (err) {
-    console.error("FAIL:", err.message);
+    console.error('FAIL:', err.message);
   } finally {
     process.exit();
   }

@@ -146,8 +146,8 @@ export function MessagingUI({ conversation, currentUserId, currentUserRole, onSe
         )}
         <div className={`h-10 w-10 rounded-full flex items-center justify-center ${
           conversation.other_role === 'hospital' ? 'bg-indigo-100 text-indigo-600' : 
-          conversation.other_role === 'doctor' ? 'bg-purple-100 text-purple-600' :
-          conversation.other_role === 'nurse' ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'
+            conversation.other_role === 'doctor' ? 'bg-purple-100 text-purple-600' :
+              conversation.other_role === 'nurse' ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'
         }`}>
           {conversation.other_role === 'hospital' ? <Building2 className="h-5 w-5" /> : <UserIcon className="h-5 w-5" />}
         </div>
@@ -158,8 +158,8 @@ export function MessagingUI({ conversation, currentUserId, currentUserRole, onSe
             </h2>
             <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-black uppercase tracking-widest ${
               conversation.other_role === 'hospital' ? 'bg-indigo-100 text-indigo-700' :
-              conversation.other_role === 'doctor' ? 'bg-purple-100 text-purple-700' :
-              conversation.other_role === 'nurse' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'
+                conversation.other_role === 'doctor' ? 'bg-purple-100 text-purple-700' :
+                  conversation.other_role === 'nurse' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'
             }`}>
               {conversation.other_role}
             </span>
@@ -178,13 +178,13 @@ export function MessagingUI({ conversation, currentUserId, currentUserRole, onSe
       >
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center space-y-3">
-             <div className="h-16 w-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                <Send className="h-6 w-6 text-slate-300 dark:text-slate-600" />
-             </div>
-             <div className="space-y-1">
-                <p className="text-sm font-bold text-slate-900 dark:text-white">Start a Conversation</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">Your messages are encrypted and secure.</p>
-             </div>
+            <div className="h-16 w-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+              <Send className="h-6 w-6 text-slate-300 dark:text-slate-600" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm font-bold text-slate-900 dark:text-white">Start a Conversation</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Your messages are encrypted and secure.</p>
+            </div>
           </div>
         ) : (
           messages.map((message, idx) => {

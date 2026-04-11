@@ -139,39 +139,39 @@ export const PendingReviewModal = ({ user, onClose, onApprove, onReject }: Pendi
                     )}
                     
                     {imageUrl && !isPdf && (
-                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                          <a 
-                            href={imageUrl} 
-                            target="_blank" 
-                            rel="noreferrer"
-                            className="px-4 py-2 bg-white text-black font-bold rounded-xl text-xs flex items-center gap-2"
-                          >
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <a 
+                          href={imageUrl} 
+                          target="_blank" 
+                          rel="noreferrer"
+                          className="px-4 py-2 bg-white text-black font-bold rounded-xl text-xs flex items-center gap-2"
+                        >
                             VIEW FULL SIZE
-                          </a>
-                       </div>
+                        </a>
+                      </div>
                     )}
                   </div>
                 </div>
               </div>
 
               {/* Footer - Actions */}
-              <div className="p-6 border-t border-white/5 bg-slate-800/30 flex items-center justify-between">
+              <div className="p-6 border-t border-white/5 bg-slate-800/30 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-2 text-amber-400">
                   <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
-                  <span className="text-xs font-bold uppercase tracking-tight">Reviewing Case #{user.id}</span>
+                  <span className="text-xs font-bold uppercase tracking-tight text-center sm:text-left">Reviewing Case #{user.id}</span>
                 </div>
                 
-                <div className="flex items-center gap-3">
+                <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
                   <button
                     onClick={() => setShowRejectionForm(true)}
-                    className="px-6 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 border border-rose-500/20 rounded-xl text-xs font-black transition-all flex items-center gap-2"
+                    className="w-full sm:w-auto px-6 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 border border-rose-500/20 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2"
                   >
                     <XCircle className="w-4 h-4" />
                     REJECT APPLICATION
                   </button>
                   <button
                     onClick={() => onApprove(user.id, user.role)}
-                    className="px-8 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black transition-all flex items-center gap-2 shadow-lg shadow-emerald-500/20"
+                    className="w-full sm:w-auto px-8 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20"
                   >
                     <CheckCircle2 className="w-4 h-4" />
                     APPROVE ACCOUNT
@@ -205,7 +205,7 @@ export const PendingReviewModal = ({ user, onClose, onApprove, onReject }: Pendi
                   />
                 </div>
 
-                <div className="flex gap-3 pt-4">
+                <div className="flex flex-col sm:flex-row gap-3 pt-4 w-full">
                   <button
                     onClick={() => setShowRejectionForm(false)}
                     className="flex-1 py-3 px-6 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-black flex items-center justify-center gap-2 transition-all"

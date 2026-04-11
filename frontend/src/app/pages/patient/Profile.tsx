@@ -129,7 +129,7 @@ export function Profile() {
       const data = {
         patient_info: patient,
         downloaded_at: new Date().toISOString(),
-        notes: "Official health record summary from I-CAMS"
+        notes: 'Official health record summary from I-CAMS'
       };
       
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -425,10 +425,10 @@ export function Profile() {
                   </div>
                 )}
                 {!patient.nurse_names && (
-                   <div className="pt-2 border-t border-slate-200 dark:border-slate-600">
+                  <div className="pt-2 border-t border-slate-200 dark:border-slate-600">
                     <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Assigned Nurses</p>
                     <p className="text-sm font-medium text-slate-400 italic">No nurses assigned yet</p>
-                   </div>
+                  </div>
                 )}
               </div>
             </div>

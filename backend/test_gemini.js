@@ -12,8 +12,8 @@ async function test() {
     
     console.log('Final Test: simplest possible call...');
     try {
-      const modelSimple = genAI.getGenerativeModel({ model: "gemini-pro" });
-      const request = "Say HELLO";
+      const modelSimple = genAI.getGenerativeModel({ model: 'gemini-pro' });
+      const request = 'Say HELLO';
       const resultFinal = await modelSimple.generateContent(request);
       console.log('Result:', resultFinal.response.text());
     } catch (err3) {

@@ -249,8 +249,8 @@ export function ForgotPassword() {
                   background: i < currentStepIndex
                     ? cfg.color
                     : i === currentStepIndex
-                    ? `linear-gradient(135deg, ${cfg.gradientFrom}, ${cfg.gradientTo})`
-                    : '#1e293b',
+                      ? `linear-gradient(135deg, ${cfg.gradientFrom}, ${cfg.gradientTo})`
+                      : '#1e293b',
                   color: i <= currentStepIndex ? '#fff' : '#475569',
                   border: i === currentStepIndex ? `2px solid ${cfg.color}` : i < currentStepIndex ? 'none' : '2px solid #334155',
                   boxShadow: i === currentStepIndex ? `0 0 16px ${cfg.color}66` : 'none',

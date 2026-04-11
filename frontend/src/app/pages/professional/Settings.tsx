@@ -339,7 +339,7 @@ export function Settings() {
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md animate-in fade-in duration-300">
           <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl w-full max-w-md p-8 border border-slate-100 dark:border-slate-800 animate-in zoom-in-95 duration-300">
             <div className="h-12 w-12 rounded-2xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 mb-6">
-               <Shield size={24} />
+              <Shield size={24} />
             </div>
             <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-2">Update Security</h3>
             <p className="text-xs text-slate-500 mb-8 uppercase tracking-widest font-bold">Credential Protocol Reset</p>

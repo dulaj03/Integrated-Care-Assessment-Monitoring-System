@@ -45,7 +45,7 @@ export const AdminSettings = () => {
     e.preventDefault();
     
     if (passwords.newPassword && passwords.newPassword !== passwords.confirmPassword) {
-      return toast.error("Passwords do not match!");
+      return toast.error('Passwords do not match!');
     }
 
     setSaving(true);
@@ -144,9 +144,9 @@ export const AdminSettings = () => {
               </div>
 
               <div className="pt-4 border-t border-white/5 md:col-span-2 mt-2">
-                 <h3 className="text-sm font-bold text-white mb-4 uppercase tracking-widest flex items-center gap-2">
-                   <Lock className="w-4 h-4 text-amber-500" /> Change Password
-                 </h3>
+                <h3 className="text-sm font-bold text-white mb-4 uppercase tracking-widest flex items-center gap-2">
+                  <Lock className="w-4 h-4 text-amber-500" /> Change Password
+                </h3>
               </div>
 
               <div className="space-y-2">

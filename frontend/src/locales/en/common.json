@@ -434,6 +434,8 @@
     "myAppointments": "My Appointments",
     "healthTrends": "Comprehensive Health Trends Analysis",
     "noAppointments": "No appointments found",
+    "noLogsYet": "No health logs updated yet",
+    "nothingUpdatedYet": "The graph cannot be shown because nothing has been updated yet.",
     "bookFirstAppointment": "Book your first appointment with a hospital",
     "bookNow": "Book Now",
     "requested": "Requested",
@@ -460,10 +462,10 @@
     "fever": "Fever",
     "cough": "Cough",
     "fatigue": "Fatigue",
-    "shortnessOfBreath": "Shortness of Breath",
+    "shortnessofbreath": "Shortness of Breath",
     "dizziness": "Dizziness",
     "nausea": "Nausea",
-    "chestPain": "Chest Pain",
+    "chestpain": "Chest Pain",
     "active": "active"
   },
   "patient_appointments": {

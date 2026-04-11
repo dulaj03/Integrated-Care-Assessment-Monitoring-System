@@ -128,10 +128,10 @@ function ApprovalStepper({ status }: { status: ApptStatus }) {
           width: isCompleted
             ? 'calc(100% - 40px)'
             : currentStep === 0
-            ? '0%'
-            : currentStep === 1
-            ? 'calc(50% - 20px)'
-            : 'calc(100% - 40px)',
+              ? '0%'
+              : currentStep === 1
+                ? 'calc(50% - 20px)'
+                : 'calc(100% - 40px)',
         }}
       />
 
@@ -186,8 +186,8 @@ function AppointmentCard({ apt }: { apt: Appointment }) {
   const borderColor = apt.status === 'cancelled'
     ? 'border-red-200 dark:border-red-900/30'
     : isConfirmed
-    ? 'border-emerald-200 dark:border-emerald-900/30'
-    : 'border-slate-200 dark:border-slate-800';
+      ? 'border-emerald-200 dark:border-emerald-900/30'
+      : 'border-slate-200 dark:border-slate-800';
 
   return (
     <motion.div
@@ -559,8 +559,8 @@ export function Appointments() {
                       {!selectedDoctorId
                         ? 'First select a doctor'
                         : hospitals.length === 0
-                        ? 'No hospitals linked to this doctor'
-                        : 'Select a hospital...'}
+                          ? 'No hospitals linked to this doctor'
+                          : 'Select a hospital...'}
                     </option>
                     {hospitals.map(h => (
                       <option key={h.id} value={h.id}>{h.name} — {h.address}</option>

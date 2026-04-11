@@ -117,12 +117,12 @@ export function HospitalDashboard() {
   ];
 
   if (loading) {
-     return (
-       <div className="flex flex-col items-center justify-center p-20 gap-4">
-         <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
-         <p className="text-slate-500">Loading hospital metrics...</p>
-       </div>
-     );
+    return (
+      <div className="flex flex-col items-center justify-center p-20 gap-4">
+        <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
+        <p className="text-slate-500">Loading hospital metrics...</p>
+      </div>
+    );
   }
 
   return (
@@ -155,35 +155,35 @@ export function HospitalDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Pending Actions */}
         <div className="rounded-xl border border-orange-200 dark:border-orange-900/50 bg-orange-50/30 dark:bg-orange-900/5 p-5">
-           <h3 className="font-bold text-orange-900 dark:text-orange-400 mb-4 flex items-center gap-2">
-             <Clock className="h-5 w-5" /> Appointments Requiring Action
-           </h3>
-           {appointments.filter(a => a.status === 'requested').length === 0 ? (
-             <p className="text-sm text-slate-500 py-4">All appointments have been processed.</p>
-           ) : (
-             <div className="space-y-3">
-               {appointments.filter(a => a.status === 'requested').map(appt => (
-                 <div key={appt.id} className="p-4 rounded-xl bg-white dark:bg-slate-800 border border-orange-200 dark:border-orange-800/50 shadow-sm">
-                   <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <p className="font-bold text-slate-900 dark:text-white">{appt.patient_name}</p>
-                        <p className="text-xs text-slate-500">Requested for {appt.doctor_name}</p>
-                      </div>
-                      <button 
-                        onClick={() => handleNotifyDoctor(appt.id)}
-                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition-all"
-                      >
-                        <Send className="h-3 w-3" /> Notify Doctor
-                      </button>
-                   </div>
-                   <div className="flex gap-4 text-[11px] text-slate-500 font-medium">
-                      <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {format(parseLocalDate(appt.appointment_date), 'MMM d, yyyy')}</span>
-                      <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {formatTime(appt.appointment_time)}</span>
-                   </div>
-                 </div>
-               ))}
-             </div>
-           )}
+          <h3 className="font-bold text-orange-900 dark:text-orange-400 mb-4 flex items-center gap-2">
+            <Clock className="h-5 w-5" /> Appointments Requiring Action
+          </h3>
+          {appointments.filter(a => a.status === 'requested').length === 0 ? (
+            <p className="text-sm text-slate-500 py-4">All appointments have been processed.</p>
+          ) : (
+            <div className="space-y-3">
+              {appointments.filter(a => a.status === 'requested').map(appt => (
+                <div key={appt.id} className="p-4 rounded-xl bg-white dark:bg-slate-800 border border-orange-200 dark:border-orange-800/50 shadow-sm">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <p className="font-bold text-slate-900 dark:text-white">{appt.patient_name}</p>
+                      <p className="text-xs text-slate-500">Requested for {appt.doctor_name}</p>
+                    </div>
+                    <button 
+                      onClick={() => handleNotifyDoctor(appt.id)}
+                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition-all"
+                    >
+                      <Send className="h-3 w-3" /> Notify Doctor
+                    </button>
+                  </div>
+                  <div className="flex gap-4 text-[11px] text-slate-500 font-medium">
+                    <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {format(parseLocalDate(appt.appointment_date), 'MMM d, yyyy')}</span>
+                    <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {formatTime(appt.appointment_time)}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Master Schedule */}
@@ -198,18 +198,18 @@ export function HospitalDashboard() {
           ) : (
             <div className="space-y-3">
               {appointments.slice(0, 5).map(appt => (
-                  <div key={appt.id} className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-700">
-                    <div>
-                      <p className="font-medium text-slate-900 dark:text-white text-sm">{appt.patient_name}</p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">{appt.doctor_name} · {appt.reason}</p>
-                       <p className="text-xs text-blue-600 dark:text-blue-400 font-bold">
-                         {format(parseLocalDate(appt.appointment_date), 'MMM d')} · {formatTime(appt.appointment_time)}
-                       </p>
-                    </div>
-                    <span className={`text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-tighter ${getAppointmentStatusColor(appt.status)}`}>
-                      {appt.status.replace('_', ' ')}
-                    </span>
+                <div key={appt.id} className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-700">
+                  <div>
+                    <p className="font-medium text-slate-900 dark:text-white text-sm">{appt.patient_name}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">{appt.doctor_name} · {appt.reason}</p>
+                    <p className="text-xs text-blue-600 dark:text-blue-400 font-bold">
+                      {format(parseLocalDate(appt.appointment_date), 'MMM d')} · {formatTime(appt.appointment_time)}
+                    </p>
                   </div>
+                  <span className={`text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-tighter ${getAppointmentStatusColor(appt.status)}`}>
+                    {appt.status.replace('_', ' ')}
+                  </span>
+                </div>
               ))}
             </div>
           )}
@@ -227,27 +227,27 @@ export function HospitalDashboard() {
           <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
             <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
               {patients.map((patient) => (
-                  <tr key={patient.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="h-8 w-8 rounded-full overflow-hidden mr-3 bg-slate-100 flex items-center justify-center">
-                          <Users className="h-4 w-4 text-slate-400" />
-                        </div>
-                        <div className="text-sm font-medium text-slate-900 dark:text-white">{patient.name || patient.full_name}</div>
+                <tr key={patient.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <div className="h-8 w-8 rounded-full overflow-hidden mr-3 bg-slate-100 flex items-center justify-center">
+                        <Users className="h-4 w-4 text-slate-400" />
                       </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
-                      {patient.condition || 'N/A'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-[10px] leading-5 font-bold rounded-full uppercase ${patient.status === 'ciritical' || patient.status === 'CRITICAL' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
-                        {patient.status || 'ACTIVE'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
-                      {patient.doctor_name || 'Unassigned'}
-                    </td>
-                  </tr>
+                      <div className="text-sm font-medium text-slate-900 dark:text-white">{patient.name || patient.full_name}</div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
+                    {patient.condition || 'N/A'}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`px-2 inline-flex text-[10px] leading-5 font-bold rounded-full uppercase ${patient.status === 'ciritical' || patient.status === 'CRITICAL' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+                      {patient.status || 'ACTIVE'}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
+                    {patient.doctor_name || 'Unassigned'}
+                  </td>
+                </tr>
               ))}
             </tbody>
           </table>

@@ -14,7 +14,8 @@ import {
   TrendingUp,
   PlusCircle,
   Loader2,
-  X
+  X,
+  Menu
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { toast } from 'sonner';
@@ -29,6 +30,7 @@ export const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [reviewUser, setReviewUser] = useState<AdminUser | null>(null);
   const [currentAdmin, setCurrentAdmin] = useState<{ full_name: string; username: string } | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const fetchCurrentAdmin = async () => {
     const token = sessionStorage.getItem('admin_token');
@@ -187,60 +189,74 @@ export const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
   const pendingCount = users.filter(u => u.status.toUpperCase() === 'PENDING' || u.status.toUpperCase() === 'PENDINGADMINAPPROVAL').length;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-200">
-      <Sidebar activeTab={activeTab} onTabChange={setActiveTab} onLogout={onLogout} />
+    <div className="min-h-screen bg-slate-950 text-slate-200 overflow-x-hidden">
+      <Sidebar 
+        activeTab={activeTab} 
+        onTabChange={(tab) => { setActiveTab(tab); setIsSidebarOpen(false); }} 
+        onLogout={onLogout} 
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+      />
 
-      <main className="pl-64 min-h-screen">
-        <header className="h-20 border-b border-white/5 flex items-center justify-between px-10 sticky top-0 bg-slate-950/80 backdrop-blur-md z-40">
-          <div className="relative w-96 group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4" />
-            <input
-              type="text"
-              placeholder="Search users, hospitals, or logs..."
-              className="w-full bg-slate-900 border border-white/10 rounded-xl py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50 transition-all text-sm"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+      <main className={`transition-all duration-300 ${isSidebarOpen ? 'blur-sm pointer-events-none md:blur-none md:pointer-events-auto' : ''} md:pl-64 min-h-screen`}>
+        <header className="h-16 md:h-20 border-b border-white/5 flex items-center justify-between px-4 md:px-10 sticky top-0 bg-slate-950/80 backdrop-blur-md z-40">
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => setIsSidebarOpen(true)}
+              className="p-2 hover:bg-white/5 rounded-xl transition-all md:hidden"
+            >
+              <Menu className="w-6 h-6 text-slate-400" />
+            </button>
+            <div className="relative w-48 md:w-96 group hidden sm:block">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4" />
+              <input
+                type="text"
+                placeholder="Search..."
+                className="w-full bg-slate-900 border border-white/10 rounded-xl py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50 transition-all text-sm"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 md:gap-4">
             <button
               onClick={() => setIsHospitalModalOpen(true)}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-xl text-xs font-bold text-white transition-all flex items-center gap-2"
+              className="p-2 md:px-4 md:py-2 bg-blue-600 hover:bg-blue-500 rounded-xl text-xs font-bold text-white transition-all flex items-center gap-2"
             >
               <PlusCircle className="w-4 h-4" />
-              ADD HOSPITAL
+              <span className="hidden md:inline">ADD HOSPITAL</span>
             </button>
             <button className="relative p-2 hover:bg-white/5 rounded-xl transition-all">
               <Bell className="w-5 h-5 text-slate-400" />
               {pendingCount > 0 && (
-                <span className="absolute top-2 right-2 w-5 h-5 bg-blue-500 text-[10px] font-black rounded-full border-2 border-slate-950 flex items-center justify-center text-white">
-                   {pendingCount}
+                <span className="absolute top-2 right-2 w-4 md:w-5 h-4 md:h-5 bg-blue-500 text-[8px] md:text-[10px] font-black rounded-full border-2 border-slate-950 flex items-center justify-center text-white">
+                  {pendingCount}
                 </span>
               )}
             </button>
-            <div className="h-8 w-px bg-white/10" />
-            <div className="flex items-center gap-3 pl-2">
-              <div className="text-right">
-                <p className="text-sm font-bold text-white leading-none">{currentAdmin?.full_name || 'Super Admin'}</p>
+            <div className="h-8 w-px bg-white/10 hidden md:block" />
+            <div className="flex items-center gap-2 md:gap-3 pl-2">
+              <div className="text-right hidden sm:block">
+                <p className="text-xs md:text-sm font-bold text-white leading-none">{currentAdmin?.full_name || 'Super Admin'}</p>
                 <p className="text-[10px] text-slate-500 font-medium uppercase tracking-wider">{currentAdmin?.username || 'Administrator'}</p>
               </div>
-              <div className="w-10 h-10 rounded-xl bg-slate-800 border border-white/10 flex items-center justify-center font-bold text-blue-400 capitalize">
+              <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-slate-800 border border-white/10 flex items-center justify-center font-bold text-blue-400 capitalize text-sm md:text-base">
                 {currentAdmin?.username?.slice(0, 2) || 'AD'}
               </div>
             </div>
           </div>
         </header>
 
-        <div className="p-10 space-y-10 max-w-7xl mx-auto">
+        <div className="p-4 md:p-10 space-y-6 md:space-y-10 max-w-7xl mx-auto">
           {activeTab === 'dashboard' && (
-            <div className="space-y-10 animate-fade-in">
+            <div className="space-y-6 md:space-y-10 animate-fade-in">
               <div className="flex flex-col gap-1">
-                <h1 className="text-3xl font-black text-white tracking-tight">System Overview</h1>
-                <p className="text-slate-400">Real-time stats and management dashboard.</p>
+                <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">System Overview</h1>
+                <p className="text-sm md:text-base text-slate-400">Real-time stats and management dashboard.</p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                 {[
                   { label: 'Total Users', value: users.length, icon: Users, color: 'text-blue-500', bg: 'bg-blue-500/10' },
                   { label: 'Pending Approvals', value: pendingCount, icon: AlertCircle, color: 'text-amber-500', bg: 'bg-amber-500/10' },
@@ -252,14 +268,14 @@ export const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: i * 0.1 }}
                     key={stat.label}
-                    className="glass-card p-6 flex items-center gap-5"
+                    className="glass-card p-4 md:p-6 flex items-center gap-4 md:gap-5"
                   >
-                    <div className={`${stat.bg} ${stat.color} w-14 h-14 rounded-2xl flex items-center justify-center`}>
-                      <stat.icon className="w-7 h-7" />
+                    <div className={`${stat.bg} ${stat.color} w-12 md:w-14 h-12 md:h-14 rounded-2xl flex items-center justify-center`}>
+                      <stat.icon className="w-6 md:w-7 h-6 md:h-7" />
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">{stat.label}</p>
-                      <h3 className="text-2xl font-black text-white">{stat.value}</h3>
+                      <p className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-widest">{stat.label}</p>
+                      <h3 className="text-xl md:text-2xl font-black text-white">{stat.value}</h3>
                     </div>
                   </motion.div>
                 ))}

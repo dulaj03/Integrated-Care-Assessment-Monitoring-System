@@ -253,7 +253,7 @@ export function LabResults() {
   const readyCount = tests.filter(t => t.status === 'ready' || t.status === 'reviewed').length;
 
   if (loading) {
-     return <div className="flex items-center justify-center p-20"><Loader2 className="h-8 w-8 animate-spin text-blue-600" /></div>;
+    return <div className="flex items-center justify-center p-20"><Loader2 className="h-8 w-8 animate-spin text-blue-600" /></div>;
   }
 
   return (

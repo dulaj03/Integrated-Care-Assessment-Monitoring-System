@@ -338,11 +338,11 @@ const changePassword = async (req, res) => {
   try {
     let model;
     switch (role) {
-      case 'patient': model = PatientModel; break;
-      case 'doctor': model = DoctorModel; break;
-      case 'nurse': model = NurseModel; break;
-      case 'hospital': model = HospitalModel; break;
-      default: return res.status(400).json({ error: 'Invalid role' });
+    case 'patient': model = PatientModel; break;
+    case 'doctor': model = DoctorModel; break;
+    case 'nurse': model = NurseModel; break;
+    case 'hospital': model = HospitalModel; break;
+    default: return res.status(400).json({ error: 'Invalid role' });
     }
 
     // Get current user (with password)

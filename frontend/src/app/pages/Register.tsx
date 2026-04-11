@@ -253,7 +253,7 @@ export function Register() {
               border: '1px solid #334155', textAlign: 'left',
             }}>
               <p style={{ color: '#94a3b8', fontSize: '0.875rem', margin: '0 0 10px', fontWeight: 600 }}>Next steps:</p>
-              {['Open the email from I-CAMS in your inbox', "Click the \"Verify Email Address\" button in the email", 'Set your password on the verification page', 'You\'ll be logged in automatically'].map((step, i) => (
+              {['Open the email from I-CAMS in your inbox', 'Click the "Verify Email Address" button in the email', 'Set your password on the verification page', 'You\'ll be logged in automatically'].map((step, i) => (
                 <div key={i} style={{ display: 'flex', gap: '10px', marginBottom: i < 3 ? '8px' : 0, alignItems: 'flex-start' }}>
                   <span style={{
                     width: '22px', height: '22px', borderRadius: '50%', flexShrink: 0,

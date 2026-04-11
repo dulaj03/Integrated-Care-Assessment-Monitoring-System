@@ -47,8 +47,12 @@ export function OnboardingTour() {
     }
   ];
 
+  const userId = sessionStorage.getItem('userId');
+  const tourKey = `icams_dashboard_tour_completed_${userId}`;
+
   useEffect(() => {
-    const isCompleted = localStorage.getItem('icams_dashboard_tour_completed');
+    if (!userId) return; // Wait for session
+    const isCompleted = localStorage.getItem(tourKey);
     if (!isCompleted) {
       // Small delay to let the dashboard render
       const timer = setTimeout(() => {
@@ -56,7 +60,7 @@ export function OnboardingTour() {
       }, 1500);
       return () => clearTimeout(timer);
     }
-  }, []);
+  }, [userId, tourKey]);
 
   useEffect(() => {
     if (isVisible) {
@@ -81,7 +85,9 @@ export function OnboardingTour() {
 
   const completeTour = () => {
     setIsVisible(false);
-    localStorage.setItem('icams_dashboard_tour_completed', 'true');
+    if (userId) {
+      localStorage.setItem(tourKey, 'true');
+    }
   };
 
   if (!isVisible || !targetRect) return null;
@@ -93,36 +99,36 @@ export function OnboardingTour() {
     const padding = 20;
     
     switch (currentStep.position) {
-      case 'bottom':
-        return {
-          top: targetRect.bottom + padding,
-          left: targetRect.left + (targetRect.width / 2),
-          transform: 'translateX(-50%)',
-        };
-      case 'top':
-        return {
-          top: targetRect.top - padding,
-          left: targetRect.left + (targetRect.width / 2),
-          transform: 'translate(-50%, -100%)',
-        };
-      case 'left':
-        return {
-          top: targetRect.top + (targetRect.height / 2),
-          left: targetRect.left - padding,
-          transform: 'translate(-100%, -50%)',
-        };
-      case 'right':
-        return {
-          top: targetRect.top + (targetRect.height / 2),
-          left: targetRect.right + padding,
-          transform: 'translate(0, -50%)',
-        };
-      default:
-        return {
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-        };
+    case 'bottom':
+      return {
+        top: targetRect.bottom + padding,
+        left: targetRect.left + (targetRect.width / 2),
+        transform: 'translateX(-50%)',
+      };
+    case 'top':
+      return {
+        top: targetRect.top - padding,
+        left: targetRect.left + (targetRect.width / 2),
+        transform: 'translate(-50%, -100%)',
+      };
+    case 'left':
+      return {
+        top: targetRect.top + (targetRect.height / 2),
+        left: targetRect.left - padding,
+        transform: 'translate(-100%, -50%)',
+      };
+    case 'right':
+      return {
+        top: targetRect.top + (targetRect.height / 2),
+        left: targetRect.right + padding,
+        transform: 'translate(0, -50%)',
+      };
+    default:
+      return {
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+      };
     }
   };
 

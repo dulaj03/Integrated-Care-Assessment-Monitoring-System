@@ -10,6 +10,8 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { HealthLog } from '../lib/mockData';
 import { Calendar, TrendingUp } from 'lucide-react';
 
+import { useTranslation } from 'react-i18next';
+
 interface HealthTrendChartProps {
   logs: HealthLog[];
   title?: string;
@@ -89,13 +91,40 @@ const getChartStatistics = (chartData: ReturnType<typeof transformLogsToChartDat
 };
 
 export function HealthTrendChart({ logs, title = 'Health Trends', height = 320 }: HealthTrendChartProps) {
+  const { t } = useTranslation();
   const [viewPeriod, setViewPeriod] = useState<ViewPeriod>('weekly');
 
   // Transform data based on selected period
   const chartData = transformLogsToChartData(logs, viewPeriod);
   const stats = getChartStatistics(chartData);
 
-  // Handle empty data
+  // Handle absolute empty state (nothing updated yet)
+  if (logs.length === 0) {
+    return (
+      <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center text-center">
+        <div className="flex items-center gap-2 mb-6 self-start">
+          <TrendingUp className="h-5 w-5 text-blue-500" />
+          <h3 className="text-lg font-bold text-slate-800 dark:text-white uppercase tracking-tight">
+            {title}
+          </h3>
+        </div>
+        
+        <div className="py-12 flex flex-col items-center">
+          <div className="h-20 w-20 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center mb-6">
+            <TrendingUp className="h-10 w-10 text-blue-400 dark:text-blue-600 opacity-50" />
+          </div>
+          <h4 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
+            {t('patient_dashboard.noLogsYet')}
+          </h4>
+          <p className="text-slate-500 dark:text-slate-400 max-w-sm leading-relaxed">
+            {t('patient_dashboard.nothingUpdatedYet')}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle empty data for selected period (but logs exist)
   if (chartData.length === 0) {
     return (
       <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow dark:shadow-xl">
@@ -105,8 +134,13 @@ export function HealthTrendChart({ logs, title = 'Health Trends', height = 320 }
             {title}
           </h3>
         </div>
-        <div className="h-80 flex items-center justify-center text-slate-500 dark:text-slate-400">
-          No data available for the selected period
+        <div className="h-80 flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 gap-3">
+          <Calendar className="h-8 w-8 opacity-20" />
+          <p>{t('common.noData')} for the selected period</p>
+          <div className="flex gap-2 mt-2">
+            <button onClick={() => setViewPeriod('weekly')} className={`text-xs px-3 py-1 rounded-full border ${viewPeriod === 'weekly' ? 'bg-blue-50 border-blue-200 text-blue-600' : 'border-slate-200'}`}>Weekly</button>
+            <button onClick={() => setViewPeriod('monthly')} className={`text-xs px-3 py-1 rounded-full border ${viewPeriod === 'monthly' ? 'bg-blue-50 border-blue-200 text-blue-600' : 'border-slate-200'}`}>Monthly</button>
+          </div>
         </div>
       </div>
     );

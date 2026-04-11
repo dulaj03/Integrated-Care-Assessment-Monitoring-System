@@ -204,8 +204,10 @@
     "fever": "காய்ச்சல்",
     "cough": "இருமல்",
     "fatigue": "சோர்வு",
+    "shortnessofbreath": "மூச்சுத் திணறல்",
+    "dizziness": "தலைச்சுற்றல்",
     "nausea": "குமட்டல்",
-    "chestPain": "நெஞ்சு வலி"
+    "chestpain": "நெஞ்சு வலி"
   },
   "professional_dashboard": {
     "patientOverview": "நோயாளி மேலோட்டம்",

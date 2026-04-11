@@ -10,7 +10,7 @@ async function resetPass() {
     await pool.query("UPDATE admin_users SET password = $1 WHERE username = 'dulaj'", [hashedPassword]);
     console.log("SUCCESS: Password reset to 'admin123' for 'admin' and 'dulaj'");
   } catch (err) {
-    console.error("FAIL:", err.message);
+    console.error('FAIL:', err.message);
   } finally {
     process.exit();
   }

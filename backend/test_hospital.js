@@ -14,9 +14,9 @@ async function test() {
       type: 'Private',
       specialties: ['Cardiology', 'Neurology']
     });
-    console.log("SUCCESS:", hospital.id);
+    console.log('SUCCESS:', hospital.id);
   } catch (e) {
-    console.error("FAIL:", e.message);
+    console.error('FAIL:', e.message);
   } finally {
     process.exit();
   }

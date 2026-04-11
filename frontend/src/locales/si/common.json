@@ -326,10 +326,10 @@
     "fever": "උණ",
     "cough": "කැස්ස",
     "fatigue": "වෙහෙස",
-    "shortnessOfBreath": "හුස්ම හිරවීම",
+    "shortnessofbreath": "හුස්ම හිරවීම",
     "dizziness": "සක්කිලිය",
     "nausea": "ඔක්කාරය",
-    "chestPain": "පපුව වේදනාව"
+    "chestpain": "පපුව වේදනාව"
   },
   "patient_appointments": {
     "title": "හමුවීම්",

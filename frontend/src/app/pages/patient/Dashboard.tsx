@@ -224,7 +224,12 @@ export function PatientDashboard() {
   };
 
   // Prepare all logs for the HealthTrendChart
-  const allLogsForChart: HealthLog[] = (dbLogs.length > 0 ? dbLogs : (patient as any).logs || []).map((log: any) => {
+  // Real users (numeric ID) should only see their DB logs, even if empty.
+  // Mock users (non-numeric ID like 'p1') fall back to mock data for demo purposes.
+  const isMockUser = !patientId || isNaN(Number(patientId));
+  const logsToUse = dbLogs.length > 0 ? dbLogs : (isMockUser ? (patient as any).logs || [] : []);
+
+  const allLogsForChart: HealthLog[] = logsToUse.map((log: any) => {
     let symptoms: string[] = [];
     try {
       symptoms = Array.isArray(log.symptoms) ? log.symptoms : (typeof log.symptoms === 'string' ? JSON.parse(log.symptoms) : []);
@@ -247,7 +252,7 @@ export function PatientDashboard() {
     };
   });
 
-  const latestLog: DbHealthLog = dbLogs.length > 0 ? dbLogs[0] : (patient.logs[0] as unknown as DbHealthLog);
+  const latestLog: DbHealthLog = logsToUse.length > 0 ? logsToUse[0] : (isMockUser ? (patient.logs[0] as unknown as DbHealthLog) : null as any);
 
   // Hospital data - Prefer DB over Mock
   const labTests = getPatientLabTests(patient.id);
@@ -789,8 +794,8 @@ export function PatientDashboard() {
                 const cardBorder = isCancelled
                   ? 'border-red-200 dark:border-red-900/30'
                   : isConfirmed
-                  ? 'border-emerald-200 dark:border-emerald-900/30 bg-emerald-50/30 dark:bg-emerald-900/10'
-                  : 'border-slate-200 dark:border-slate-700';
+                    ? 'border-emerald-200 dark:border-emerald-900/30 bg-emerald-50/30 dark:bg-emerald-900/10'
+                    : 'border-slate-200 dark:border-slate-700';
 
                 return (
                   <div
@@ -853,10 +858,10 @@ export function PatientDashboard() {
                             width: isConfirmed
                               ? 'calc(100% - 32px)'
                               : currentStepIdx === 0
-                              ? '0%'
-                              : currentStepIdx === 1
-                              ? 'calc(50% - 16px)'
-                              : 'calc(100% - 32px)',
+                                ? '0%'
+                                : currentStepIdx === 1
+                                  ? 'calc(50% - 16px)'
+                                  : 'calc(100% - 32px)',
                           }}
                         />
                         {/* Steps */}
@@ -926,8 +931,8 @@ export function PatientDashboard() {
                 liveOrders.filter(o => o.order_type === 'medication').map((med, idx) => (
                   <li key={idx} className="text-sm text-slate-600 dark:text-slate-400 flex justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
                     <div className="flex flex-col">
-                       <span className="font-bold text-slate-800 dark:text-white">{med.description}</span>
-                       <span className="text-[10px] text-slate-400 dark:text-slate-500">{med.details || 'As prescribed by doctor'}</span>
+                      <span className="font-bold text-slate-800 dark:text-white">{med.description}</span>
+                      <span className="text-[10px] text-slate-400 dark:text-slate-500">{med.details || 'As prescribed by doctor'}</span>
                     </div>
                     <span className="text-[10px] bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 px-2 py-1 rounded-md self-center capitalize">Active</span>
                   </li>

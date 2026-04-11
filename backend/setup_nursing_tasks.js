@@ -1,11 +1,11 @@
 const pool = require('./config/db');
 
 async function setupNursingTasks() {
-    try {
-        console.log("🛠️  Setting up Nursing Rounds & Task Management...");
+  try {
+    console.log('🛠️  Setting up Nursing Rounds & Task Management...');
 
-        // 1. Nursing Tasks Table
-        await pool.query(`
+    // 1. Nursing Tasks Table
+    await pool.query(`
             CREATE TABLE IF NOT EXISTS nursing_tasks (
                 id              SERIAL PRIMARY KEY,
                 title           VARCHAR(100) NOT NULL,
@@ -21,8 +21,8 @@ async function setupNursingTasks() {
             )
         `);
 
-        // 2. Nursing Task Steps (Milestones)
-        await pool.query(`
+    // 2. Nursing Task Steps (Milestones)
+    await pool.query(`
             CREATE TABLE IF NOT EXISTS nursing_task_steps (
                 id              SERIAL PRIMARY KEY,
                 task_id         INTEGER NOT NULL REFERENCES nursing_tasks(id) ON DELETE CASCADE,
@@ -34,12 +34,12 @@ async function setupNursingTasks() {
             )
         `);
 
-        console.log("✅ Nursing Rounds schema synchronized successfully!");
-    } catch (err) {
-        console.error("❌ Schema sync failed:", err.message);
-    } finally {
-        process.exit();
-    }
+    console.log('✅ Nursing Rounds schema synchronized successfully!');
+  } catch (err) {
+    console.error('❌ Schema sync failed:', err.message);
+  } finally {
+    process.exit();
+  }
 }
 
 setupNursingTasks();

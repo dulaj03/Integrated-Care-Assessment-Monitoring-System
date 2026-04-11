@@ -33,7 +33,7 @@ const approvePatient = async (req, res) => {
     // Assign the doctor and set status to active
     await PatientModel.updateDoctor(id, doctorId);
     if (hospital_id) {
-        await PatientModel.updateHospital(id, hospital_id);
+      await PatientModel.updateHospital(id, hospital_id);
     }
     await PatientModel.updateStatus(id, 'ACTIVE'); 
     await PatientModel.updateCondition(id, 'monitoring');
@@ -98,7 +98,7 @@ const assignNurse = async (req, res) => {
     
     // We log a warning but allow the assignment to proceed to avoid blocking critical clinical care
     if (!isSameHospital) {
-        console.warn(`[Assignment] Warning: Nurse ${nurseId} is being assigned to patient ${patientId} outside of primary hospital ${patient.hospital_id}`);
+      console.warn(`[Assignment] Warning: Nurse ${nurseId} is being assigned to patient ${patientId} outside of primary hospital ${patient.hospital_id}`);
     }
 
     await CareTeamModel.assignNurse(patientId, nurseId, doctorId);
@@ -132,173 +132,173 @@ const assignNurse = async (req, res) => {
 };
 
 const getNursesForAssignment = async (req, res) => {
-    try {
-        const { hospital_id } = req.query;
-        // Search for both ACTIVE and PENDING nurses to ensure visibility during testing/pilot phases
-        let query = `
+  try {
+    const { hospital_id } = req.query;
+    // Search for both ACTIVE and PENDING nurses to ensure visibility during testing/pilot phases
+    let query = `
             SELECT id, full_name as name, email, qualification, years_of_experience, status, hospital_ids
             FROM nurses 
             WHERE (UPPER(status) IN ('ACTIVE', 'APPROVED', 'PENDINGADMINAPPROVAL'))
         `;
-        let params = [];
+    let params = [];
         
-        const hid = parseInt(hospital_id);
+    const hid = parseInt(hospital_id);
         
-        // Use a more robust check that handles potential type mismatches in the array
-        if (hospital_id && !isNaN(hid)) {
-            query += ' AND ($1::text = ANY(hospital_ids::text[]) OR $1::integer = ANY(hospital_ids::integer[]))';
-            params.push(hid);
-        }
+    // Use a more robust check that handles potential type mismatches in the array
+    if (hospital_id && !isNaN(hid)) {
+      query += ' AND ($1::text = ANY(hospital_ids::text[]) OR $1::integer = ANY(hospital_ids::integer[]))';
+      params.push(hid);
+    }
         
-        console.log(`[Nurse Selection] Querying for hospital_id: ${hospital_id}`);
-        let results = await pool.query(query, params);
+    console.log(`[Nurse Selection] Querying for hospital_id: ${hospital_id}`);
+    let results = await pool.query(query, params);
         
-        // If no nurses found for specific hospital, try to find ALL active nurses as a fallback
-        if (results.rows.length === 0 && hospital_id) {
-            console.log(`[Nurse Selection] No hospital-specific nurses found, checking global list...`);
-            const fallback = await pool.query(`
+    // If no nurses found for specific hospital, try to find ALL active nurses as a fallback
+    if (results.rows.length === 0 && hospital_id) {
+      console.log('[Nurse Selection] No hospital-specific nurses found, checking global list...');
+      const fallback = await pool.query(`
                 SELECT id, full_name as name, email, qualification, years_of_experience, status, hospital_ids
                 FROM nurses 
                 WHERE UPPER(status) IN ('ACTIVE', 'APPROVED', 'PENDINGADMINAPPROVAL')
                 LIMIT 10
             `);
-            results = fallback;
-        }
-        
-        console.log(`[Nurse Selection] Found ${results.rows.length} candidates`);
-        res.json(results.rows);
-    } catch (error) {
-        console.error('[Fetch Nurses Error]', error);
-        res.status(500).json({ error: 'Failed to fetch nurses' });
+      results = fallback;
     }
+        
+    console.log(`[Nurse Selection] Found ${results.rows.length} candidates`);
+    res.json(results.rows);
+  } catch (error) {
+    console.error('[Fetch Nurses Error]', error);
+    res.status(500).json({ error: 'Failed to fetch nurses' });
+  }
 };
 
 // Clinical Orders
 const createClinicalOrder = async (req, res) => {
-    const { patient_id, order_type, description, details } = req.body;
-    const doctor_id = req.user.id;
-    try {
-        const result = await pool.query(
-            `INSERT INTO clinical_orders (patient_id, doctor_id, order_type, description, details)
+  const { patient_id, order_type, description, details } = req.body;
+  const doctor_id = req.user.id;
+  try {
+    const result = await pool.query(
+      `INSERT INTO clinical_orders (patient_id, doctor_id, order_type, description, details)
              VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-            [patient_id, doctor_id, order_type, description, details]
-        );
-        res.status(201).json(result.rows[0]);
-    } catch (error) {
-        res.status(500).json({ error: 'Order creation failed' });
-    }
+      [patient_id, doctor_id, order_type, description, details]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: 'Order creation failed' });
+  }
 };
 
 const getPatientOrders = async (req, res) => {
-    const { patientId } = req.params;
-    try {
-        const result = await pool.query(
-            'SELECT * FROM clinical_orders WHERE patient_id = $1 ORDER BY created_at DESC',
-            [patientId]
-        );
-        res.json(result.rows);
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to fetch orders' });
-    }
+  const { patientId } = req.params;
+  try {
+    const result = await pool.query(
+      'SELECT * FROM clinical_orders WHERE patient_id = $1 ORDER BY created_at DESC',
+      [patientId]
+    );
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch orders' });
+  }
 };
 
 // Clinical Notes
 const createClinicalNote = async (req, res) => {
-    const { patient_id, assessment, plan, request_to_nurse } = req.body;
-    const doctor_id = req.user.id;
-    try {
-        const result = await pool.query(
-            `INSERT INTO clinical_notes (patient_id, doctor_id, assessment, plan, request_to_nurse)
+  const { patient_id, assessment, plan, request_to_nurse } = req.body;
+  const doctor_id = req.user.id;
+  try {
+    const result = await pool.query(
+      `INSERT INTO clinical_notes (patient_id, doctor_id, assessment, plan, request_to_nurse)
              VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-            [patient_id, doctor_id, assessment, plan, request_to_nurse]
-        );
-        res.status(201).json(result.rows[0]);
-    } catch (error) {
-        res.status(500).json({ error: 'Note creation failed' });
-    }
+      [patient_id, doctor_id, assessment, plan, request_to_nurse]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: 'Note creation failed' });
+  }
 };
 
 const getPatientNotes = async (req, res) => {
-    const { patientId } = req.params;
-    try {
-        const result = await pool.query(
-            'SELECT * FROM clinical_notes WHERE patient_id = $1 ORDER BY created_at DESC',
-            [patientId]
-        );
-        res.json(result.rows);
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to fetch notes' });
-    }
+  const { patientId } = req.params;
+  try {
+    const result = await pool.query(
+      'SELECT * FROM clinical_notes WHERE patient_id = $1 ORDER BY created_at DESC',
+      [patientId]
+    );
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch notes' });
+  }
 };
 
 const updatePatientCondition = async (req, res) => {
-    const { id } = req.params;
-    const { condition } = req.body;
-    try {
-        await PatientModel.updateCondition(id, condition);
-        res.json({ message: 'Condition updated' });
-    } catch (error) {
-        res.status(500).json({ error: 'Update failed' });
-    }
+  const { id } = req.params;
+  const { condition } = req.body;
+  try {
+    await PatientModel.updateCondition(id, condition);
+    res.json({ message: 'Condition updated' });
+  } catch (error) {
+    res.status(500).json({ error: 'Update failed' });
+  }
 };
 
 // Get all active doctors (for patient booking flow)
 const getAllDoctors = async (req, res) => {
-    try {
-        const result = await pool.query(
-            `SELECT id, full_name, email, specialization, years_of_experience,
+  try {
+    const result = await pool.query(
+      `SELECT id, full_name, email, specialization, years_of_experience,
                     institution_name, hospital_ids, status
              FROM doctors
              WHERE status = 'ACTIVE'
              ORDER BY full_name ASC`
-        );
-        res.json(result.rows);
-    } catch (error) {
-        console.error('[getAllDoctors Error]', error);
-        res.status(500).json({ error: 'Failed to fetch doctors' });
-    }
+    );
+    res.json(result.rows);
+  } catch (error) {
+    console.error('[getAllDoctors Error]', error);
+    res.status(500).json({ error: 'Failed to fetch doctors' });
+  }
 };
 
 // Get hospitals associated with a specific doctor
 const getDoctorHospitals = async (req, res) => {
-    const { id } = req.params;
-    try {
-        const doctor = await DoctorModel.findById(id);
-        if (!doctor) return res.status(404).json({ error: 'Doctor not found' });
+  const { id } = req.params;
+  try {
+    const doctor = await DoctorModel.findById(id);
+    if (!doctor) return res.status(404).json({ error: 'Doctor not found' });
 
-        const hospitalIds = doctor.hospital_ids || [];
-        if (hospitalIds.length === 0) return res.json([]);
+    const hospitalIds = doctor.hospital_ids || [];
+    if (hospitalIds.length === 0) return res.json([]);
 
-        const result = await pool.query(
-            `SELECT id, name, address, phone, type
+    const result = await pool.query(
+      `SELECT id, name, address, phone, type
              FROM hospitals
              WHERE id = ANY($1::int[])`,
-            [hospitalIds]
-        );
-        res.json(result.rows);
-    } catch (error) {
-        console.error('[getDoctorHospitals Error]', error);
-        res.status(500).json({ error: 'Failed to fetch doctor hospitals' });
-    }
+      [hospitalIds]
+    );
+    res.json(result.rows);
+  } catch (error) {
+    console.error('[getDoctorHospitals Error]', error);
+    res.status(500).json({ error: 'Failed to fetch doctor hospitals' });
+  }
 };
 
 // Get nurse shift reports for a patient (doctor view - read-only)
 const getPatientReportsByDoctor = async (req, res) => {
-    const { patientId } = req.params;
-    try {
-        const result = await pool.query(
-            `SELECT nr.*, n.full_name as nurse_name
+  const { patientId } = req.params;
+  try {
+    const result = await pool.query(
+      `SELECT nr.*, n.full_name as nurse_name
              FROM nurse_reports nr
              LEFT JOIN nurses n ON nr.nurse_id = n.id
              WHERE nr.patient_id = $1
              ORDER BY nr.created_at DESC`,
-            [patientId]
-        );
-        res.json(result.rows);
-    } catch (error) {
-        console.error('[getPatientReportsByDoctor Error]', error);
-        res.status(500).json({ error: 'Failed to fetch nurse reports' });
-    }
+      [patientId]
+    );
+    res.json(result.rows);
+  } catch (error) {
+    console.error('[getPatientReportsByDoctor Error]', error);
+    res.status(500).json({ error: 'Failed to fetch nurse reports' });
+  }
 };
 
 module.exports = {
@@ -317,18 +317,18 @@ module.exports = {
   getAllDoctors,
   getPatientReportsByDoctor,
   getPatientLabResults: async (req, res) => {
-      const { patientId } = req.params;
-      try {
-          const result = await pool.query(
-              `SELECT l.*, h.name as hospital_name 
+    const { patientId } = req.params;
+    try {
+      const result = await pool.query(
+        `SELECT l.*, h.name as hospital_name 
                FROM lab_results l 
                LEFT JOIN hospitals h ON l.hospital_id = h.id 
                WHERE l.patient_id = $1 ORDER BY l.created_at DESC`,
-              [patientId]
-          );
-          res.json(result.rows);
-      } catch (error) {
-          res.status(500).json({ error: 'Failed to fetch lab results' });
-      }
+        [patientId]
+      );
+      res.json(result.rows);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch lab results' });
+    }
   }
 };

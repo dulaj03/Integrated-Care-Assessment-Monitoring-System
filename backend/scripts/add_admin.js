@@ -9,15 +9,15 @@ async function addAdmin(username, password, email, fullName) {
     if (existing.rows.length > 0) {
       console.log(`User '${username}' already exists. Updating password instead.`);
       await pool.query('UPDATE admin_users SET password = $1, email = $2, full_name = $3, is_active = TRUE WHERE username = $4', 
-                       [hashedPassword, email, fullName, username]);
+        [hashedPassword, email, fullName, username]);
     } else {
       await pool.query('INSERT INTO admin_users (username, password, email, full_name, is_active) VALUES ($1, $2, $3, $4, TRUE)', 
-                       [username, hashedPassword, email, fullName]);
+        [username, hashedPassword, email, fullName]);
       console.log(`User '${username}' created successfully.`);
     }
     console.log(`Credentials: Username: ${username}, Password: ${password}`);
   } catch (err) {
-    console.error("FAIL:", err.message);
+    console.error('FAIL:', err.message);
   } finally {
     process.exit();
   }

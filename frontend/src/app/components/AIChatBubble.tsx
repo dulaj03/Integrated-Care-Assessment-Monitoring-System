@@ -23,7 +23,7 @@ export function AIChatBubble() {
       
       const greeting = isLoggedIn && userName
         ? `Hello ${userName}! I am Dr. ICAMS - Assistant. How can I help you today? You can ask me about symptoms, hospitals, doctors, or your health history.`
-        : `Hello Guest! I am Dr. ICAMS - Assistant. How can I help you today? You can ask me about symptoms, hospitals, and doctors.`;
+        : 'Hello Guest! I am Dr. ICAMS - Assistant. How can I help you today? You can ask me about symptoms, hospitals, and doctors.';
 
       setMessages([
         {
@@ -72,12 +72,12 @@ export function AIChatBubble() {
       if (response.ok) {
         setMessages(prev => [...prev, { role: 'model', content: data.reply }]);
       } else if (response.status === 429) {
-        setMessages(prev => [...prev, { role: 'model', content: "⏳ The AI service is a bit busy right now. Please wait a few seconds and try again!" }]);
+        setMessages(prev => [...prev, { role: 'model', content: '⏳ The AI service is a bit busy right now. Please wait a few seconds and try again!' }]);
       } else {
         setMessages(prev => [...prev, { role: 'model', content: `I'm sorry, something went wrong on my end (Error ${response.status}). Please try again in a moment.` }]);
       }
     } catch (error) {
-      setMessages(prev => [...prev, { role: 'model', content: "⚠️ Unable to reach the AI service. Please check your connection and try again." }]);
+      setMessages(prev => [...prev, { role: 'model', content: '⚠️ Unable to reach the AI service. Please check your connection and try again.' }]);
     } finally {
       setIsLoading(false);
     }

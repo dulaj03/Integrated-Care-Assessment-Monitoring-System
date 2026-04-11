@@ -80,11 +80,11 @@ export function DoctorReports() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'reviewed': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300';
-      case 'ready': return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300';
-      case 'ordered':
-      case 'processing': return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300';
-      default: return 'bg-slate-100 text-slate-700 dark:bg-slate-700';
+    case 'reviewed': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300';
+    case 'ready': return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300';
+    case 'ordered':
+    case 'processing': return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300';
+    default: return 'bg-slate-100 text-slate-700 dark:bg-slate-700';
     }
   };
 
@@ -214,10 +214,10 @@ export function DoctorReports() {
                   <span>{format(new Date(report.created_at), 'MMM d, yyyy · h:mm a')}</span>
                 </div>
                 {report.hospital_name && (
-                   <div className="flex items-center gap-2 text-sm font-bold text-slate-600 dark:text-slate-400">
-                     <TrendingUp className="h-4 w-4 text-blue-500" />
-                     <span>{report.hospital_name}</span>
-                   </div>
+                  <div className="flex items-center gap-2 text-sm font-bold text-slate-600 dark:text-slate-400">
+                    <TrendingUp className="h-4 w-4 text-blue-500" />
+                    <span>{report.hospital_name}</span>
+                  </div>
                 )}
                 {report.result_summary && (
                   <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700">
@@ -266,115 +266,115 @@ export function DoctorReports() {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="relative h-40 bg-slate-900 flex items-center justify-center text-white overflow-hidden p-8">
-                 <div className="absolute inset-0 opacity-10">
-                    <TrendingUp className="w-96 h-96 absolute -right-20 -bottom-20 rotate-12" />
-                 </div>
-                 <div className="relative w-full flex items-start justify-between">
-                    <div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${getStatusColor(selectedReport.status)}`}>
-                          {getStatusLabel(selectedReport.status)}
-                        </span>
-                        <p className="text-xs font-black uppercase tracking-widest opacity-60">Case #{String(selectedReport.id).slice(0, 8)}</p>
-                      </div>
-                      <h2 className="text-3xl font-black capitalize tracking-tight">{selectedReport.patient_name}</h2>
-                      <p className="text-blue-400 font-bold uppercase text-[10px] tracking-[0.2em] mt-1">{selectedReport.test_name}</p>
+                <div className="absolute inset-0 opacity-10">
+                  <TrendingUp className="w-96 h-96 absolute -right-20 -bottom-20 rotate-12" />
+                </div>
+                <div className="relative w-full flex items-start justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${getStatusColor(selectedReport.status)}`}>
+                        {getStatusLabel(selectedReport.status)}
+                      </span>
+                      <p className="text-xs font-black uppercase tracking-widest opacity-60">Case #{String(selectedReport.id).slice(0, 8)}</p>
                     </div>
-                 </div>
-                 <button 
-                   onClick={() => setSelectedReport(null)}
-                   className="absolute top-8 right-8 p-3 bg-white/10 hover:bg-white/20 rounded-full transition-all"
-                 >
-                   <X className="w-5 h-5" />
-                 </button>
+                    <h2 className="text-3xl font-black capitalize tracking-tight">{selectedReport.patient_name}</h2>
+                    <p className="text-blue-400 font-bold uppercase text-[10px] tracking-[0.2em] mt-1">{selectedReport.test_name}</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setSelectedReport(null)}
+                  className="absolute top-8 right-8 p-3 bg-white/10 hover:bg-white/20 rounded-full transition-all"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
 
               <div className="p-8 max-h-[60vh] overflow-y-auto space-y-6 custom-scrollbar">
                 <div className="grid grid-cols-2 gap-4">
-                   <div className="p-5 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-100 dark:border-white/5">
-                      <div className="flex items-center gap-3 mb-3">
-                         <Calendar className="w-5 h-5 text-blue-500" />
-                         <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Creation Date</p>
-                      </div>
-                      <p className="text-sm font-bold text-slate-900 dark:text-slate-100">{format(new Date(selectedReport.created_at), 'MMMM d, yyyy')}</p>
-                      <p className="text-[11px] font-bold text-slate-400 mt-0.5">{format(new Date(selectedReport.created_at), 'h:mm a')}</p>
-                   </div>
-                   <div className="p-5 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-100 dark:border-white/5">
-                      <div className="flex items-center gap-3 mb-3">
-                         <MapPin className="w-5 h-5 text-blue-500" />
-                         <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Facility</p>
-                      </div>
-                      <p className="text-sm font-bold text-slate-900 dark:text-slate-100">{selectedReport.hospital_name || 'N/A'}</p>
-                   </div>
+                  <div className="p-5 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-100 dark:border-white/5">
+                    <div className="flex items-center gap-3 mb-3">
+                      <Calendar className="w-5 h-5 text-blue-500" />
+                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Creation Date</p>
+                    </div>
+                    <p className="text-sm font-bold text-slate-900 dark:text-slate-100">{format(new Date(selectedReport.created_at), 'MMMM d, yyyy')}</p>
+                    <p className="text-[11px] font-bold text-slate-400 mt-0.5">{format(new Date(selectedReport.created_at), 'h:mm a')}</p>
+                  </div>
+                  <div className="p-5 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-100 dark:border-white/5">
+                    <div className="flex items-center gap-3 mb-3">
+                      <MapPin className="w-5 h-5 text-blue-500" />
+                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Facility</p>
+                    </div>
+                    <p className="text-sm font-bold text-slate-900 dark:text-slate-100">{selectedReport.hospital_name || 'N/A'}</p>
+                  </div>
                 </div>
 
                 <div className="p-6 bg-slate-900 text-white rounded-[2rem] shadow-xl relative overflow-hidden">
-                   <div className="relative z-10">
-                      <div className="flex items-center justify-between mb-4">
-                        <p className="text-[10px] font-black uppercase tracking-widest opacity-50 flex items-center gap-2">
-                           <ClipboardList className="w-4 h-4" /> Lab Observations
-                        </p>
-                        <ShieldCheck className="w-5 h-5 text-emerald-500" />
-                      </div>
-                      <p className="text-sm font-medium leading-relaxed italic opacity-90">
-                         "{selectedReport.result_summary || 'No detailed observations provided for this record.'}"
+                  <div className="relative z-10">
+                    <div className="flex items-center justify-between mb-4">
+                      <p className="text-[10px] font-black uppercase tracking-widest opacity-50 flex items-center gap-2">
+                        <ClipboardList className="w-4 h-4" /> Lab Observations
                       </p>
-                   </div>
+                      <ShieldCheck className="w-5 h-5 text-emerald-500" />
+                    </div>
+                    <p className="text-sm font-medium leading-relaxed italic opacity-90">
+                         "{selectedReport.result_summary || 'No detailed observations provided for this record.'}"
+                    </p>
+                  </div>
                 </div>
 
                 {selectedReport.review_note && (
                   <div className="p-6 bg-blue-50 dark:bg-blue-900/10 border-2 border-blue-100 dark:border-blue-900/30 rounded-[2rem]">
-                     <p className="text-[10px] font-black uppercase tracking-widest text-blue-600 dark:text-blue-400 mb-3 flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4" /> Doctor's Review Note
-                     </p>
-                     <p className="text-sm text-slate-700 dark:text-slate-300 font-bold leading-relaxed">
-                        {selectedReport.review_note}
-                     </p>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-blue-600 dark:text-blue-400 mb-3 flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4" /> Doctor's Review Note
+                    </p>
+                    <p className="text-sm text-slate-700 dark:text-slate-300 font-bold leading-relaxed">
+                      {selectedReport.review_note}
+                    </p>
                   </div>
                 )}
 
                 {selectedReport.file_url && (
                   <div className="p-4 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-3xl flex items-center justify-between group hover:border-blue-500 transition-all cursor-pointer" 
-                       onClick={() => handleDownload(selectedReport.file_url!, `Result_${selectedReport.patient_name}.jpg`)}>
-                     <div className="flex items-center gap-4">
-                        <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-2xl text-blue-600">
-                           <Download className="w-6 h-6" />
-                        </div>
-                        <div>
-                           <p className="text-sm font-black text-slate-900 dark:text-slate-100">Attachment Available</p>
-                           <p className="text-[10px] font-bold text-slate-400 uppercase">Diagnostic Image / Document</p>
-                        </div>
-                     </div>
-                     <Plus className="w-5 h-5 text-slate-300 group-hover:text-blue-500 transition-colors" />
+                    onClick={() => handleDownload(selectedReport.file_url!, `Result_${selectedReport.patient_name}.jpg`)}>
+                    <div className="flex items-center gap-4">
+                      <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-2xl text-blue-600">
+                        <Download className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-black text-slate-900 dark:text-slate-100">Attachment Available</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase">Diagnostic Image / Document</p>
+                      </div>
+                    </div>
+                    <Plus className="w-5 h-5 text-slate-300 group-hover:text-blue-500 transition-colors" />
                   </div>
                 )}
               </div>
 
               <div className="p-8 pt-4 space-y-3">
-                 {selectedReport.status === 'ready' && (
-                    <div className="space-y-3 p-6 bg-blue-50 dark:bg-blue-900/10 rounded-3xl border border-blue-100 dark:border-blue-900/20">
-                       <p className="text-[10px] font-black uppercase tracking-widest text-blue-600 dark:text-blue-400 mb-1">Enter Final Clinical Note</p>
-                       <textarea 
-                         value={reviewNote}
-                         onChange={(e) => setReviewNote(e.target.value)}
-                         placeholder="Add your expert review comments here..."
-                         className="w-full p-4 bg-white dark:bg-slate-800 border-2 border-blue-100 dark:border-blue-900/10 rounded-2xl text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none min-h-[100px] text-slate-800 dark:text-slate-100 placeholder:opacity-50"
-                       />
-                       <button 
-                         onClick={() => handleReview(selectedReport.id, reviewNote)}
-                         disabled={!reviewNote.trim()}
-                         className="w-full py-4 bg-blue-600 disabled:opacity-50 text-white rounded-2xl font-black text-sm transition-all hover:scale-[1.02] shadow-xl flex items-center justify-center gap-2"
-                       >
-                         <ShieldCheck className="w-5 h-5" /> FINALIZE & REVIEW
-                       </button>
-                    </div>
-                 )}
-                 <button 
-                   onClick={() => { setSelectedReport(null); setReviewNote(''); }}
-                   className="w-full py-4 bg-slate-900 text-white dark:bg-white dark:text-slate-900 rounded-2xl font-black text-sm transition-all hover:scale-[1.02] shadow-xl"
-                 >
+                {selectedReport.status === 'ready' && (
+                  <div className="space-y-3 p-6 bg-blue-50 dark:bg-blue-900/10 rounded-3xl border border-blue-100 dark:border-blue-900/20">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-blue-600 dark:text-blue-400 mb-1">Enter Final Clinical Note</p>
+                    <textarea 
+                      value={reviewNote}
+                      onChange={(e) => setReviewNote(e.target.value)}
+                      placeholder="Add your expert review comments here..."
+                      className="w-full p-4 bg-white dark:bg-slate-800 border-2 border-blue-100 dark:border-blue-900/10 rounded-2xl text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none min-h-[100px] text-slate-800 dark:text-slate-100 placeholder:opacity-50"
+                    />
+                    <button 
+                      onClick={() => handleReview(selectedReport.id, reviewNote)}
+                      disabled={!reviewNote.trim()}
+                      className="w-full py-4 bg-blue-600 disabled:opacity-50 text-white rounded-2xl font-black text-sm transition-all hover:scale-[1.02] shadow-xl flex items-center justify-center gap-2"
+                    >
+                      <ShieldCheck className="w-5 h-5" /> FINALIZE & REVIEW
+                    </button>
+                  </div>
+                )}
+                <button 
+                  onClick={() => { setSelectedReport(null); setReviewNote(''); }}
+                  className="w-full py-4 bg-slate-900 text-white dark:bg-white dark:text-slate-900 rounded-2xl font-black text-sm transition-all hover:scale-[1.02] shadow-xl"
+                >
                    DISMISS CASE
-                 </button>
+                </button>
               </div>
             </motion.div>
           </div>

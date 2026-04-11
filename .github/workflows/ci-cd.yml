@@ -7,10 +7,41 @@ on:
     branches: [main, develop]
 
 jobs:
-  backend-tests:
+  admin-panel:
+    name: Admin Panel - Lint & Test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+          cache-dependency-path: admin/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./admin
+        run: npm ci
+
+      - name: Run ESLint
+        working-directory: ./admin
+        run: npm run lint
+
+      - name: Run unit & component tests
+        working-directory: ./admin
+        run: npm test -- --run
+
+  backend:
     name: Backend - Lint & Test
     runs-on: ubuntu-latest
-
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
     env:
       NODE_ENV: test
       JWT_SECRET: test-jwt-secret-key
@@ -19,15 +50,14 @@ jobs:
       DB_USER: test_user
       DB_PASSWORD: test_password
       DB_NAME: test_db
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
-          node-version: 20.x
+          node-version: ${{ matrix.node-version }}
           cache: "npm"
           cache-dependency-path: backend/package-lock.json
 
@@ -38,8 +68,122 @@ jobs:
       - name: Run ESLint
         working-directory: ./backend
         run: npm run lint
-        continue-on-error: true
 
       - name: Run unit & integration tests
         working-directory: ./backend
         run: npm test
+
+  frontend:
+    name: Frontend - Lint & Test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Run ESLint
+        working-directory: ./frontend
+        run: npm run lint
+
+      - name: Run unit & component tests
+        working-directory: ./frontend
+        run: npm test -- --run
+
+  security-checks:
+    name: Security Checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+
+      - name: Backend Security Audit
+        working-directory: ./backend
+        run: npm audit --audit-level=high
+
+      - name: Frontend Security Audit
+        working-directory: ./frontend
+        run: npm audit --audit-level=high
+
+      - name: Admin Security Audit
+        working-directory: ./admin
+        run: npm audit --audit-level=high
+
+  integration-tests:
+    name: Integration Tests
+    needs: [admin-panel, backend, frontend]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+
+      - name: Install Backend Dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Run API Integration Suite
+        working-directory: ./backend
+        run: npm test -- tests/integration
+
+  build-verification:
+    name: Build Verification
+    needs: [admin-panel, backend, frontend]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+
+      - name: Build Frontend Application
+        working-directory: ./frontend
+        run: |
+          npm ci
+          npm run build
+
+      - name: Build Admin Application
+        working-directory: ./admin
+        run: |
+          npm ci
+          npm run build
+
+  final-status-check:
+    name: Final Status Check
+    needs: [security-checks, integration-tests, build-verification]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Verify All Result Statuses
+        run: |
+          if [[ "${{ needs.security-checks.result }}" == "success" && "${{ needs.integration-tests.result }}" == "success" && "${{ needs.build-verification.result }}" == "success" ]]; then
+            echo "✅ COMPREHENSIVE PIPELINE PASSED SUCCESSFULLY"
+            exit 0
+          else
+            echo "❌ PIPELINE FAILED AT ONE OR MORE GATEWAYS"
+            exit 1
+          fi

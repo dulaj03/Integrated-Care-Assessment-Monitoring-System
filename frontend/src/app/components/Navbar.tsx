@@ -16,11 +16,11 @@ export function Navbar() {
 
   const getDashboardPath = () => {
     switch (userRole) {
-      case 'patient': return '/patient/dashboard';
-      case 'doctor': return '/doctor/dashboard';
-      case 'nurse': return '/nurse/dashboard';
-      case 'hospital': return '/hospital/dashboard';
-      default: return '/login';
+    case 'patient': return '/patient/dashboard';
+    case 'doctor': return '/doctor/dashboard';
+    case 'nurse': return '/nurse/dashboard';
+    case 'hospital': return '/hospital/dashboard';
+    default: return '/login';
     }
   };
 
