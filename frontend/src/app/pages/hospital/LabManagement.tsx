@@ -4,12 +4,13 @@ import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   LAB_STATUS_STEPS,
-  getLabStatusLabel,
-  getLabStatusColor,
-  LabTestStatus
+  getLabStatusColor
 } from '../../lib/hospitalData';
+import { useTranslation } from 'react-i18next';
 
 export function LabManagement() {
+  const { t } = useTranslation();
+  const toCamelCase = (str: string) => str.replace(/_([a-z])/g, (g) => g[1].toUpperCase());
   const [tests, setTests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -53,7 +54,7 @@ export function LabManagement() {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
-        },
+         },
         body: JSON.stringify({ status: newStatus, ...payload })
       });
       if (res.ok) {
@@ -86,7 +87,7 @@ export function LabManagement() {
     return (
       <div className="flex flex-col items-center justify-center p-20 space-y-4">
         <Loader2 className="h-10 w-10 text-blue-500 animate-spin" />
-        <p className="text-slate-500 italic">Synchronizing with lab database...</p>
+        <p className="text-slate-500 italic">{t('lab_management.syncing')}</p>
       </div>
     );
   }
@@ -94,19 +95,19 @@ export function LabManagement() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Lab Management</h2>
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-white">{t('lab_management.title')}</h2>
         <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-          Update test progress and upload results for patients
+          {t('lab_management.subtitle')}
         </p>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: 'Total Tests', value: tests.length, color: 'text-slate-900 dark:text-white' },
-          { label: 'Ordered / Pending', value: tests.filter(t => t.status === 'ordered').length, color: 'text-slate-600 dark:text-slate-400' },
-          { label: 'In Progress', value: tests.filter(t => ['sample_scheduled', 'sample_collected', 'processing'].includes(t.status)).length, color: 'text-yellow-600 dark:text-yellow-400' },
-          { label: 'Results Ready', value: tests.filter(t => t.status === 'results_ready').length, color: 'text-green-600 dark:text-green-400' },
+          { label: t('lab_management.totalTests'), value: tests.length, color: 'text-slate-900 dark:text-white' },
+          { label: t('lab_management.orderedPending'), value: tests.filter(t => t.status === 'ordered').length, color: 'text-slate-600 dark:text-slate-400' },
+          { label: t('lab_management.inProgress'), value: tests.filter(t => ['sample_scheduled', 'sample_collected', 'processing'].includes(t.status)).length, color: 'text-yellow-600 dark:text-yellow-400' },
+          { label: t('lab_management.resultsReady'), value: tests.filter(t => t.status === 'results_ready').length, color: 'text-green-600 dark:text-green-400' },
         ].map(s => (
           <div key={s.label} className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 text-center">
             <p className={`text-2xl font-extrabold ${s.color}`}>{s.value}</p>
@@ -123,7 +124,7 @@ export function LabManagement() {
               ? 'bg-blue-600 text-white'
               : 'bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:border-blue-400'
             }`}>
-            {s === 'all' ? 'All' : getLabStatusLabel(s as LabTestStatus)}
+            {s === 'all' ? t('lab_management.allTests') : t(`patient_labtests.${toCamelCase(s)}`) || s}
           </button>
         ))}
       </div>
@@ -148,16 +149,16 @@ export function LabManagement() {
                         test.priority === 'urgent' ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300' :
                           'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
                       }`}>
-                        {test.priority === 'stat' ? '🔴 STAT' : test.priority === 'urgent' ? '🟠 Urgent' : 'Routine'}
+                        {test.priority === 'stat' ? `🔴 ${t('lab_management.stat')}` : test.priority === 'urgent' ? `🟠 ${t('lab_management.urgent')}` : t('lab_management.routine')}
                       </span>
                     </div>
                     <p className="text-sm text-slate-500 dark:text-slate-400">
-                      Patient: <span className="font-medium text-slate-700 dark:text-slate-300">{getPatientName(test.patient_id, test)}</span>
-                      · Ordered: {format(new Date(test.created_at), 'MMM d, yyyy')}
+                      {t('lab_management.patient')}: <span className="font-medium text-slate-700 dark:text-slate-300">{getPatientName(test.patient_id, test)}</span>
+                      · {t('lab_management.ordered')}: {format(new Date(test.created_at), 'MMM d, yyyy')}
                     </p>
                   </div>
                   <span className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-tight ${getLabStatusColor(test.status as any)}`}>
-                    {getLabStatusLabel(test.status as any)}
+                    {t(`patient_labtests.${toCamelCase(test.status)}`) || test.status}
                   </span>
                 </div>
 
@@ -172,7 +173,7 @@ export function LabManagement() {
                   <div className="flex justify-between mt-1.5">
                     {LAB_STATUS_STEPS.map((s, i) => (
                       <div key={s} className={`text-xs ${i <= currentStepIdx ? 'text-blue-600 dark:text-blue-400 font-medium' : 'text-slate-400 dark:text-slate-600'}`}>
-                        {i === 0 ? 'Ordered' : i === LAB_STATUS_STEPS.length - 1 ? 'Reviewed' : ''}
+                        {i === 0 ? t('lab_management.ordered') : i === LAB_STATUS_STEPS.length - 1 ? t('patient_labtests.reviewed') : ''}
                       </div>
                     ))}
                   </div>
@@ -182,42 +183,42 @@ export function LabManagement() {
                 <div className="flex flex-col sm:flex-row gap-3">
                   {canAdvance && (
                     <div className="flex gap-2 flex-1">
-                      <input type="text" placeholder="Add a note (optional)..."
+                      <input type="text" placeholder={t('lab_management.addNote')}
                         value={uploadNote[test.id] || ''}
                         onChange={e => setUploadNote(prev => ({ ...prev, [test.id]: e.target.value }))}
                         className="flex-1 px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500" />
                       <button onClick={() => advanceStatus(test.id)} disabled={isUpdating}
                         className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-60">
                         {isUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-                        Advance: {getLabStatusLabel(LAB_STATUS_STEPS[Math.min(currentStepIdx + 1, LAB_STATUS_STEPS.length - 1)])}
+                        {t('lab_management.advance')}: {t(`patient_labtests.${toCamelCase(LAB_STATUS_STEPS[Math.min(currentStepIdx + 1, LAB_STATUS_STEPS.length - 1)])}`) || LAB_STATUS_STEPS[Math.min(currentStepIdx + 1, LAB_STATUS_STEPS.length - 1)]}
                       </button>
                     </div>
                   )}
 
                   {test.status === 'processing' && (
                     <div className="flex gap-2 flex-1">
-                      <input type="text" placeholder="Enter result summary..."
+                      <input type="text" placeholder={t('lab_management.enterResult')}
                         value={resultInputs[test.id] || ''}
                         onChange={e => setResultInputs(prev => ({ ...prev, [test.id]: e.target.value }))}
                         className="flex-1 px-3 py-2 text-sm border border-green-300 dark:border-green-700 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500" />
                       <button onClick={() => uploadResult(test.id)} disabled={isUpdating || !resultInputs[test.id]}
                         className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors flex items-center gap-2 disabled:opacity-50">
                         {isUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                        Upload Result
+                        {t('lab_management.uploadResult')}
                       </button>
                     </div>
                   )}
 
                   {test.status === 'results_ready' && (
                     <span className="flex items-center gap-2 text-sm font-semibold text-green-600 dark:text-green-400">
-                      <CheckCircle2 className="h-5 w-5" /> Results uploaded and visible to patient
+                      <CheckCircle2 className="h-5 w-5" /> {t('lab_management.resultsVisible')}
                     </span>
                   )}
 
                   <button onClick={() => setExpandedId(isExpanded ? null : test.id)}
                     className="flex items-center gap-1 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 transition-colors whitespace-nowrap">
                     {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                    {isExpanded ? 'Hide' : 'Show'} steps
+                    {isExpanded ? t('lab_management.hideSteps') : t('lab_management.showSteps')}
                   </button>
                 </div>
               </div>
@@ -227,7 +228,7 @@ export function LabManagement() {
                 {isExpanded && (
                   <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }} className="overflow-hidden">
                     <div className="border-t border-slate-200 dark:border-slate-700 px-5 py-4 space-y-3">
-                      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">Progress Timeline</p>
+                      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">{t('lab_management.timeline')}</p>
                       {(test.steps || []).map((step: any, i: number) => (
                         <div key={i} className="flex gap-3 items-start">
                           <div className="flex flex-col items-center">
@@ -256,7 +257,7 @@ export function LabManagement() {
         {filtered.length === 0 && (
           <div className="text-center py-16 text-slate-500 dark:text-slate-400">
             <FlaskConical className="h-12 w-12 mx-auto mb-3 opacity-30" />
-            <p className="font-medium">No tests found for this filter.</p>
+            <p className="font-medium">{t('lab_management.noTestsFound')}</p>
           </div>
         )}
       </div>

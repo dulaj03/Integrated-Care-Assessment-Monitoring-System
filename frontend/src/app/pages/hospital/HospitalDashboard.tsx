@@ -9,6 +9,7 @@ import {
   MOCK_HOSPITALS,
   getAppointmentStatusColor,
 } from '../../lib/hospitalData';
+import { useTranslation } from 'react-i18next';
 
 // Safely parse a date string or object into a local Date object
 function parseLocalDate(dateInput: any): Date {
@@ -110,17 +111,19 @@ export function HospitalDashboard() {
   const todayAppointments = appointments.filter(a => isToday(parseLocalDate(a.appointment_date)));
   const pendingActionCount = appointments.filter(a => a.status === 'requested').length;
 
+  const { t } = useTranslation();
+
   const stats = [
-    { label: "Today's Appointments", value: todayAppointments.length, icon: Calendar, color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-900/20' },
-    { label: 'Pending Invitations', value: pendingActionCount, icon: Clock, color: 'text-orange-600 dark:text-orange-400', bg: 'bg-orange-50 dark:bg-orange-900/20' },
-    { label: 'Doctors On Roster', value: MOCK_HOSPITAL_DOCTORS.filter(d => d.hospitalId === hospital.id).length, icon: Users, color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-50 dark:bg-purple-900/20' },
+    { label: t('hospital_dashboard.todayAppointments'), value: todayAppointments.length, icon: Calendar, color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-900/20' },
+    { label: t('hospital_dashboard.pendingInvitations'), value: pendingActionCount, icon: Clock, color: 'text-orange-600 dark:text-orange-400', bg: 'bg-orange-50 dark:bg-orange-900/20' },
+    { label: t('hospital_dashboard.doctorsOnRoster'), value: MOCK_HOSPITAL_DOCTORS.filter(d => d.hospitalId === hospital.id).length, icon: Users, color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-50 dark:bg-purple-900/20' },
   ];
 
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center p-20 gap-4">
         <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
-        <p className="text-slate-500">Loading hospital metrics...</p>
+        <p className="text-slate-500">{t('hospital_dashboard.loadingMetrics')}</p>
       </div>
     );
   }
@@ -156,10 +159,10 @@ export function HospitalDashboard() {
         {/* Pending Actions */}
         <div className="rounded-xl border border-orange-200 dark:border-orange-900/50 bg-orange-50/30 dark:bg-orange-900/5 p-5">
           <h3 className="font-bold text-orange-900 dark:text-orange-400 mb-4 flex items-center gap-2">
-            <Clock className="h-5 w-5" /> Appointments Requiring Action
+            <Clock className="h-5 w-5" /> {t('hospital_dashboard.apptRequiringAction')}
           </h3>
           {appointments.filter(a => a.status === 'requested').length === 0 ? (
-            <p className="text-sm text-slate-500 py-4">All appointments have been processed.</p>
+            <p className="text-sm text-slate-500 py-4">{t('hospital_dashboard.allApptsProcessed')}</p>
           ) : (
             <div className="space-y-3">
               {appointments.filter(a => a.status === 'requested').map(appt => (
@@ -167,13 +170,13 @@ export function HospitalDashboard() {
                   <div className="flex justify-between items-start mb-2">
                     <div>
                       <p className="font-bold text-slate-900 dark:text-white">{appt.patient_name}</p>
-                      <p className="text-xs text-slate-500">Requested for {appt.doctor_name}</p>
+                      <p className="text-xs text-slate-500">{t('hospital_dashboard.requestedFor')} {appt.doctor_name}</p>
                     </div>
                     <button 
                       onClick={() => handleNotifyDoctor(appt.id)}
                       className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition-all"
                     >
-                      <Send className="h-3 w-3" /> Notify Doctor
+                      <Send className="h-3 w-3" /> {t('hospital_dashboard.notifyDoctor')}
                     </button>
                   </div>
                   <div className="flex gap-4 text-[11px] text-slate-500 font-medium">
@@ -190,11 +193,11 @@ export function HospitalDashboard() {
         <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-blue-500" /> Master Schedule
+              <Calendar className="h-5 w-5 text-blue-500" /> {t('hospital_dashboard.masterSchedule')}
             </h3>
           </div>
           {appointments.length === 0 ? (
-            <p className="text-sm text-slate-500 dark:text-slate-400 py-8 text-center">No appointments scheduled.</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 py-8 text-center">{t('hospital_dashboard.noApptsScheduled')}</p>
           ) : (
             <div className="space-y-3">
               {appointments.slice(0, 5).map(appt => (
@@ -220,7 +223,7 @@ export function HospitalDashboard() {
       <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-            <Users className="h-5 w-5 text-emerald-500" /> Active Patients
+            <Users className="h-5 w-5 text-emerald-500" /> {t('hospital_dashboard.activePatients')}
           </h3>
         </div>
         <div className="overflow-x-auto">
@@ -237,7 +240,7 @@ export function HospitalDashboard() {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
-                    {patient.condition || 'N/A'}
+                    {patient.condition || t('hospital_dashboard.condition')}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 inline-flex text-[10px] leading-5 font-bold rounded-full uppercase ${patient.status === 'ciritical' || patient.status === 'CRITICAL' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
@@ -245,7 +248,7 @@ export function HospitalDashboard() {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
-                    {patient.doctor_name || 'Unassigned'}
+                    {patient.doctor_name || t('hospital_dashboard.unassigned')}
                   </td>
                 </tr>
               ))}

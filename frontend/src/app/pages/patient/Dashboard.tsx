@@ -655,7 +655,7 @@ export function PatientDashboard() {
               <div className="flex flex-wrap gap-2">
                 {(Array.isArray(latestLog.symptoms) ? latestLog.symptoms : JSON.parse((latestLog.symptoms as string) || '[]')).map((symptom: string) => (
                   <span key={symptom} className="px-2 py-1 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-[10px] font-bold rounded-full border border-red-100 dark:border-red-800">
-                    {symptom}
+                    {t(`patient_dashboard.${symptom.toLowerCase().replace(/\s+/g, '')}`)}
                   </span>
                 ))}
               </div>
