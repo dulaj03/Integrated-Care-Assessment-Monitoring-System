@@ -1,4 +1,4 @@
-import { Mail, Phone, Shield, User as UserIcon, Award, Briefcase, Building2, CreditCard, Edit, CheckCircle2 } from 'lucide-react';
+import { Mail, Phone, Shield, User as UserIcon, Award, Briefcase, Building2, CreditCard, Edit, CheckCircle2, Camera } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 
@@ -15,7 +15,10 @@ export function Settings() {
     years_of_experience: '',
     institution_name: '',
     registration_number: '',
+    avatar: '',
   });
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   
   const [saveLoading, setSaveLoading] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
@@ -46,7 +49,9 @@ export function Settings() {
             years_of_experience: String(user.years_of_experience || ''),
             institution_name: user.institution_name || '',
             registration_number: user.registration_number || '',
+            avatar: user.avatar || '',
           });
+          setAvatarPreview(user.avatar || null);
         }
       } catch (err) {
         console.error('Error fetching profile:', err);
@@ -60,6 +65,14 @@ export function Settings() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setAvatarFile(file);
+      setAvatarPreview(URL.createObjectURL(file));
+    }
   };
 
   const handleChangePassword = async (e: React.FormEvent) => {
@@ -105,13 +118,20 @@ export function Settings() {
     const token = sessionStorage.getItem('token');
     
     try {
+      const data = new FormData();
+      Object.entries(formData).forEach(([key, value]) => {
+        data.append(key, value);
+      });
+      if (avatarFile) {
+        data.append('avatar', avatarFile);
+      }
+
       const res = await fetch('http://localhost:5000/api/auth/professional/profile', {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(formData)
+        body: data
       });
 
       if (res.ok) {
@@ -175,12 +195,26 @@ export function Settings() {
         <div className="lg:col-span-1 space-y-6">
           <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 shadow-sm border border-slate-100 dark:border-slate-800 text-center">
             <div className="relative inline-block mb-4">
-              <div className="h-24 w-24 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 mx-auto">
-                <UserIcon size={48} />
+              <div className="h-24 w-24 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 mx-auto overflow-hidden border-2 border-slate-100 dark:border-slate-800">
+                {avatarPreview ? (
+                  <img src={avatarPreview} alt={profile.full_name} className="h-full w-full object-cover" />
+                ) : (
+                  <UserIcon size={48} />
+                )}
               </div>
-              <div className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full bg-emerald-500 border-4 border-white dark:border-slate-900 flex items-center justify-center text-white">
-                <CheckCircle2 size={16} />
-              </div>
+              
+              {isEditing && (
+                <label className="absolute bottom-0 right-0 h-8 w-8 rounded-full bg-blue-600 border-2 border-white dark:border-slate-900 flex items-center justify-center text-white cursor-pointer hover:bg-blue-700 transition-colors shadow-lg">
+                  <Camera size={14} />
+                  <input type="file" className="hidden" accept="image/*" onChange={handleAvatarChange} />
+                </label>
+              )}
+              
+              {!isEditing && (
+                <div className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full bg-emerald-500 border-4 border-white dark:border-slate-900 flex items-center justify-center text-white">
+                  <CheckCircle2 size={16} />
+                </div>
+              )}
             </div>
             <h3 className="text-xl font-black text-slate-900 dark:text-white">{profile.full_name}</h3>
             <p className="text-[10px] uppercase font-black tracking-widest text-blue-500 mb-6">{roleLabel}</p>

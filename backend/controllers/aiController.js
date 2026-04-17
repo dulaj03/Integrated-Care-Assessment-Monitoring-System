@@ -89,7 +89,7 @@ Current User Role: ${user ? user.role : 'GUEST'}
 `;
 
       const model = genAI.getGenerativeModel({ 
-        model: 'gemini-2.0-flash',
+        model: 'gemini-2.5-flash',
         systemInstruction: systemPrompt
       });
 
@@ -109,14 +109,21 @@ Current User Role: ${user ? user.role : 'GUEST'}
       console.error('🔥 AI Chat Error Details:', {
         message: error.message,
         status: error.status,
-        apiKeyExists: !!process.env.GEMINI_API_KEY
+        apiKeyExists: !!process.env.GEMINI_API_KEY,
+        fullError: error
       });
 
       // Handle rate limit errors (429) with a user-friendly message
       if (error.status === 429 || (error.message && error.message.includes('429'))) {
+        let details = 'The AI service is temporarily busy. Please wait a moment and try again.';
+        
+        if (error.message.includes('limit: 0') || error.message.includes('quota exceeded')) {
+          details = 'Your API key has no quota (limit: 0). Please check that the Generative Language API is enabled in Google AI Studio for this specific key.';
+        }
+
         return res.status(429).json({
           error: 'Rate limit reached',
-          details: 'The AI service is temporarily busy. Please wait a moment and try again.'
+          details: details
         });
       }
 

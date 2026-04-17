@@ -4,6 +4,8 @@ import { UserTable } from '../components/UserTable';
 import { AddHospitalModal } from '../components/AddHospitalModal';
 import { AdminSettings } from '../components/AdminSettings';
 import { PendingReviewModal } from '../components/PendingReviewModal';
+import { ReportedReviewsTable } from '../components/ReportedReviewsTable';
+import { PlatformReviewsTable } from '../components/PlatformReviewsTable';
 import type { AdminUser, UserStatus } from '../types/user';
 import {
   Search,
@@ -286,6 +288,10 @@ export const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
           <div className="animate-fade-in">
             {activeTab === 'settings' ? (
               <AdminSettings />
+            ) : activeTab === 'rating-reports' ? (
+              <ReportedReviewsTable />
+            ) : activeTab === 'platform-reviews' ? (
+              <PlatformReviewsTable />
             ) : loading ? (
               <div className="flex flex-col items-center justify-center py-20 gap-4">
                 <Loader2 className="w-10 h-10 text-blue-500 animate-spin" />

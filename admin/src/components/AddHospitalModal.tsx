@@ -37,7 +37,7 @@ export const AddHospitalModal = ({ isOpen, onClose, onSuccess }: AddHospitalModa
     e.preventDefault();
     setLoading(true);
 
-    const token = localStorage.getItem('admin_token');
+    const token = sessionStorage.getItem('admin_token');
 
     try {
       const res = await fetch('http://localhost:5000/api/admin/hospitals', {

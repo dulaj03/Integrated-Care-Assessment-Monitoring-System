@@ -73,7 +73,8 @@
     "patientCare": "Patient Care",
     "rounds": "Rounds",
     "signIn": "Sign In",
-    "getStarted": "Get Started"
+    "getStarted": "Get Started",
+    "reviews": "Reviews"
   },
   "hero": {
     "badge": "Sri Lanka's First Integrated Care Platform",
@@ -368,6 +369,7 @@
     "careHistory": "Care History",
     "appointments": "Appointments",
     "findHospitals": "Find Hospitals",
+    "findDoctors": "Find Doctors",
     "labResults": "Lab Results",
     "messages": "Messages",
     "profile": "Profile",
@@ -379,6 +381,7 @@
     "patients": "Patients",
     "patientCare": "Patient Care",
     "rounds": "Rounds",
+    "reviews": "Reviews",
     "signOut": "Sign Out",
     "openSidebar": "Open sidebar"
   },
@@ -388,6 +391,7 @@
     "logHealth": "Log Health",
     "logHealthVitals": "Log Health Vitals",
     "bookHospital": "Book Hospital",
+    "findDoctor": "Find a Doctor",
     "attentionNeeded": "Attention Needed",
     "statusWarning": "Your current status is marked as",
     "pleaseEnsure": "Please ensure you are logging your vitals daily and following your doctor's advice.",

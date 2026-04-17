@@ -22,18 +22,30 @@ const labController = {
         [patient_id, doctor_id, hospital_id, test_name, test_type]
       );
 
-      // Notify assigned nurses
+      // Notify assigned nurses and patient
       try {
         const NotificationModel = require('../models/notificationModel');
         const CareTeamModel = require('../models/careTeamModel');
+        
+        // 1. Notify Patient
+        await NotificationModel.create({
+          user_id: patient_id,
+          user_role: 'patient',
+          title: 'Official Lab Order',
+          message: `Dr. ${req.user.full_name || 'Your Doctor'} has ordered a ${test_name} (${test_type}).`,
+          type: 'info'
+        });
+
+        // 2. Notify Nurses
         const assignedNurses = await CareTeamModel.getNursesByPatientId(patient_id);
+        const patientData = await PatientModel.findById(patient_id);
                 
         for (const nurse of assignedNurses) {
           await NotificationModel.create({
             user_id: nurse.id,
             user_role: 'nurse',
             title: 'New Lab Request',
-            message: `Doctor has ordered a ${test_name} (${test_type}) for your assigned patient.`,
+            message: `Doctor has ordered a ${test_name} (${test_type}) for ${patientData.full_name}.`,
             type: 'info'
           });
         }

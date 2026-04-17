@@ -74,6 +74,7 @@ CREATE TABLE doctors (
     registration_number VARCHAR(50) NOT NULL,
     license_document    VARCHAR(255), 
     hospital_ids        INTEGER[],               -- Kept for performance/simplicity as JSON/Array
+    avatar              TEXT,
     status              VARCHAR(30) DEFAULT 'pendingadminapproval',
     created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -94,6 +95,7 @@ CREATE TABLE nurses (
     registration_number VARCHAR(50) NOT NULL,
     license_document    VARCHAR(255), 
     hospital_ids        INTEGER[],
+    avatar              TEXT,
     status              VARCHAR(30) DEFAULT 'pendingadminapproval',
     created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -125,6 +127,35 @@ CREATE TABLE patient_nurse_assignments (
     assigned_by     INTEGER NOT NULL REFERENCES doctors(id),
     created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(patient_id, nurse_id)
+);
+
+-- ============================================================
+-- TABLE: doctor_ratings
+-- ============================================================
+CREATE TABLE doctor_ratings (
+    id          SERIAL PRIMARY KEY,
+    doctor_id   INTEGER NOT NULL REFERENCES doctors(id) ON DELETE CASCADE,
+    patient_id  INTEGER NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
+    rating      INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    review      TEXT,
+    is_reported BOOLEAN DEFAULT FALSE,
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(doctor_id, patient_id)
+);
+
+-- ============================================================
+-- TABLE: platform_reviews
+-- ============================================================
+CREATE TABLE platform_reviews (
+    id          SERIAL PRIMARY KEY,
+    user_id     INTEGER NOT NULL,
+    user_role   VARCHAR(50) NOT NULL,
+    user_name   VARCHAR(100) NOT NULL,
+    user_avatar TEXT,
+    rating      INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    review_text TEXT NOT NULL,
+    is_featured BOOLEAN DEFAULT FALSE,
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- ============================================================

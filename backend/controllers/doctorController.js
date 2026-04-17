@@ -183,7 +183,38 @@ const createClinicalOrder = async (req, res) => {
              VALUES ($1, $2, $3, $4, $5) RETURNING *`,
       [patient_id, doctor_id, order_type, description, details]
     );
-    res.status(201).json(result.rows[0]);
+
+    const order = result.rows[0];
+
+    // FR: Notify Patient and Nurses
+    try {
+      const patient = await PatientModel.findById(patient_id);
+      
+      // 1. Notify Patient
+      await NotificationModel.create({
+        user_id: patient_id,
+        user_role: 'patient',
+        title: 'New Care Order',
+        message: `Dr. ${req.user.full_name || 'Your Doctor'} has issued a new ${order_type.replace('_', ' ')}: ${description}`,
+        type: 'order'
+      });
+
+      // 2. Notify Assigned Nurses
+      const assignedNurses = await CareTeamModel.getNursesByPatientId(patient_id);
+      for (const nurse of assignedNurses) {
+        await NotificationModel.create({
+          user_id: nurse.id,
+          user_role: 'nurse',
+          title: 'Direct Care Directive',
+          message: `New ${order_type.replace('_', ' ')} for ${patient.full_name}: ${description}`,
+          type: 'order'
+        });
+      }
+    } catch (notifyErr) {
+      console.error('[Notification Error] Failed to signal order alerts:', notifyErr);
+    }
+
+    res.status(201).json(order);
   } catch (error) {
     res.status(500).json({ error: 'Order creation failed' });
   }
@@ -212,7 +243,29 @@ const createClinicalNote = async (req, res) => {
              VALUES ($1, $2, $3, $4, $5) RETURNING *`,
       [patient_id, doctor_id, assessment, plan, request_to_nurse]
     );
-    res.status(201).json(result.rows[0]);
+
+    const note = result.rows[0];
+
+    // FR: Notify Assigned Nurses if there is a directive
+    if (request_to_nurse && request_to_nurse.trim()) {
+      try {
+        const patient = await PatientModel.findById(patient_id);
+        const assignedNurses = await CareTeamModel.getNursesByPatientId(patient_id);
+        for (const nurse of assignedNurses) {
+          await NotificationModel.create({
+            user_id: nurse.id,
+            user_role: 'nurse',
+            title: 'New Clinical Note Directive',
+            message: `Dr. ${req.user.full_name || 'Your Doctor'} has left a note for ${patient.full_name}: ${request_to_nurse}`,
+            type: 'info'
+          });
+        }
+      } catch (notifyErr) {
+        console.error('[Notification Error] Failed to signal note alerts:', notifyErr);
+      }
+    }
+
+    res.status(201).json(note);
   } catch (error) {
     res.status(500).json({ error: 'Note creation failed' });
   }
@@ -246,11 +299,15 @@ const updatePatientCondition = async (req, res) => {
 const getAllDoctors = async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT id, full_name, email, specialization, years_of_experience,
-                    institution_name, hospital_ids, status
-             FROM doctors
-             WHERE status = 'ACTIVE'
-             ORDER BY full_name ASC`
+      `SELECT d.id, d.full_name, d.email, d.specialization, d.years_of_experience,
+                    d.institution_name, d.hospital_ids, d.status, d.avatar,
+                    COALESCE(AVG(r.rating), 0)::numeric(2,1) as avg_rating,
+                    COUNT(r.id) as review_count
+             FROM doctors d
+             LEFT JOIN doctor_ratings r ON d.id = r.doctor_id AND r.is_reported = FALSE
+             WHERE d.status = 'ACTIVE'
+             GROUP BY d.id
+             ORDER BY d.full_name ASC`
     );
     res.json(result.rows);
   } catch (error) {

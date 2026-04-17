@@ -16,6 +16,7 @@ import { HealthLog } from './pages/patient/HealthLog';
 import { Appointments } from './pages/patient/Appointments';
 import { Profile } from './pages/patient/Profile';
 import { HospitalFinder } from './pages/patient/HospitalFinder';
+import { DoctorSearch } from './pages/patient/DoctorSearch';
 import { LabResults } from './pages/patient/LabResults';
 import { Messages } from './pages/Messages';
 import { ProfessionalDashboard } from './pages/professional/Dashboard';
@@ -24,6 +25,7 @@ import { PatientWorkspace } from './pages/professional/PatientWorkspace';
 import { DoctorPatients } from './pages/professional/DoctorPatients';
 import { DoctorSchedule } from './pages/professional/DoctorSchedule';
 import { DoctorReports } from './pages/professional/DoctorReports';
+import { DoctorReviews } from './pages/professional/DoctorReviews';
 import { NursePatients } from './pages/professional/NursePatients';
 import { NurseRounds } from './pages/professional/NurseRounds';
 import { NursePatientCare } from './pages/professional/NursePatientCare';
@@ -76,6 +78,7 @@ export const router = createBrowserRouter([
           { path: 'care-history', Component: CareHistory },
           { path: 'appointments', Component: Appointments },
           { path: 'hospitals', Component: HospitalFinder },
+          { path: 'doctors', Component: DoctorSearch },
           { path: 'lab-results', Component: LabResults },
           { path: 'profile', Component: Profile },
           { path: 'messages', Component: Messages },
@@ -94,6 +97,7 @@ export const router = createBrowserRouter([
           { path: 'procedural-hub', Component: ProceduralOutcomes },
           { path: 'schedule', Component: DoctorSchedule },
           { path: 'reports', Component: DoctorReports },
+          { path: 'reviews', Component: DoctorReviews },
           { path: 'messages', Component: Messages },
           { path: 'settings', Component: Settings },
         ],

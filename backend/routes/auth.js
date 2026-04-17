@@ -45,7 +45,7 @@ router.post('/register/nurse', upload.single('licenseDocument'), registerNurse);
 router.get('/me', verifyToken, getMe);
 router.post('/change-password', verifyToken, changePassword);
 router.put('/profile', verifyToken, upload.single('profile_picture'), updatePatientProfile);
-router.put('/professional/profile', verifyToken, updateProfessionalProfile);
+router.put('/professional/profile', verifyToken, upload.single('avatar'), updateProfessionalProfile);
 router.put('/admin/profile', verifyAdminToken, updateAdminProfile);
 
 module.exports = router;

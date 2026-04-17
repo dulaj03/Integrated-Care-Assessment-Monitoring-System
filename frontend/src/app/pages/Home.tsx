@@ -8,7 +8,7 @@ import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import {
   ShieldCheck, Users, Clock, Heart, Stethoscope, Clipboard,
   CheckCircle2, ArrowRight, TrendingUp, FileText, Bell, Building2, FlaskConical,
-  MessageSquare, Smartphone, Zap, Globe,
+  MessageSquare, Smartphone, Zap, Globe, Star, Quote
 } from 'lucide-react';
 import { motion, useSpring, useTransform, useInView, AnimatePresence } from 'motion/react';
 import { LucideIcon } from 'lucide-react';
@@ -65,6 +65,15 @@ export function Landing() {
   const userRole = sessionStorage.getItem('userRole');
   const [stats, setStats] = useState({ patients: 1250, doctors: 380, hospitals: 18 });
   const [rollingIndex, setRollingIndex] = useState(0);
+  const [featuredReviews, setFeaturedReviews] = useState<any[]>([]);
+
+  // Marquee scroll refs & state
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+  const [isUserInteracting, setIsUserInteracting] = useState(false);
+  const interactTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const rollingWords = [
     t('hero.titleHighlight'),
@@ -91,8 +100,71 @@ export function Landing() {
         console.error('Failed to fetch stats:', error);
       }
     };
+    
+    const fetchReviews = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/api/platform-reviews/featured');
+        if (res.ok) {
+          const data = await res.json();
+          setFeaturedReviews(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch reviews:', error);
+      }
+    };
+
     fetchStats();
+    fetchReviews();
   }, []);
+
+  // Marquee auto-scrolling logic
+  useEffect(() => {
+    if (featuredReviews.length === 0 || isDragging || isUserInteracting) return;
+
+    const autoScroll = setInterval(() => {
+      if (scrollRef.current) {
+        scrollRef.current.scrollLeft += 1;
+        // Loop back when reaching exactly half-way (since content is duplicated)
+        if (scrollRef.current.scrollLeft >= scrollRef.current.scrollWidth / 2) {
+          scrollRef.current.scrollLeft = 0;
+        }
+      }
+    }, 20); // speed controls
+
+    return () => clearInterval(autoScroll);
+  }, [featuredReviews.length, isDragging, isUserInteracting]);
+
+  const handleInteraction = () => {
+    setIsUserInteracting(true);
+    if (interactTimeoutRef.current) clearTimeout(interactTimeoutRef.current);
+    interactTimeoutRef.current = setTimeout(() => setIsUserInteracting(false), 2000);
+  };
+
+  // Drag handlers for mouse
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    handleInteraction();
+    setStartX(e.pageX - scrollRef.current!.offsetLeft);
+    setScrollLeft(scrollRef.current!.scrollLeft);
+  };
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+    setIsUserInteracting(false);
+  };
+  const handleMouseUp = () => setIsDragging(false);
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    e.preventDefault();
+    handleInteraction();
+    const x = e.pageX - scrollRef.current!.offsetLeft;
+    const walk = (x - startX) * 1.5;
+    scrollRef.current!.scrollLeft = scrollLeft - walk;
+  };
+  const handleTouchStart = () => {
+    setIsDragging(true);
+    handleInteraction();
+  };
+  const handleTouchEnd = () => setIsDragging(false);
 
   const getDashboardPath = () => {
     switch (userRole) {
@@ -582,6 +654,83 @@ export function Landing() {
           </div>
         </div>
       </section>
+
+      {/* ─── Platform Reviews ─── */}
+      {featuredReviews.length > 0 && (
+        <section className="py-24 bg-slate-50 dark:bg-slate-950 overflow-hidden border-t border-slate-100 dark:border-slate-800">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+              <motion.div initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }} viewport={{ once: true }}>
+                <span className="inline-block text-xs font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400 mb-4">Patient & Provider Stories</span>
+                <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white">
+                  Trusted Across Sri Lanka
+                </h2>
+              </motion.div>
+              <motion.div initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }} viewport={{ once: true }}>
+                <Link to="/contact" className="inline-flex items-center gap-2 px-6 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-blue-600 dark:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm">
+                  <MessageSquare className="h-4 w-4" /> Add a Review
+                </Link>
+              </motion.div>
+            </div>
+          </div>
+
+          <div 
+            ref={scrollRef}
+            className="flex gap-6 overflow-x-auto hide-scrollbar px-4 sm:px-6 lg:px-8 pb-8 mt-8 w-full select-none cursor-grab active:cursor-grabbing"
+            onMouseDown={handleMouseDown}
+            onMouseLeave={handleMouseLeave}
+            onMouseUp={handleMouseUp}
+            onMouseMove={handleMouseMove}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+            onTouchCancel={handleTouchEnd}
+            onTouchMove={handleInteraction}
+            onMouseEnter={() => setIsUserInteracting(true)}
+            style={{
+              scrollBehavior: 'auto' // Prevents conflict with drag manipulation
+            }}
+          >
+            {[...featuredReviews, ...featuredReviews].map((review, i) => (
+              <div 
+                key={`${review.id}-${i}`} 
+                className="w-[320px] sm:w-[400px] flex-shrink-0 bg-white dark:bg-slate-900 rounded-[2rem] p-8 border border-slate-200 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-none relative"
+              >
+                <Quote className="absolute top-8 right-8 text-blue-100 dark:text-blue-900/30 h-12 w-12" />
+                <div className="flex gap-1 mb-6">
+                  {[...Array(5)].map((_, idx) => (
+                    <Star key={idx} className={`h-4 w-4 ${idx < review.rating ? 'text-amber-400 fill-amber-400' : 'text-slate-200 dark:text-slate-700'}`} />
+                  ))}
+                </div>
+                <p className="text-slate-600 dark:text-slate-300 text-lg leading-relaxed whitespace-pre-wrap mb-8 h-28 overflow-hidden line-clamp-4 font-medium italic">"{review.review_text}"</p>
+                
+                <div className="flex items-center gap-4 mt-auto">
+                  {review.user_avatar ? (
+                    <img src={review.user_avatar} alt={review.user_name} className="h-12 w-12 rounded-full object-cover border-2 border-slate-100 dark:border-slate-800" />
+                  ) : (
+                    <div className="h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 font-black">
+                      {review.user_name.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  <div>
+                    <p className="font-bold text-slate-900 dark:text-white capitalize truncate max-w-[200px]">{review.user_name}</p>
+                    <p className="text-xs text-blue-600 dark:text-blue-400 font-bold uppercase tracking-widest mt-0.5">{review.user_role}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <style>{`
+            .hide-scrollbar::-webkit-scrollbar {
+              display: none;
+            }
+            .hide-scrollbar {
+              -ms-overflow-style: none;  /* IE and Edge */
+              scrollbar-width: none;  /* Firefox */
+            }
+          `}</style>
+        </section>
+      )}
 
       {/* ─── CTA ─── */}
       <section className="py-20 bg-gradient-to-r from-blue-600 to-cyan-600 dark:from-blue-700 dark:to-cyan-700">

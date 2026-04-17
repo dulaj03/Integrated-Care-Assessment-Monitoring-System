@@ -296,8 +296,11 @@ const updateProfessionalProfile = async (req, res) => {
   const { id, role } = req.user;
   const { 
     full_name, email, specialization, license_number, 
-    years_of_experience, institution_name, registration_number 
+    years_of_experience, institution_name, registration_number, 
+    avatar: existingAvatar
   } = req.body;
+  
+  const avatar = req.file ? `http://localhost:5000/${req.file.path.replace(/\\/g, '/')}` : existingAvatar;
 
   try {
     let model;
@@ -315,7 +318,8 @@ const updateProfessionalProfile = async (req, res) => {
       license_number: license_number || null, 
       years_of_experience: experienceVal, 
       institution_name: institution_name || null, 
-      registration_number: registration_number || null 
+      registration_number: registration_number || null,
+      avatar: avatar || null
     };
     
     if (role === 'doctor') updateData.specialization = specialization || null;

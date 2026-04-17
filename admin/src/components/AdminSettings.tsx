@@ -17,7 +17,7 @@ export const AdminSettings = () => {
 
   const fetchProfile = async () => {
     setLoading(true);
-    const token = localStorage.getItem('admin_token');
+    const token = sessionStorage.getItem('admin_token');
     try {
       const res = await fetch('http://localhost:5000/api/auth/me', {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -51,7 +51,7 @@ export const AdminSettings = () => {
     }
 
     setSaving(true);
-    const token = localStorage.getItem('admin_token');
+    const token = sessionStorage.getItem('admin_token');
     try {
       const res = await fetch('http://localhost:5000/api/auth/admin/profile', {
         method: 'PUT',

@@ -8,7 +8,9 @@ import {
   Send,
   Building2,
   LifeBuoy,
-  Languages
+  Languages,
+  Star,
+  Quote
 } from 'lucide-react';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
@@ -24,6 +26,10 @@ export function Contact() {
   const [instFormData, setInstFormData] = useState({ hospitalName: '', contactPerson: '', email: '', requirements: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isInstSubmitting, setIsInstSubmitting] = useState(false);
+  const [reviewData, setReviewData] = useState({ rating: 5, review_text: '' });
+  const [isReviewSubmitting, setIsReviewSubmitting] = useState(false);
+  
+  const isLoggedIn = !!sessionStorage.getItem('token');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,6 +94,44 @@ export function Contact() {
       toast.error('Failed to connect to the server. Please try again later.');
     } finally {
       setIsInstSubmitting(false);
+    }
+  };
+
+  const handleReviewSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isLoggedIn) {
+      toast.error('You must be logged in to submit a review.');
+      return;
+    }
+    if (!reviewData.review_text.trim()) {
+      toast.error('Please enter a review message.');
+      return;
+    }
+
+    setIsReviewSubmitting(true);
+    try {
+      const res = await fetch('http://localhost:5000/api/platform-reviews', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${sessionStorage.getItem('token')}`
+        },
+        body: JSON.stringify(reviewData),
+      });
+
+      if (res.ok) {
+        toast.success('Review submitted successfully!', {
+          description: 'Thank you for your feedback.',
+        });
+        setReviewData({ rating: 5, review_text: '' });
+      } else {
+        const errorData = await res.json();
+        toast.error(errorData.error || 'Failed to submit review.');
+      }
+    } catch (error) {
+      toast.error('Network error. Please try again later.');
+    } finally {
+      setIsReviewSubmitting(false);
     }
   };
 
@@ -244,6 +288,80 @@ export function Contact() {
             </motion.div>
           </div>
         </div>
+
+        {/* Platform Review Form Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: true }}
+          className="bg-blue-50 dark:bg-slate-900 rounded-[3rem] p-10 md:p-12 border border-blue-100 dark:border-slate-800"
+          id="reviews"
+        >
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <div className="inline-flex items-center px-4 py-2 bg-blue-100 dark:bg-blue-900/30 rounded-full text-blue-600 dark:text-blue-400 text-sm font-bold mb-6">
+                <Quote className="w-4 h-4 mr-2" />
+                Community Feedback
+              </div>
+              <h2 className="text-3xl md:text-4xl font-extrabold mb-6 text-slate-900 dark:text-white leading-tight">Rate Your I-CAMS Experience</h2>
+              <p className="text-slate-600 dark:text-slate-400 text-lg mb-8">
+                Your feedback helps us continuously improve the platform for patients, doctors, nurses, and hospitals nationwide. Share your story.
+              </p>
+              
+              {!isLoggedIn && (
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-amber-200 dark:border-amber-900/30">
+                  <p className="text-amber-600 dark:text-amber-400 font-bold mb-4">Please log in to submit a verified system review.</p>
+                  <Link to="/login" className="inline-block px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-colors">
+                    Log In or Register →
+                  </Link>
+                </div>
+              )}
+            </div>
+            
+            {isLoggedIn && (
+              <form className="bg-white dark:bg-slate-800 p-8 rounded-3xl border border-slate-200 dark:border-slate-700 space-y-6 shadow-sm" onSubmit={handleReviewSubmit}>
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-3">Overall Rating</label>
+                  <div className="flex gap-2">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() => setReviewData({ ...reviewData, rating: star })}
+                        className="transition-transform hover:scale-110 focus:outline-none"
+                      >
+                        <Star className={`w-8 h-8 ${star <= reviewData.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-200 dark:text-slate-700'}`} />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="block text-sm font-bold text-slate-700 dark:text-slate-300">Your Review</label>
+                  <textarea 
+                    required
+                    maxLength={500}
+                    value={reviewData.review_text}
+                    onChange={(e) => setReviewData({ ...reviewData, review_text: e.target.value })}
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-4 focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white" 
+                    placeholder="Describe your experience using our digital health platform..." 
+                    rows={4}
+                  ></textarea>
+                  <p className="text-xs text-slate-400 text-right font-medium">{reviewData.review_text.length}/500</p>
+                </div>
+                
+                <button 
+                  type="submit" 
+                  disabled={isReviewSubmitting}
+                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white py-4 font-bold rounded-xl transition-all shadow-lg shadow-blue-500/30"
+                >
+                  {isReviewSubmitting ? 'Submitting...' : 'Submit Review'}
+                </button>
+              </form>
+            )}
+          </div>
+        </motion.div>
 
         {/* Institutional Section (Updated) */}
         <motion.div

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, MapPin, Phone, Star, Building2, Stethoscope, ChevronRight, Clock, Calendar, CheckCircle, X } from 'lucide-react';
+import { Search, MapPin, Phone, Star, Building2, ChevronRight, CheckCircle, X, Calendar, Stethoscope, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
 import {
@@ -8,6 +8,7 @@ import {
   HospitalDoctor,
   getDoctorsByHospital,
 } from '../../lib/hospitalData';
+import { DoctorProfileModal } from '../../components/DoctorProfileModal';
 
 interface ExtendedHospital extends Hospital {
   specialties?: string[];
@@ -33,6 +34,8 @@ export function HospitalFinder() {
   const [selectedSlot, setSelectedSlot] = useState('');
   const [selectedDate, setSelectedDate] = useState('');
   const [reason, setReason] = useState('');
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [selectedProfileDoctor, setSelectedProfileDoctor] = useState<ExtendedDoctor | null>(null);
 
   const [dbHospitals, setDbHospitals] = useState<ExtendedHospital[]>([]);
   const [dbDoctors, setDbDoctors] = useState<ExtendedDoctor[]>([]);
@@ -141,6 +144,12 @@ export function HospitalFinder() {
     setSelectedSlot('');
     setSelectedDate('');
     setReason('');
+  };
+
+  const handleViewProfile = (e: React.MouseEvent, doctor: ExtendedDoctor) => {
+    e.stopPropagation();
+    setSelectedProfileDoctor(doctor);
+    setIsProfileModalOpen(true);
   };
 
   if (step === 'booked') {
@@ -320,31 +329,45 @@ export function HospitalFinder() {
               {(dbDoctors.length > 0 ? dbDoctors : getDoctorsByHospital(selectedHospital.id)).map((doc: ExtendedDoctor) => (
                 <motion.div key={doc.id} whileHover={{ scale: 1.01 }}
                   className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 cursor-pointer hover:border-blue-400 dark:hover:border-blue-500 transition-all"
-                  onClick={() => handleSelectDoctor(doc)}>
+                >
                   <div className="flex items-start gap-4">
                     <img src={doc.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${doc.id}`} alt={doc.full_name || doc.name}
                       className="h-14 w-14 rounded-full object-cover border-2 border-blue-200 dark:border-blue-700" />
                     <div className="flex-1">
                       <h4 className="font-bold text-slate-900 dark:text-white">{doc.full_name || doc.name}</h4>
                       <p className="text-blue-600 dark:text-blue-400 text-sm font-medium">{doc.specialization}</p>
-                      <p className="text-slate-500 dark:text-slate-400 text-xs mt-1">{doc.years_of_experience || doc.experience} yrs exp</p>
+                      <p className="text-slate-500 dark:text-slate-400 text-xs mt-1">{(doc as any).avg_rating || 0} Rating · {(doc as any).review_count || 0} Reviews</p>
                       <div className="flex items-center gap-4 mt-2">
                         <span className="flex items-center gap-1 text-xs text-slate-600 dark:text-slate-400">
-                          <Stethoscope className="h-3 w-3" /> {doc.years_of_experience || doc.experience} yrs exp
+                          <Stethoscope className="h-3 w-3" /> {doc.years_of_experience || (doc as any).experience} yrs exp
                         </span>
                         <span className="flex items-center gap-1 text-xs text-slate-600 dark:text-slate-400">
-                          <Clock className="h-3 w-3" /> {doc.availableDays?.join(', ') || 'Mon, Wed, Fri'}
+                          <Clock className="h-3 w-3" /> {(doc as any).availableDays?.join(', ') || 'Mon, Wed, Fri'}
                         </span>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs text-slate-500 dark:text-slate-400">Fee</p>
-                      <p className="font-bold text-slate-900 dark:text-white text-sm">LKR {(doc.consultationFee || 2500).toLocaleString()}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">Rating</p>
+                      <div className="flex items-center gap-1 font-bold text-amber-500 text-sm">
+                        <Star className="h-4 w-4 fill-amber-500" />
+                        {(doc as any).avg_rating || '0.0'}
+                      </div>
                     </div>
                   </div>
-                  <button className="mt-4 w-full py-2 text-sm font-medium text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-700 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
-                    Select This Doctor →
-                  </button>
+                  <div className="mt-4 flex gap-2">
+                    <button 
+                      onClick={(e) => handleViewProfile(e, doc)}
+                      className="flex-1 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                    >
+                      View Profile & Reviews
+                    </button>
+                    <button 
+                      onClick={() => handleSelectDoctor(doc)}
+                      className="flex-1 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-700 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                    >
+                      Select Doctor →
+                    </button>
+                  </div>
                 </motion.div>
               ))}
             </div>
@@ -451,6 +474,17 @@ export function HospitalFinder() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {selectedProfileDoctor && (
+        <DoctorProfileModal
+          isOpen={isProfileModalOpen}
+          doctor={selectedProfileDoctor}
+          onClose={() => setIsProfileModalOpen(false)}
+          onReviewSubmitted={() => {
+            if (selectedHospital) fetchDoctorsForHospital(selectedHospital.id);
+          }}
+        />
+      )}
     </div>
   );
 }

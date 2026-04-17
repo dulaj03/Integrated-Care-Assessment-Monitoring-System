@@ -13,6 +13,8 @@ import {
   Building2,
   FlaskConical,
   ClipboardList,
+  Star,
+  Stethoscope,
 } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import { clsx } from 'clsx';
@@ -35,6 +37,7 @@ export function DashboardLayout({ role, userName: initialUserName = '' }: Dashbo
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [userName, setUserName] = useState(initialUserName);
+  const [userAvatar, setUserAvatar] = useState<string | null>(null);
   const [unreadMessages, setUnreadMessages] = useState(0);
   const location = useLocation();
   const navigate = useNavigate();
@@ -95,6 +98,23 @@ export function DashboardLayout({ role, userName: initialUserName = '' }: Dashbo
   useEffect(() => {
     fetchNotifications();
     fetchUnreadCount();
+
+    // Fetch profile for avatar and correct name if missing
+    const fetchProfile = async () => {
+      const token = sessionStorage.getItem('token');
+      if (!token) return;
+      try {
+        const res = await fetch('http://localhost:5000/api/auth/me', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const { user } = await res.json();
+          if (user.full_name) setUserName(user.full_name);
+          setUserAvatar(user.avatar || user.profile_picture || null);
+        }
+      } catch (e) { console.error(e); }
+    };
+    fetchProfile();
 
     // Load actual user name from session
     const storedName = sessionStorage.getItem('userName');
@@ -166,6 +186,7 @@ export function DashboardLayout({ role, userName: initialUserName = '' }: Dashbo
     { name: t('sidebar.careHistory'), href: '/patient/care-history', icon: Activity },
     { name: t('sidebar.appointments'), href: '/patient/appointments', icon: Calendar },
     { name: t('sidebar.findHospitals'), href: '/patient/hospitals', icon: Building2 },
+    { name: t('sidebar.findDoctors'), href: '/patient/doctors', icon: Stethoscope },
     { name: t('sidebar.labResults'), href: '/patient/lab-results', icon: FlaskConical },
     { name: t('sidebar.messages'), href: '/patient/messages', icon: MessageCircle },
     { name: t('sidebar.profile'), href: '/patient/profile', icon: User },
@@ -178,6 +199,7 @@ export function DashboardLayout({ role, userName: initialUserName = '' }: Dashbo
     { name: t('sidebar.messages'), href: '/doctor/messages', icon: MessageCircle },
     { name: t('sidebar.schedule'), href: '/doctor/schedule', icon: Calendar },
     { name: t('sidebar.reports'), href: '/doctor/reports', icon: FileText },
+    { name: t('sidebar.reviews'), href: '/doctor/reviews', icon: Star },
     { name: t('sidebar.settings'), href: '/doctor/settings', icon: User },
   ];
 
@@ -260,8 +282,12 @@ export function DashboardLayout({ role, userName: initialUserName = '' }: Dashbo
         <div className="flex-shrink-0 flex flex-col border-t border-slate-200 dark:border-slate-800 p-4 gap-4">
           <div className="flex-shrink-0 w-full group block">
             <div className="flex items-center">
-              <div className="h-9 w-9 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400">
-                <User size={20} />
+              <div className="h-9 w-9 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400 overflow-hidden border border-slate-200 dark:border-slate-800">
+                {userAvatar ? (
+                  <img src={userAvatar} alt={userName} className="h-full w-full object-cover" />
+                ) : (
+                  <User size={20} />
+                )}
               </div>
               <div className="ml-3">
                 <p className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors duration-200">

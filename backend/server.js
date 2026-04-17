@@ -50,6 +50,8 @@ app.use('/api/public', require('./routes/public'));
 app.use('/api/messages', require('./routes/message'));
 app.use('/api/rounds', require('./routes/nurseRounds'));
 app.use('/api/ai', require('./routes/ai'));
+app.use('/api/ratings', require('./routes/rating'));
+app.use('/api/platform-reviews', require('./routes/platformReview'));
 
 // ─── Health Check ─────────────────────────────────────────────
 app.get('/', (req, res) => {

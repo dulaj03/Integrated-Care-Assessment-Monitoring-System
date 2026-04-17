@@ -18,10 +18,14 @@ const hospitalController = {
     try {
       const { hospital_id } = req.params;
       const results = await pool.query(
-        `SELECT id, full_name, specialization, years_of_experience 
-                 FROM doctors 
-                 WHERE $1 = ANY(hospital_ids) AND status = 'ACTIVE' 
-                 ORDER BY full_name ASC`,
+        `SELECT d.id, d.full_name, d.specialization, d.years_of_experience, d.avatar,
+                        COALESCE(AVG(r.rating), 0)::numeric(2,1) as avg_rating,
+                        COUNT(r.id) as review_count
+                 FROM doctors d
+                 LEFT JOIN doctor_ratings r ON d.id = r.doctor_id AND r.is_reported = FALSE
+                 WHERE $1 = ANY(d.hospital_ids) AND d.status = 'ACTIVE'
+                 GROUP BY d.id
+                 ORDER BY d.full_name ASC`,
         [hospital_id]
       );
 

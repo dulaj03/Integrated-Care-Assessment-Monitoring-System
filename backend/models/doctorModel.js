@@ -4,19 +4,19 @@ class DoctorModel {
   static async create(data) {
     const {
       full_name, email, password, license_number, specialization,
-      years_of_experience, institution_name, registration_number, license_document, hospital_ids
+      years_of_experience, institution_name, registration_number, license_document, hospital_ids, avatar
     } = data;
 
     const result = await pool.query(
       `INSERT INTO doctors (
         full_name, email, password, license_number, specialization, 
-        years_of_experience, institution_name, registration_number, license_document, hospital_ids
+        years_of_experience, institution_name, registration_number, license_document, hospital_ids, avatar
       )
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
        RETURNING id, full_name, email, specialization, status`,
       [
         full_name, email, password, license_number, specialization,
-        years_of_experience, institution_name, registration_number, license_document, hospital_ids || []
+        years_of_experience, institution_name, registration_number, license_document, hospital_ids || [], avatar || null
       ]
     );
     return result.rows[0];
@@ -29,7 +29,7 @@ class DoctorModel {
 
   static async findById(id) {
     const result = await pool.query(
-      'SELECT id, full_name, email, specialization, status, created_at, hospital_ids, institution_name FROM doctors WHERE id = $1',
+      'SELECT id, full_name, email, specialization, status, created_at, hospital_ids, institution_name, avatar FROM doctors WHERE id = $1',
       [id]
     );
     return result.rows[0];
@@ -72,7 +72,7 @@ class DoctorModel {
   static async updateProfile(id, data) {
     const { 
       full_name, email, specialization, license_number, 
-      years_of_experience, institution_name, registration_number 
+      years_of_experience, institution_name, registration_number, avatar 
     } = data;
     const result = await pool.query(
       `UPDATE doctors 
@@ -83,12 +83,13 @@ class DoctorModel {
            years_of_experience = COALESCE($5, years_of_experience), 
            institution_name = COALESCE($6, institution_name), 
            registration_number = COALESCE($7, registration_number),
+           avatar = COALESCE($8, avatar),
            updated_at = CURRENT_TIMESTAMP 
-       WHERE id = $8 
-       RETURNING id, full_name, email, specialization, status, created_at, hospital_ids, institution_name`,
+       WHERE id = $9 
+       RETURNING id, full_name, email, specialization, status, created_at, hospital_ids, institution_name, avatar`,
       [
         full_name, email, specialization, license_number, 
-        years_of_experience, institution_name, registration_number, id
+        years_of_experience, institution_name, registration_number, avatar, id
       ]
     );
     return result.rows[0];

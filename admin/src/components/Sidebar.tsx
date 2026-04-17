@@ -7,6 +7,7 @@ import {
   Settings,
   LogOut,
   ShieldCheck,
+  Flag,
   X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -18,6 +19,8 @@ const navItems = [
   { id: 'doctors', label: 'Doctors', icon: Stethoscope },
   { id: 'nurses', label: 'Nurses', icon: Users },
   { id: 'hospitals', label: 'Hospitals', icon: Building2 },
+  { id: 'rating-reports', label: 'Rating Reports', icon: Flag },
+  { id: 'platform-reviews', label: 'Platform Reviews', icon: Users },
 ];
 
 interface SidebarProps {
