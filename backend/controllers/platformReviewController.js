@@ -39,19 +39,28 @@ const submitReview = async (req, res) => {
     let user_avatar = null;
 
     let table = 'patients';
-    if (user.role === 'admin') table = 'admin_users';
-    else if (user.role === 'doctor') table = 'doctors';
-    else if (user.role === 'nurse') table = 'nurses';
-    else if (user.role === 'hospital') table = 'hospitals';
+    if (user.role === 'admin') {
+      table = 'admin_users';
+    } else if (user.role === 'doctor') {
+      table = 'doctors';
+    } else if (user.role === 'nurse') {
+      table = 'nurses';
+    } else if (user.role === 'hospital') {
+      table = 'hospitals';
+    }
 
     let queryStr = `SELECT full_name FROM ${table} WHERE id = $1`;
-    if (table === 'admin_users') queryStr = `SELECT full_name as name FROM ${table} WHERE id = $1`;
-    if (table === 'hospitals') queryStr = `SELECT name FROM ${table} WHERE id = $1`;
+    if (table === 'admin_users') {
+      queryStr = `SELECT full_name as name FROM ${table} WHERE id = $1`;
+    }
+    if (table === 'hospitals') {
+      queryStr = `SELECT name FROM ${table} WHERE id = $1`;
+    }
     // For avatars
     if (['doctors', 'nurses'].includes(table)) {
-       queryStr = `SELECT full_name, avatar FROM ${table} WHERE id = $1`;
+      queryStr = `SELECT full_name, avatar FROM ${table} WHERE id = $1`;
     } else if (table === 'patients') {
-       queryStr = `SELECT full_name, profile_picture as avatar FROM ${table} WHERE id = $1`;
+      queryStr = `SELECT full_name, profile_picture as avatar FROM ${table} WHERE id = $1`;
     }
 
     const userRes = await pool.query(queryStr, [user.id]);

@@ -12,10 +12,10 @@ const addRating = async (req, res) => {
   try {
     const result = await pool.query(
       `INSERT INTO doctor_ratings (patient_id, doctor_id, rating, review, updated_at)
-       VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP)
-       ON CONFLICT (patient_id, doctor_id) 
-       DO UPDATE SET rating = EXCLUDED.rating, review = EXCLUDED.review, updated_at = CURRENT_TIMESTAMP
-       RETURNING *`,
+      VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP)
+      ON CONFLICT (patient_id, doctor_id) 
+      DO UPDATE SET rating = EXCLUDED.rating, review = EXCLUDED.review, updated_at = CURRENT_TIMESTAMP
+      RETURNING *`,
       [patient_id, doctor_id, rating, review]
     );
 
@@ -33,10 +33,10 @@ const getDoctorReviews = async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT r.*, p.full_name as patient_name
-       FROM doctor_ratings r
-       JOIN patients p ON r.patient_id = p.id
-       WHERE r.doctor_id = $1 AND r.is_reported = FALSE
-       ORDER BY r.created_at DESC`,
+      FROM doctor_ratings r
+      JOIN patients p ON r.patient_id = p.id
+      WHERE r.doctor_id = $1 AND r.is_reported = FALSE
+      ORDER BY r.created_at DESC`,
       [doctorId]
     );
 
@@ -54,10 +54,10 @@ const getMyReviews = async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT r.*, p.full_name as patient_name
-       FROM doctor_ratings r
-       JOIN patients p ON r.patient_id = p.id
-       WHERE r.doctor_id = $1
-       ORDER BY r.created_at DESC`,
+      FROM doctor_ratings r
+      JOIN patients p ON r.patient_id = p.id
+      WHERE r.doctor_id = $1
+      ORDER BY r.created_at DESC`,
       [doctorId]
     );
 
@@ -83,7 +83,7 @@ const reportReview = async (req, res) => {
 
     const result = await pool.query(
       `UPDATE doctor_ratings SET is_reported = TRUE, report_reason = $1, updated_at = CURRENT_TIMESTAMP
-       WHERE id = $2 RETURNING *`,
+      WHERE id = $2 RETURNING *`,
       [reason, id]
     );
 
@@ -99,11 +99,11 @@ const getReportedReviews = async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT r.*, p.full_name as patient_name, d.full_name as doctor_name
-       FROM doctor_ratings r
-       JOIN patients p ON r.patient_id = p.id
-       JOIN doctors d ON r.doctor_id = d.id
-       WHERE r.is_reported = TRUE
-       ORDER BY r.updated_at DESC`
+      FROM doctor_ratings r
+      JOIN patients p ON r.patient_id = p.id
+      JOIN doctors d ON r.doctor_id = d.id
+      WHERE r.is_reported = TRUE
+      ORDER BY r.updated_at DESC`
     );
 
     res.json(result.rows);

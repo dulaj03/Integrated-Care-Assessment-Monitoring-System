@@ -163,10 +163,10 @@ const getNurseReports = async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT nr.*, n.full_name as nurse_name
-       FROM nurse_reports nr
-       LEFT JOIN nurses n ON nr.nurse_id = n.id
-       WHERE nr.patient_id = $1
-       ORDER BY nr.created_at DESC`,
+      FROM nurse_reports nr
+      LEFT JOIN nurses n ON nr.nurse_id = n.id
+      WHERE nr.patient_id = $1
+      ORDER BY nr.created_at DESC`,
       [patient_id]
     );
     res.json(result.rows);
