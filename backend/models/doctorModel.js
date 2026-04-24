@@ -29,7 +29,9 @@ class DoctorModel {
 
   static async findById(id) {
     const result = await pool.query(
-      'SELECT id, full_name, email, specialization, status, created_at, hospital_ids, institution_name, avatar FROM doctors WHERE id = $1',
+      `SELECT id, full_name, email, specialization, license_number, years_of_experience,
+              registration_number, status, created_at, hospital_ids, institution_name, avatar
+       FROM doctors WHERE id = $1`,
       [id]
     );
     return result.rows[0];
@@ -86,7 +88,8 @@ class DoctorModel {
            avatar = COALESCE($8, avatar),
            updated_at = CURRENT_TIMESTAMP 
        WHERE id = $9 
-       RETURNING id, full_name, email, specialization, status, created_at, hospital_ids, institution_name, avatar`,
+       RETURNING id, full_name, email, specialization, license_number, years_of_experience,
+                 registration_number, status, created_at, hospital_ids, institution_name, avatar`,
       [
         full_name, email, specialization, license_number, 
         years_of_experience, institution_name, registration_number, avatar, id

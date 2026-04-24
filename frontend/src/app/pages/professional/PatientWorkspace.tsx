@@ -479,6 +479,48 @@ export function PatientWorkspace() {
           </motion.div>
         )}
 
+        {activeTab === 'nurse_reports' && (
+          <motion.div key="reports" className="space-y-4">
+            {reports.length === 0 ? (
+              <div className="p-20 text-center font-bold text-slate-400 uppercase tracking-widest bg-slate-50 dark:bg-slate-800/50 rounded-[2.5rem] border-2 border-dashed border-slate-200 dark:border-slate-800">
+                No shift reports filed for this patient.
+              </div>
+            ) : (
+              reports.map(report => (
+                <div key={report.id} className="bg-white dark:bg-slate-900 p-8 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="h-12 w-12 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                      <Send className="h-6 w-6" />
+                    </div>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                      {format(new Date(report.created_at), 'MMM d, yyyy · HH:mm')}
+                    </span>
+                  </div>
+                  <h4 className="text-xl font-black text-slate-900 dark:text-white mb-1 capitalize">{report.title}</h4>
+                  <p className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4 leading-relaxed">{report.summary}</p>
+                  
+                  {report.recommendations && (
+                    <div className="p-4 bg-emerald-50 dark:bg-emerald-900/10 rounded-2xl border border-emerald-100 dark:border-emerald-900/30">
+                      <p className="text-[9px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mb-1 underline">Nursing Recommendations</p>
+                      <p className="text-xs font-bold text-emerald-700 dark:text-emerald-300 italic">"{report.recommendations}"</p>
+                    </div>
+                  )}
+
+                  <div className="mt-6 pt-6 border-t border-slate-100 dark:border-slate-800 flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xs font-black text-slate-400 border border-slate-200 dark:border-slate-700 shadow-inner">
+                      {report.nurse_name?.charAt(0)}
+                    </div>
+                    <div>
+                      <p className="text-xs font-black text-slate-900 dark:text-white">Filed by {report.nurse_name}</p>
+                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Designated Care Professional</p>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </motion.div>
+        )}
+
         {activeTab === 'lab_tests' && (
           <motion.div key="labs" className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {labTests.map(test => (

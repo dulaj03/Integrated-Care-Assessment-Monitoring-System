@@ -51,16 +51,18 @@ export function OnboardingTour() {
   const tourKey = `icams_dashboard_tour_completed_${userId}`;
 
   useEffect(() => {
-    if (!userId) return; // Wait for session
-    const isCompleted = localStorage.getItem(tourKey);
-    if (!isCompleted) {
-      // Small delay to let the dashboard render
-      const timer = setTimeout(() => {
-        setIsVisible(true);
-      }, 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [userId, tourKey]);
+    // Only show the tour when the user has just created a new account.
+    // VerifyEmail.tsx sets this flag on first-time patient auto-login.
+    // It is never set on regular logins, so returning users never see the tour again.
+    const shouldShow = sessionStorage.getItem('icams_show_tour') === 'true';
+    if (!shouldShow) return;
+
+    // Small delay to let the dashboard render fully before the tour overlay appears
+    const timer = setTimeout(() => {
+      setIsVisible(true);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     if (isVisible) {
@@ -85,6 +87,9 @@ export function OnboardingTour() {
 
   const completeTour = () => {
     setIsVisible(false);
+    // Clear the one-time session flag so the tour never re-appears after this
+    sessionStorage.removeItem('icams_show_tour');
+    // Also persist to localStorage so it stays dismissed even if sessionStorage is somehow re-set
     if (userId) {
       localStorage.setItem(tourKey, 'true');
     }

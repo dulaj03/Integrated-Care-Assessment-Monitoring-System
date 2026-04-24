@@ -82,6 +82,8 @@ export function VerifyEmail() {
       sessionStorage.setItem('userEmail', data.user.email);
       sessionStorage.setItem('userName', data.user.full_name || data.user.name || userName);
       sessionStorage.setItem('user', JSON.stringify(data.user));
+      // Mark this as a first-time login so the OnboardingTour shows exactly once
+      sessionStorage.setItem('icams_show_tour', 'true');
 
       setStatus('success');
 

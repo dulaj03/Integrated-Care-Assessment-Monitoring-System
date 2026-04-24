@@ -9,7 +9,6 @@ export function Settings() {
   const [formData, setFormData] = useState({
     full_name: '',
     email: '',
-    phone: '',
     specialization: '', // mapped to qualification for nurses
     license_number: '',
     years_of_experience: '',
@@ -43,7 +42,6 @@ export function Settings() {
           setFormData({
             full_name: user.full_name || '',
             email: user.email || '',
-            phone: user.phone || '',
             specialization: user.specialization || user.qualification || '',
             license_number: user.license_number || '',
             years_of_experience: String(user.years_of_experience || ''),
@@ -137,6 +135,17 @@ export function Settings() {
       if (res.ok) {
         const { user } = await res.json();
         setProfile(user);
+        // Re-sync formData so edit mode shows the freshly saved values
+        setFormData({
+          full_name: user.full_name || '',
+          email: user.email || '',
+          specialization: user.specialization || user.qualification || '',
+          license_number: user.license_number || '',
+          years_of_experience: String(user.years_of_experience || ''),
+          institution_name: user.institution_name || '',
+          registration_number: user.registration_number || '',
+          avatar: user.avatar || '',
+        });
         setIsEditing(false);
         toast.success('Professional profile updated successfully!');
       } else {
@@ -272,16 +281,6 @@ export function Settings() {
                       type="email"
                       name="email"
                       value={formData.email}
-                      onChange={handleInputChange}
-                      className="w-full px-5 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border-none text-sm font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all shadow-inner"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] uppercase font-black tracking-widest text-slate-500 px-1">Emergency Contact Number</label>
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
                       onChange={handleInputChange}
                       className="w-full px-5 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border-none text-sm font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all shadow-inner"
                     />
