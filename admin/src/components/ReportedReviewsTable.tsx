@@ -21,7 +21,7 @@ export const ReportedReviewsTable = () => {
   const fetchReports = async () => {
     const token = sessionStorage.getItem('admin_token');
     try {
-      const res = await fetch('http://localhost:5000/api/ratings/reported', {
+      const res = await fetch('/api/ratings/reported', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -43,7 +43,7 @@ export const ReportedReviewsTable = () => {
     const token = sessionStorage.getItem('admin_token');
     setProcessingId(id);
     try {
-      const res = await fetch(`http://localhost:5000/api/ratings/${id}`, {
+      const res = await fetch(`/api/ratings/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -62,7 +62,7 @@ export const ReportedReviewsTable = () => {
     const token = sessionStorage.getItem('admin_token');
     setProcessingId(id);
     try {
-      const res = await fetch(`http://localhost:5000/api/ratings/dismiss/${id}`, {
+      const res = await fetch(`/api/ratings/dismiss/${id}`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });

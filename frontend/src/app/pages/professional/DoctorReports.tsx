@@ -31,7 +31,7 @@ export function DoctorReports() {
   const fetchReports = useCallback(async () => {
     if (!token) return;
     try {
-      const res = await fetch('http://localhost:5000/api/lab/all-results', {
+      const res = await fetch('/api/lab/all-results', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -51,7 +51,7 @@ export function DoctorReports() {
 
   const handleReview = async (id: string, note: string) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/lab/review/${id}`, {
+      const res = await fetch(`/api/lab/review/${id}`, {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',

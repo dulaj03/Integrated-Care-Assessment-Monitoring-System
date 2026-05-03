@@ -47,7 +47,7 @@ export function DoctorSchedule() {
   const fetchAppointments = useCallback(async () => {
     if (!token) return;
     try {
-      const res = await fetch('http://localhost:5000/api/appointments/my', {
+      const res = await fetch('/api/appointments/my', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -67,7 +67,7 @@ export function DoctorSchedule() {
 
   const updateStatus = async (id: string, status: string) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/appointments/status/${id}`, {
+      const res = await fetch(`/api/appointments/status/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ status })

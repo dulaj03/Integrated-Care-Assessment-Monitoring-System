@@ -28,7 +28,7 @@ export function VerifyEmail() {
       return;
     }
 
-    fetch(`http://localhost:5000/api/auth/patient/verify-email?token=${encodeURIComponent(token)}`)
+    fetch(`/api/auth/patient/verify-email?token=${encodeURIComponent(token)}`)
       .then((res) => res.json())
       .then((data) => {
         if (data.valid) {
@@ -67,7 +67,7 @@ export function VerifyEmail() {
 
     setStatus('submitting');
     try {
-      const res = await fetch('http://localhost:5000/api/auth/patient/complete-registration', {
+      const res = await fetch('/api/auth/patient/complete-registration', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token, password }),

@@ -41,7 +41,7 @@ export function NursePatientCare() {
     if (!token) return;
     try {
       setLoading(true);
-      const res = await fetch('http://localhost:5000/api/nurse/patients', {
+      const res = await fetch('/api/nurse/patients', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) setPatients(await res.json());
@@ -57,9 +57,9 @@ export function NursePatientCare() {
     if (!token || !pid) return;
     try {
       const [lRes, oRes, nRes] = await Promise.all([
-        fetch(`http://localhost:5000/api/nurse/logs/${pid}`, { headers: { 'Authorization': `Bearer ${token}` } }),
-        fetch(`http://localhost:5000/api/nurse/orders/${pid}`, { headers: { 'Authorization': `Bearer ${token}` } }),
-        fetch(`http://localhost:5000/api/nurse/notes/${pid}`, { headers: { 'Authorization': `Bearer ${token}` } })
+        fetch(`/api/nurse/logs/${pid}`, { headers: { 'Authorization': `Bearer ${token}` } }),
+        fetch(`/api/nurse/orders/${pid}`, { headers: { 'Authorization': `Bearer ${token}` } }),
+        fetch(`/api/nurse/notes/${pid}`, { headers: { 'Authorization': `Bearer ${token}` } })
       ]);
 
       if (lRes.ok) setNurseLogs(await lRes.json());
@@ -67,7 +67,7 @@ export function NursePatientCare() {
       if (nRes.ok) setClinicalNotes(await nRes.json());
 
       // Fetch lab tests for this patient
-      const lrRes = await fetch(`http://localhost:5000/api/lab/patient/${pid}`, {
+      const lrRes = await fetch(`/api/lab/patient/${pid}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (lrRes.ok) setLabTests(await lrRes.json());
@@ -115,7 +115,7 @@ export function NursePatientCare() {
     if (!selectedPatientId) return;
     try {
       const parts = form.blood_pressure.split('/');
-      const res = await fetch('http://localhost:5000/api/nurse/logs', {
+      const res = await fetch('/api/nurse/logs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({
@@ -148,7 +148,7 @@ export function NursePatientCare() {
   const handleSubmitReport = async () => {
     if (!selectedPatientId || !reportSummary.trim()) return;
     try {
-      const res = await fetch('http://localhost:5000/api/nurse/reports', {
+      const res = await fetch('/api/nurse/reports', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({
@@ -183,7 +183,7 @@ export function NursePatientCare() {
     if (labUpload.file) formData.append('profile_picture', labUpload.file); // Reusing field name for now
 
     try {
-      const res = await fetch(`http://localhost:5000/api/lab/upload/${labUpload.id}`, {
+      const res = await fetch(`/api/lab/upload/${labUpload.id}`, {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${token}` },
         body: formData

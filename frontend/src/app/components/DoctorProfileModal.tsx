@@ -42,7 +42,7 @@ export const DoctorProfileModal = ({ doctor, isOpen, onClose, onReviewSubmitted 
 
   const fetchReviews = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/api/ratings/doctor/${doctor.id}`);
+      const res = await fetch(`/api/ratings/doctor/${doctor.id}`);
       if (res.ok) {
         setReviews(await res.json());
       }
@@ -67,7 +67,7 @@ export const DoctorProfileModal = ({ doctor, isOpen, onClose, onReviewSubmitted 
     }
     setSubmitting(true);
     try {
-      const res = await fetch('http://localhost:5000/api/ratings', {
+      const res = await fetch('/api/ratings', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

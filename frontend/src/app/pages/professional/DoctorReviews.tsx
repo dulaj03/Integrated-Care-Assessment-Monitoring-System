@@ -25,7 +25,7 @@ export function DoctorReviews() {
   const fetchReviews = async () => {
     if (!token) return;
     try {
-      const res = await fetch('http://localhost:5000/api/ratings/my-reviews', {
+      const res = await fetch('/api/ratings/my-reviews', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -49,7 +49,7 @@ export function DoctorReviews() {
 
     setSubmittingReport(true);
     try {
-      const res = await fetch(`http://localhost:5000/api/ratings/report/${reportingId}`, {
+      const res = await fetch(`/api/ratings/report/${reportingId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Loader2, Save, User, Mail, Lock, Shield, Activity } from 'lucide-react';
+import { API_URL } from '../config';
 
 export const AdminSettings = () => {
   const [loading, setLoading] = useState(false);
@@ -19,7 +20,7 @@ export const AdminSettings = () => {
     setLoading(true);
     const token = sessionStorage.getItem('admin_token');
     try {
-      const res = await fetch('http://localhost:5000/api/auth/me', {
+      const res = await fetch(`${API_URL}/api/auth/me`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await res.json();
@@ -53,7 +54,7 @@ export const AdminSettings = () => {
     setSaving(true);
     const token = sessionStorage.getItem('admin_token');
     try {
-      const res = await fetch('http://localhost:5000/api/auth/admin/profile', {
+      const res = await fetch(`${API_URL}/api/auth/admin/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

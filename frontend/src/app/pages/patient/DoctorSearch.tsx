@@ -26,7 +26,7 @@ export function DoctorSearch() {
 
   const fetchDoctors = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/doctors');
+      const res = await fetch('/api/doctors');
       if (res.ok) {
         setDoctors(await res.json());
       }

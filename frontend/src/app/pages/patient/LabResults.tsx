@@ -217,7 +217,7 @@ export function LabResults() {
     const token = sessionStorage.getItem('token');
     if (!token) return;
     try {
-      const res = await fetch('http://localhost:5000/api/lab/my-results', {
+      const res = await fetch('/api/lab/my-results', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {

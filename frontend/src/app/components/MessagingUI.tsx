@@ -33,7 +33,7 @@ export function MessagingUI({ conversation, currentUserId, currentUserRole, onSe
     const token = sessionStorage.getItem('token');
     if (!token || !conversation) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/messages/${conversation.other_role}/${conversation.other_id}`, {
+      const res = await fetch(`/api/messages/${conversation.other_role}/${conversation.other_id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -89,7 +89,7 @@ export function MessagingUI({ conversation, currentUserId, currentUserRole, onSe
     const token = sessionStorage.getItem('token');
     
     try {
-      const res = await fetch('http://localhost:5000/api/messages/send', {
+      const res = await fetch('/api/messages/send', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

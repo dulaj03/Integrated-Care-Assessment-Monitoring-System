@@ -20,7 +20,7 @@ export function MessagingSection() {
     const token = sessionStorage.getItem('token');
     if (!token) return;
     try {
-      const res = await fetch('http://localhost:5000/api/messages/conversations', {
+      const res = await fetch('/api/messages/conversations', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -38,7 +38,7 @@ export function MessagingSection() {
     setLoadingContacts(true);
     const token = sessionStorage.getItem('token');
     try {
-      const res = await fetch('http://localhost:5000/api/messages/contacts', {
+      const res = await fetch('/api/messages/contacts', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {

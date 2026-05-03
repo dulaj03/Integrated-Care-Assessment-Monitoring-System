@@ -23,7 +23,7 @@ export function NursePatients() {
   const fetchPatients = useCallback(async () => {
     if (!token) return;
     try {
-      const res = await fetch('http://localhost:5000/api/nurse/patients', {
+      const res = await fetch('/api/nurse/patients', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (!res.ok) throw new Error('Failed to fetch patients');

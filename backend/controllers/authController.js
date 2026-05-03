@@ -153,11 +153,12 @@ const registerDoctor = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    const baseUrl = process.env.FRONTEND_URL || 'https://icams.pandanlabs.net';
     const doctor = await DoctorModel.create({
       full_name, email, password: hashedPassword, license_number, specialization,
       years_of_experience, institution_name, registration_number,
       hospital_ids: parsedHospitalIds,
-      license_document: req.file ? req.file.path : null
+      license_document: req.file ? `${baseUrl}/api/${req.file.path.replace(/\\/g, '/')}` : null
     });
 
     res.status(201).json({ message: 'Registration submitted for verification', user: doctor });
@@ -193,11 +194,12 @@ const registerNurse = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    const baseUrl = process.env.FRONTEND_URL || 'https://icams.pandanlabs.net';
     const nurse = await NurseModel.create({
       full_name, email, password: hashedPassword, license_number, qualification,
       years_of_experience, institution_name, registration_number,
       hospital_ids: parsedHospitalIds,
-      license_document: req.file ? req.file.path : null
+      license_document: req.file ? `${baseUrl}/api/${req.file.path.replace(/\\/g, '/')}` : null
     });
 
     res.status(201).json({ message: 'Registration submitted for verification', user: nurse });
@@ -271,7 +273,8 @@ const updateAdminProfile = async (req, res) => {
 const updatePatientProfile = async (req, res) => {
   const { id } = req.user;
   const { full_name, email, phone, age, gender, address } = req.body;
-  const profile_picture = req.file ? `http://localhost:5000/${req.file.path.replace(/\\/g, '/')}` : req.body.profile_picture;
+  const baseUrl = process.env.FRONTEND_URL || 'https://icams.pandanlabs.net';
+  const profile_picture = req.file ? `${baseUrl}/api/${req.file.path.replace(/\\/g, '/')}` : req.body.profile_picture;
 
   try {
     const updated = await PatientModel.updateProfile(id, {
@@ -300,7 +303,8 @@ const updateProfessionalProfile = async (req, res) => {
     avatar: existingAvatar
   } = req.body;
   
-  const avatar = req.file ? `http://localhost:5000/${req.file.path.replace(/\\/g, '/')}` : existingAvatar;
+  const baseUrl = process.env.FRONTEND_URL || 'https://icams.pandanlabs.net';
+  const avatar = req.file ? `${baseUrl}/api/${req.file.path.replace(/\\/g, '/')}` : existingAvatar;
 
   try {
     let model;

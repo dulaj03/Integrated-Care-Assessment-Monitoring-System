@@ -60,7 +60,7 @@ export function HospitalDashboard() {
   const fetchAppointments = useCallback(async () => {
     if (!token) return;
     try {
-      const res = await fetch('http://localhost:5000/api/appointments/my', {
+      const res = await fetch('/api/appointments/my', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -68,7 +68,7 @@ export function HospitalDashboard() {
         setAppointments(data);
       }
 
-      const patientsRes = await fetch(`http://localhost:5000/api/hospitals/${hospitalId}/patients`, {
+      const patientsRes = await fetch(`/api/hospitals/${hospitalId}/patients`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (patientsRes.ok) {
@@ -88,7 +88,7 @@ export function HospitalDashboard() {
 
   const handleNotifyDoctor = async (apptId: number) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/appointments/status/${apptId}`, {
+      const res = await fetch(`/api/appointments/status/${apptId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

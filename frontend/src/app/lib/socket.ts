@@ -1,11 +1,12 @@
 import { io, Socket } from 'socket.io-client';
+import { SOCKET_URL } from '../config';
 
 let socket: Socket | null = null;
 
 export const initSocket = (userId: string, role: string) => {
   if (socket) return socket;
 
-  socket = io('http://localhost:5000', {
+  socket = io(SOCKET_URL, {
     transports: ['websocket'],
   });
 

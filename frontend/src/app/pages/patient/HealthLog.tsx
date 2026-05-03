@@ -48,7 +48,7 @@ export function HealthLog() {
 
     try {
       const token = sessionStorage.getItem('token');
-      const res = await fetch('http://localhost:5000/api/health/log', {
+      const res = await fetch('/api/health/log', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { toast } from 'sonner';
+import { API_URL } from '../config';
 
 export const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -37,7 +38,7 @@ export const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
   const fetchCurrentAdmin = async () => {
     const token = sessionStorage.getItem('admin_token');
     try {
-      const res = await fetch('http://localhost:5000/api/auth/me', {
+      const res = await fetch(`${API_URL}/api/auth/me`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await res.json();
@@ -51,7 +52,7 @@ export const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
     if (!silent) setLoading(true);
     const token = sessionStorage.getItem('admin_token');
     try {
-      const res = await fetch('http://localhost:5000/api/admin/users', {
+      const res = await fetch(`${API_URL}/api/admin/users`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await res.json();
@@ -102,7 +103,7 @@ export const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
   const handleUpdateStatus = async (id: string, role: string, status: UserStatus, reason?: string) => {
     const token = sessionStorage.getItem('admin_token');
     try {
-      const res = await fetch('http://localhost:5000/api/admin/users/update-status', {
+      const res = await fetch(`${API_URL}/api/admin/users/update-status`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -131,7 +132,7 @@ export const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
     const token = sessionStorage.getItem('admin_token');
     try {
       const requestBody = { id: String(id), role: role.toLowerCase() };
-      const res = await fetch('http://localhost:5000/api/admin/users/deactivate', {
+      const res = await fetch(`${API_URL}/api/admin/users/deactivate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -156,7 +157,7 @@ export const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
     const token = sessionStorage.getItem('admin_token');
     try {
       const requestBody = { id: String(id), role: role.toLowerCase() };
-      const res = await fetch('http://localhost:5000/api/admin/users/delete', {
+      const res = await fetch(`${API_URL}/api/admin/users/delete`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',

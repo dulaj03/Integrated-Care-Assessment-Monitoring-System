@@ -371,7 +371,7 @@ exports.sendOTPEmail = async (email, name, otp) => {
  * Send Patient Email Verification Link
  */
 exports.sendEmailVerification = async (email, name, verificationToken) => {
-  const verifyUrl = `http://localhost:5173/verify-email?token=${verificationToken}`;
+  const verifyUrl = `${process.env.FRONTEND_URL || 'https://icams.pandanlabs.net'}/verify-email?token=${verificationToken}`;
 
   const mailOptions = {
     from: `"I-CAMS Accounts" <${process.env.EMAIL_USER}>`,

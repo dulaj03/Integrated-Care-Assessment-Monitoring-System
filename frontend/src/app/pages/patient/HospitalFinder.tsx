@@ -46,7 +46,7 @@ export function HospitalFinder() {
 
   const fetchHospitals = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/hospitals');
+      const res = await fetch('/api/hospitals');
       if (res.ok) {
         const data = await res.json();
         setDbHospitals(data);
@@ -58,7 +58,7 @@ export function HospitalFinder() {
 
   const fetchDoctorsForHospital = async (hospitalId: string) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/hospitals/${hospitalId}/doctors`);
+      const res = await fetch(`/api/hospitals/${hospitalId}/doctors`);
       if (res.ok) {
         const data = await res.json();
         setDbDoctors(data);
@@ -110,7 +110,7 @@ export function HospitalFinder() {
     if (!token || !selectedHospital || !selectedDoctor) return;
 
     try {
-      const res = await fetch('http://localhost:5000/api/appointments/book', {
+      const res = await fetch('/api/appointments/book', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -30,7 +30,7 @@ export const PendingReviewModal = ({ user, onClose, onApprove, onReject }: Pendi
 
   const isDoctorOrNurse = user.role === 'DOCTOR' || user.role === 'NURSE';
   const licensePath = (isDoctorOrNurse) ? (user as Doctor | Nurse).license_document : null;
-  const imageUrl = licensePath ? `http://localhost:5000/${licensePath.replace(/\\/g, '/')}` : null;
+  const imageUrl = licensePath ? `/${licensePath.replace(/\\/g, '/')}` : null;
   const isPdf = licensePath?.toLowerCase().endsWith('.pdf');
 
   const handleConfirmReject = () => {

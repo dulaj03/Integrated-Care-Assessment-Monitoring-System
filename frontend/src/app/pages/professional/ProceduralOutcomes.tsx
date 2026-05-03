@@ -24,7 +24,7 @@ export function ProceduralOutcomes() {
   const fetchRounds = useCallback(async () => {
     if (!token) return;
     try {
-      const res = await fetch('http://localhost:5000/api/rounds/my-rounds', {
+      const res = await fetch('/api/rounds/my-rounds', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {

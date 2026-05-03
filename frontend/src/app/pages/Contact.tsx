@@ -40,7 +40,7 @@ export function Contact() {
 
     setIsSubmitting(true);
     try {
-      const res = await fetch('http://localhost:5000/api/public/contact', {
+      const res = await fetch('/api/public/contact', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -73,7 +73,7 @@ export function Contact() {
 
     setIsInstSubmitting(true);
     try {
-      const res = await fetch('http://localhost:5000/api/public/hospital-request', {
+      const res = await fetch('/api/public/hospital-request', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -110,7 +110,7 @@ export function Contact() {
 
     setIsReviewSubmitting(true);
     try {
-      const res = await fetch('http://localhost:5000/api/platform-reviews', {
+      const res = await fetch('/api/platform-reviews', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

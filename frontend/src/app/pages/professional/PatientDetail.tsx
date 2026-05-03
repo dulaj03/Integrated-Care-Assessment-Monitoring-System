@@ -38,7 +38,7 @@ export function PatientDetail() {
     try {
       setLoading(true);
       // Patient details + health logs
-      const res = await fetch(`http://localhost:5000/api/nurse/patients/${id}/details`, {
+      const res = await fetch(`/api/nurse/patients/${id}/details`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -48,25 +48,25 @@ export function PatientDetail() {
       }
 
       // Doctor orders
-      const oRes = await fetch(`http://localhost:5000/api/nurse/orders/${id}`, {
+      const oRes = await fetch(`/api/nurse/orders/${id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (oRes.ok) setOrders(await oRes.json());
 
       // Clinical notes
-      const nRes = await fetch(`http://localhost:5000/api/nurse/notes/${id}`, {
+      const nRes = await fetch(`/api/nurse/notes/${id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (nRes.ok) setNotes(await nRes.json());
 
       // My reports for this patient
-      const rRes = await fetch(`http://localhost:5000/api/nurse/reports/${id}`, {
+      const rRes = await fetch(`/api/nurse/reports/${id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (rRes.ok) setReports(await rRes.json());
 
       // Lab Results
-      const lRes = await fetch(`http://localhost:5000/api/lab/patient/${id}`, {
+      const lRes = await fetch(`/api/lab/patient/${id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (lRes.ok) setLabResults(await lRes.json());
@@ -88,7 +88,7 @@ export function PatientDetail() {
       return;
     }
     try {
-      const res = await fetch('http://localhost:5000/api/nurse/logs', {
+      const res = await fetch('/api/nurse/logs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({
@@ -117,7 +117,7 @@ export function PatientDetail() {
   const handleSubmitReport = async () => {
     if (!reportForm.summary.trim()) return;
     try {
-      const res = await fetch('http://localhost:5000/api/nurse/reports', {
+      const res = await fetch('/api/nurse/reports', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({
@@ -143,7 +143,7 @@ export function PatientDetail() {
   const handleOrderLab = async () => {
     if (!labForm.test_name) return;
     try {
-      const res = await fetch('http://localhost:5000/api/lab/order', {
+      const res = await fetch('/api/lab/order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({
@@ -178,7 +178,7 @@ export function PatientDetail() {
     if (!token) return;
 
     try {
-      const res = await fetch(`http://localhost:5000/api/lab/upload/${labUpload.id}`, {
+      const res = await fetch(`/api/lab/upload/${labUpload.id}`, {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${token}` },
         body: fd

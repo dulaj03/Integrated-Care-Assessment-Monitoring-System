@@ -101,7 +101,8 @@ const labController = {
       const { id } = req.params;
       const { result_summary } = req.body;
       const nurse_id = req.user.id;
-      const file_url = req.file ? `http://localhost:5000/${req.file.path.replace(/\\/g, '/')}` : null;
+      const baseUrl = process.env.FRONTEND_URL || 'https://icams.pandanlabs.net';
+      const file_url = req.file ? `${baseUrl}/api/${req.file.path.replace(/\\/g, '/')}` : null;
 
       const result = await pool.query(
         `UPDATE lab_results 

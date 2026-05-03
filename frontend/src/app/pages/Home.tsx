@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { motion, useSpring, useTransform, useInView, AnimatePresence } from 'motion/react';
 import { LucideIcon } from 'lucide-react';
+import { API_URL } from '../config';
 
 interface CounterProps {
   value: number;
@@ -91,7 +92,7 @@ export function Landing() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/public/stats');
+        const res = await fetch(`${API_URL}/api/public/stats`);
         if (res.ok) {
           const data = await res.json();
           setStats(data);
@@ -103,7 +104,7 @@ export function Landing() {
     
     const fetchReviews = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/platform-reviews/featured');
+        const res = await fetch(`${API_URL}/api/platform-reviews/featured`);
         if (res.ok) {
           const data = await res.json();
           setFeaturedReviews(data);

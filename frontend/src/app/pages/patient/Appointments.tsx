@@ -288,7 +288,7 @@ export function Appointments() {
   const fetchAppointments = useCallback(async () => {
     if (!token) return;
     try {
-      const res = await fetch('http://localhost:5000/api/appointments/my', {
+      const res = await fetch('/api/appointments/my', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -304,7 +304,7 @@ export function Appointments() {
 
   const fetchDoctors = useCallback(async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/doctors');
+      const res = await fetch('/api/doctors');
       if (res.ok) setDoctors(await res.json());
     } catch (error) {
       console.error('Error fetching doctors:', error);
@@ -313,7 +313,7 @@ export function Appointments() {
 
   const fetchDoctorHospitals = useCallback(async (doctorId: string) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/doctors/${doctorId}/hospitals`);
+      const res = await fetch(`/api/doctors/${doctorId}/hospitals`);
       if (res.ok) {
         const data = await res.json();
         setHospitals(data);
@@ -345,7 +345,7 @@ export function Appointments() {
     }
     setSubmitting(true);
     try {
-      const res = await fetch('http://localhost:5000/api/appointments/book', {
+      const res = await fetch('/api/appointments/book', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({

@@ -73,7 +73,7 @@ export function NurseRounds() {
     if (!token) return;
     try {
       // Fetch profile to ensure we have hospital context
-      const meRes = await fetch('http://localhost:5000/api/auth/me', {
+      const meRes = await fetch('/api/auth/me', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (meRes.ok) {
@@ -82,7 +82,7 @@ export function NurseRounds() {
       }
 
       // Fetch pending orders to link them
-      const labRes = await fetch('http://localhost:5000/api/lab/pending', {
+      const labRes = await fetch('/api/lab/pending', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (labRes.ok) {
@@ -91,7 +91,7 @@ export function NurseRounds() {
         setPendingTests(data);
       }
 
-      const res = await fetch('http://localhost:5000/api/rounds/my-rounds', {
+      const res = await fetch('/api/rounds/my-rounds', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -107,7 +107,7 @@ export function NurseRounds() {
 
   const fetchPatients = useCallback(async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/nurse/patients', {
+      const res = await fetch('/api/nurse/patients', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -116,7 +116,7 @@ export function NurseRounds() {
         setPatients(data);
       }
 
-      const docRes = await fetch('http://localhost:5000/api/doctors', {
+      const docRes = await fetch('/api/doctors', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (docRes.ok) {
@@ -160,7 +160,7 @@ export function NurseRounds() {
     });
 
     try {
-      const res = await fetch('http://localhost:5000/api/rounds/create', {
+      const res = await fetch('/api/rounds/create', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -196,7 +196,7 @@ export function NurseRounds() {
   const handleStepComplete = async (stepId: number, taskId: number) => {
     try {
       console.log('📑 Documenting Milestone...', stepId);
-      const res = await fetch(`http://localhost:5000/api/rounds/step/complete/${stepId}`, {
+      const res = await fetch(`/api/rounds/step/complete/${stepId}`, {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',
@@ -227,7 +227,7 @@ export function NurseRounds() {
   const handleFinalize = async (taskId: number) => {
     if (!resultSummary) return toast.error('Please enter a clinical summary');
     try {
-      const res = await fetch(`http://localhost:5000/api/rounds/finalize/${taskId}`, {
+      const res = await fetch(`/api/rounds/finalize/${taskId}`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',

@@ -48,7 +48,7 @@ export function PatientWorkspace() {
       setLoading(true);
       
       // 1. Get Patient Info from list (simplest for now)
-      const pRes = await fetch('http://localhost:5000/api/doctor/patients', {
+      const pRes = await fetch('/api/doctor/patients', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const patients = await pRes.json();
@@ -56,25 +56,25 @@ export function PatientWorkspace() {
       setPatient(currentPatient);
 
       // 2. Fetch Vitals
-      const vRes = await fetch(`http://localhost:5000/api/health/logs/${id}`, {
+      const vRes = await fetch(`/api/health/logs/${id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (vRes.ok) setVitals(await vRes.json());
 
       // 3. Fetch Orders
-      const oRes = await fetch(`http://localhost:5000/api/doctor/orders/${id}`, {
+      const oRes = await fetch(`/api/doctor/orders/${id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (oRes.ok) setOrders(await oRes.json());
 
       // 4. Fetch Notes
-      const nRes = await fetch(`http://localhost:5000/api/doctor/notes/${id}`, {
+      const nRes = await fetch(`/api/doctor/notes/${id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (nRes.ok) setNotes(await nRes.json());
 
       // 5. Fetch Labs
-      const lRes = await fetch(`http://localhost:5000/api/lab/patient/${id}`, {
+      const lRes = await fetch(`/api/lab/patient/${id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (lRes.ok) {
@@ -82,7 +82,7 @@ export function PatientWorkspace() {
       }
 
       // 6. Fetch Reports (via doctor-accessible endpoint)
-      const rRes = await fetch(`http://localhost:5000/api/doctor/nurse-reports/${id}`, {
+      const rRes = await fetch(`/api/doctor/nurse-reports/${id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (rRes.ok) setReports(await rRes.json());
@@ -103,8 +103,8 @@ export function PatientWorkspace() {
     // If no hospital_id, we still try to fetch (the backend will now fallback to general list)
     try {
       const url = patient?.hospital_id 
-        ? `http://localhost:5000/api/doctor/nurses?hospital_id=${patient.hospital_id}`
-        : 'http://localhost:5000/api/doctor/nurses';
+        ? `/api/doctor/nurses?hospital_id=${patient.hospital_id}`
+        : '/api/doctor/nurses';
             
       const res = await fetch(url, {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -124,7 +124,7 @@ export function PatientWorkspace() {
 
   const handleAssignNurse = async (nurseId: number) => {
     try {
-      const res = await fetch('http://localhost:5000/api/doctor/patients/assign-nurse', {
+      const res = await fetch('/api/doctor/patients/assign-nurse', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ patientId: id, nurseId })
@@ -145,7 +145,7 @@ export function PatientWorkspace() {
   const handleSubmitOrder = async () => {
     if (!orderForm.desc.trim()) return;
     try {
-      const res = await fetch('http://localhost:5000/api/doctor/orders', {
+      const res = await fetch('/api/doctor/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({
@@ -170,7 +170,7 @@ export function PatientWorkspace() {
   const handleSignLab = async (id: string, note: string) => {
     if (!token) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/lab/review/${id}`, {
+      const res = await fetch(`/api/lab/review/${id}`, {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',
@@ -190,7 +190,7 @@ export function PatientWorkspace() {
   const handleOrderLab = async () => {
     if (!labForm.test_name) return;
     try {
-      const res = await fetch('http://localhost:5000/api/lab/order', {
+      const res = await fetch('/api/lab/order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({
@@ -217,7 +217,7 @@ export function PatientWorkspace() {
   const handleSubmitNote = async () => {
     if (!noteForm.assessment.trim()) return;
     try {
-      const res = await fetch('http://localhost:5000/api/doctor/notes', {
+      const res = await fetch('/api/doctor/notes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({
@@ -403,7 +403,7 @@ export function PatientWorkspace() {
                     <button 
                       key={c.val}
                       onClick={async () => {
-                        await fetch(`http://localhost:5000/api/doctor/patients/condition/${id}`, {
+                        await fetch(`/api/doctor/patients/condition/${id}`, {
                           method: 'PATCH',
                           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                           body: JSON.stringify({ condition: c.val })

@@ -10,7 +10,7 @@ export const PlatformReviewsTable = () => {
   const fetchReviews = async () => {
     const token = sessionStorage.getItem('admin_token');
     try {
-      const res = await fetch('http://localhost:5000/api/platform-reviews', {
+      const res = await fetch('/api/platform-reviews', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await res.json();
@@ -31,7 +31,7 @@ export const PlatformReviewsTable = () => {
   const handleToggleFeature = async (id: number) => {
     const token = sessionStorage.getItem('admin_token');
     try {
-      const res = await fetch(`http://localhost:5000/api/platform-reviews/${id}/feature`, {
+      const res = await fetch(`/api/platform-reviews/${id}/feature`, {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -52,7 +52,7 @@ export const PlatformReviewsTable = () => {
     if (!confirm('Are you sure you want to delete this review?')) return;
     const token = sessionStorage.getItem('admin_token');
     try {
-      const res = await fetch(`http://localhost:5000/api/platform-reviews/${id}`, {
+      const res = await fetch(`/api/platform-reviews/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });

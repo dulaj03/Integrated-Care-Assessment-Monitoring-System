@@ -5,6 +5,7 @@ import { Hospital } from '../lib/hospitalData';
 import { Navbar } from '../components/Navbar';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
+import { API_URL } from '../config';
 
 export function Register() {
   const { t } = useTranslation();
@@ -40,7 +41,7 @@ export function Register() {
 
   const fetchHospitals = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/hospitals');
+      const res = await fetch(`${API_URL}/api/hospitals`);
       if (res.ok) {
         const data = await res.json();
         setHospitals(data);
@@ -145,7 +146,7 @@ export function Register() {
     setLoading(true);
 
     try {
-      const baseUrl = 'http://localhost:5000/api/auth';
+      const baseUrl = `${API_URL}/api/auth`;
 
       // ── Patient: 2-step email-verify flow ──────────────────────────
       if (formData.role === 'patient') {

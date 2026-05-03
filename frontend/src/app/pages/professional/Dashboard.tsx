@@ -62,7 +62,7 @@ export function ProfessionalDashboard({ role }: { role?: 'doctor' | 'nurse' }) {
         return;
       }
 
-      const res = await fetch('http://localhost:5000/api/lab/order', {
+      const res = await fetch('/api/lab/order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({
@@ -93,7 +93,7 @@ export function ProfessionalDashboard({ role }: { role?: 'doctor' | 'nurse' }) {
   const fetchData = useCallback(async () => {
     if (!token) return;
     try {
-      const assignedRes = await fetch(`http://localhost:5000/api/${userRole}/patients`, {
+      const assignedRes = await fetch(`/api/${userRole}/patients`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (assignedRes.ok) {
@@ -101,7 +101,7 @@ export function ProfessionalDashboard({ role }: { role?: 'doctor' | 'nurse' }) {
         setAssignedPatients(data);
       }
       if (userRole === 'doctor') {
-        const apptRes = await fetch('http://localhost:5000/api/appointments/my', {
+        const apptRes = await fetch('/api/appointments/my', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (apptRes.ok) {
@@ -109,7 +109,7 @@ export function ProfessionalDashboard({ role }: { role?: 'doctor' | 'nurse' }) {
           setAppointments(data);
         }
       }
-      const roundsRes = await fetch('http://localhost:5000/api/rounds/my-rounds', {
+      const roundsRes = await fetch('/api/rounds/my-rounds', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (roundsRes.ok) setRounds(await roundsRes.json());
@@ -128,7 +128,7 @@ export function ProfessionalDashboard({ role }: { role?: 'doctor' | 'nurse' }) {
 
   const handleConfirmAppointment = async (id: number) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/appointments/status/${id}`, {
+      const res = await fetch(`/api/appointments/status/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ status: 'confirmed' })
@@ -144,13 +144,13 @@ export function ProfessionalDashboard({ role }: { role?: 'doctor' | 'nurse' }) {
 
   const handleAddToMyPatients = async (patientId: number, appointmentId: number, hospitalId: number) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/doctor/patients/approve/${patientId}`, {
+      const res = await fetch(`/api/doctor/patients/approve/${patientId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ hospital_id: hospitalId })
       });
       if (res.ok) {
-        await fetch(`http://localhost:5000/api/appointments/status/${appointmentId}`, {
+        await fetch(`/api/appointments/status/${appointmentId}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify({ status: 'completed' })

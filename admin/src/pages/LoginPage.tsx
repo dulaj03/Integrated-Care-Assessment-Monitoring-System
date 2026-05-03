@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { toast } from 'sonner';
+import { API_URL } from '../config';
 
 interface LoginPageProps {
   onLogin: () => void;
@@ -36,7 +37,7 @@ export const LoginPage = ({ onLogin }: LoginPageProps) => {
     setIsLoading(true);
 
     try {
-      const res = await fetch('http://localhost:5000/api/auth/admin/login', {
+      const res = await fetch(`${API_URL}/api/auth/admin/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),

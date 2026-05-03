@@ -23,7 +23,7 @@ export function LabManagement() {
     const token = sessionStorage.getItem('token');
     if (!token) return;
     try {
-      const res = await fetch('http://localhost:5000/api/lab/my', {
+      const res = await fetch('/api/lab/my', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -49,7 +49,7 @@ export function LabManagement() {
     setUpdatingId(testId);
     const token = sessionStorage.getItem('token');
     try {
-      const res = await fetch(`http://localhost:5000/api/lab/${testId}`, {
+      const res = await fetch(`/api/lab/${testId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

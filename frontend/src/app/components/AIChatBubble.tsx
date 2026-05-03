@@ -51,7 +51,7 @@ export function AIChatBubble() {
 
     try {
       const token = sessionStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/ai/chat', {
+      const response = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

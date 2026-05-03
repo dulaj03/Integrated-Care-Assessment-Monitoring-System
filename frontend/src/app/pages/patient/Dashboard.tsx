@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Activity, Calendar, Droplet, Heart, Thermometer, AlertCircle, Plus, FlaskConical, Pill, ClipboardList, ChevronRight, Building2, CheckCircle2, Clock, User, History as HistoryIcon, Loader2, Bell, Send, Stethoscope, MapPin, FileText } from 'lucide-react';
+import { API_URL } from '../../config';
 import { CURRENT_USER_PATIENT } from '../../lib/mockData';
 import {
   getPatientLabTests,
@@ -98,7 +99,7 @@ export function PatientDashboard() {
     const token = sessionStorage.getItem('token');
     if (!token) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/health/all/${patientId}`, {
+      const res = await fetch(`${API_URL}/api/health/all/${patientId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -114,7 +115,7 @@ export function PatientDashboard() {
     const token = sessionStorage.getItem('token');
     if (!token) return;
     try {
-      const res = await fetch('http://localhost:5000/api/appointments/my', {
+      const res = await fetch(`${API_URL}/api/appointments/my`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -130,7 +131,7 @@ export function PatientDashboard() {
     const token = sessionStorage.getItem('token');
     if (!token) return;
     try {
-      const res = await fetch('http://localhost:5000/api/notifications', {
+      const res = await fetch(`${API_URL}/api/notifications`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -146,7 +147,7 @@ export function PatientDashboard() {
     if (!patientId) return;
     const token = sessionStorage.getItem('token');
     try {
-      const res = await fetch(`http://localhost:5000/api/health/orders/${patientId}`, {
+      const res = await fetch(`${API_URL}/api/health/orders/${patientId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) setDbOrders(await res.json());
@@ -157,7 +158,7 @@ export function PatientDashboard() {
     if (!patientId) return;
     const token = sessionStorage.getItem('token');
     try {
-      const res = await fetch(`http://localhost:5000/api/health/nurse-reports/${patientId}`, {
+      const res = await fetch(`${API_URL}/api/health/nurse-reports/${patientId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) setDbReports(await res.json());
@@ -170,7 +171,7 @@ export function PatientDashboard() {
     if (!patientId) return;
     const token = sessionStorage.getItem('token');
     try {
-      const res = await fetch(`http://localhost:5000/api/rounds/patient/${patientId}`, {
+      const res = await fetch(`${API_URL}/api/rounds/patient/${patientId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) setActiveRounds(await res.json());
@@ -181,7 +182,7 @@ export function PatientDashboard() {
     const token = sessionStorage.getItem('token');
     if (!token) return;
     try {
-      const res = await fetch('http://localhost:5000/api/auth/me', {
+      const res = await fetch(`${API_URL}/api/auth/me`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -216,7 +217,7 @@ export function PatientDashboard() {
 
   const markNotificationRead = async (id: number) => {
     const token = sessionStorage.getItem('token');
-    await fetch(`http://localhost:5000/api/notifications/mark-read/${id}`, {
+    await fetch(`${API_URL}/api/notifications/mark-read/${id}`, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${token}` }
     });
@@ -326,7 +327,7 @@ export function PatientDashboard() {
 
     try {
       const token = sessionStorage.getItem('token');
-      const res = await fetch('http://localhost:5000/api/health/log', {
+      const res = await fetch(`${API_URL}/api/health/log`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

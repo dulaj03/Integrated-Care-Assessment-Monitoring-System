@@ -1,12 +1,12 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const path = require('path');
 const http = require('http');
-require('dotenv').config();
 
-// Import DB connection (runs the test on startup)
+// Import DB connection
 require('./config/db');
 const { initSocket } = require('./utils/socket');
 
@@ -14,57 +14,63 @@ const app = express();
 const server = http.createServer(app);
 const PORT = process.env.PORT || 5000;
 
-// Initialize socket.io with the HTTP server
+// Initialize socket.io
 initSocket(server);
 
 // ─── Middleware ───────────────────────────────────────────────
-app.use(helmet());                          // Security headers
+app.use(helmet());
 app.use(cors({
   origin: [
-    'http://localhost:5173',                  // Frontend
-    'http://localhost:5174',                  // Admin panel
-  ]
+    process.env.FRONTEND_URL || 'https://icams.pandanlabs.net',
+    process.env.ADMIN_URL || 'https://icams.pandanlabs.net/admin',
+  ],
+  credentials: true
 }));
-app.use(morgan('dev'));                      // HTTP request logs
-app.use(express.json());                    // Parse JSON bodies
+app.use(morgan('dev'));
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve uploaded files (license documents, etc.)
+// Serve uploaded files
 app.use('/uploads', (req, res, next) => {
   res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
   next();
 }, express.static(path.join(__dirname, 'uploads')));
 
-// ─── Routes (add more as we build them) ───────────────────────
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/admin', require('./routes/admin'));
-app.use('/api/doctor', require('./routes/doctor'));
-app.use('/api/nurse', require('./routes/nurse'));
-app.use('/api/health', require('./routes/health'));
-app.use('/api/hospitals', require('./routes/hospitals'));
-app.use('/api/notifications', require('./routes/notifications'));
-app.use('/api/appointments', require('./routes/appointment'));
-app.use('/api/doctors', require('./routes/doctors_info'));
-app.use('/api/lab', require('./routes/lab'));
-app.use('/api/public', require('./routes/public'));
-app.use('/api/messages', require('./routes/message'));
-app.use('/api/rounds', require('./routes/nurseRounds'));
-app.use('/api/ai', require('./routes/ai'));
-app.use('/api/ratings', require('./routes/rating'));
-app.use('/api/platform-reviews', require('./routes/platformReview'));
+// ─── Routes ──────────────────────────────────────────────────
+const apiRouter = express.Router();
 
-// ─── Health Check ─────────────────────────────────────────────
-app.get('/', (req, res) => {
-  res.json({
-    message: '✅ I-CAMS API is running',
-    version: '1.0.0',
-    timestamp: new Date().toISOString(),
-  });
-});
+apiRouter.use('/auth', require('./routes/auth'));
+apiRouter.use('/admin', require('./routes/admin'));
+apiRouter.use('/doctor', require('./routes/doctor'));
+apiRouter.use('/nurse', require('./routes/nurse'));
+apiRouter.use('/health', require('./routes/health'));
+apiRouter.use('/hospitals', require('./routes/hospitals'));
+apiRouter.use('/notifications', require('./routes/notifications'));
+apiRouter.use('/appointments', require('./routes/appointment'));
+apiRouter.use('/doctors', require('./routes/doctors_info'));
+apiRouter.use('/lab', require('./routes/lab'));
+apiRouter.use('/public', require('./routes/public'));
+apiRouter.use('/messages', require('./routes/message'));
+apiRouter.use('/rounds', require('./routes/nurseRounds'));
+apiRouter.use('/ai', require('./routes/ai'));
+apiRouter.use('/ratings', require('./routes/rating'));
+apiRouter.use('/platform-reviews', require('./routes/platformReview'));
 
-// ─── 404 Handler ──────────────────────────────────────────────
-app.use((req, res) => {
-  res.status(404).json({ error: 'Route not found' });
+// Mount the router on /api
+apiRouter.use('/uploads', (req, res, next) => {
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  next();
+}, express.static(path.join(__dirname, 'uploads')));
+app.use('/api', apiRouter);
+
+// ─── Static Frontend Serving ──────────────────────────────────
+app.use(express.static(path.join(__dirname, 'public')));
+app.use('/admin', express.static(path.join(__dirname, 'public', 'admin')));
+
+// Catch-all Middleware for React Routing
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api')) return next();
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // ─── Global Error Handler ─────────────────────────────────────
@@ -77,5 +83,5 @@ app.use((err, req, res, _next) => {
 
 // ─── Start Server ─────────────────────────────────────────────
 server.listen(PORT, () => {
-  console.log(`🚀 I-CAMS Backend running on http://localhost:${PORT}`);
+  console.log(`🚀 I-CAMS Backend running on PORT ${PORT}`);
 });

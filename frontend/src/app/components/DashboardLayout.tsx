@@ -56,7 +56,7 @@ export function DashboardLayout({ role, userName: initialUserName = '' }: Dashbo
     const token = sessionStorage.getItem('token');
     if (!token) return;
     try {
-      const res = await fetch('http://localhost:5000/api/messages/conversations', {
+      const res = await fetch('/api/messages/conversations', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -74,7 +74,7 @@ export function DashboardLayout({ role, userName: initialUserName = '' }: Dashbo
     const token = sessionStorage.getItem('token');
     if (!token) return;
     try {
-      const res = await fetch('http://localhost:5000/api/notifications', {
+      const res = await fetch('/api/notifications', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -104,7 +104,7 @@ export function DashboardLayout({ role, userName: initialUserName = '' }: Dashbo
       const token = sessionStorage.getItem('token');
       if (!token) return;
       try {
-        const res = await fetch('http://localhost:5000/api/auth/me', {
+        const res = await fetch('/api/auth/me', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) {
@@ -165,7 +165,7 @@ export function DashboardLayout({ role, userName: initialUserName = '' }: Dashbo
     const token = sessionStorage.getItem('token');
     if (!token) return;
     try {
-      await fetch(`http://localhost:5000/api/notifications/mark-read/${notificationId}`, {
+      await fetch(`/api/notifications/mark-read/${notificationId}`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });
