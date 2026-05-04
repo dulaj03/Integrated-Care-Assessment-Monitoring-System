@@ -33,6 +33,7 @@ import { HospitalDashboard } from './pages/hospital/HospitalDashboard';
 import { LabManagement } from './pages/hospital/LabManagement';
 import { ProceduralOutcomes } from './pages/professional/ProceduralOutcomes';
 import { CareHistory } from './pages/patient/CareHistory';
+import { Invoice } from './pages/patient/Invoice';
 import { Settings } from './pages/professional/Settings';
 import { NotFound } from './pages/NotFound';
 import { ScrollToTopOnNavigate } from './components/ScrollToTopOnNavigate';
@@ -81,6 +82,7 @@ export const router = createBrowserRouter([
           { path: 'doctors', Component: DoctorSearch },
           { path: 'lab-results', Component: LabResults },
           { path: 'profile', Component: Profile },
+          { path: 'invoice/:appointmentId', Component: Invoice },
           { path: 'messages', Component: Messages },
         ],
       },

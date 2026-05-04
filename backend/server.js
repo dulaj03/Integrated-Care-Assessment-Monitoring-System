@@ -5,6 +5,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const path = require('path');
 const http = require('http');
+const { scheduleWeeklySundayNotification } = require('./utils/scheduler');
 
 // Import DB connection
 require('./config/db');
@@ -55,6 +56,8 @@ apiRouter.use('/rounds', require('./routes/nurseRounds'));
 apiRouter.use('/ai', require('./routes/ai'));
 apiRouter.use('/ratings', require('./routes/rating'));
 apiRouter.use('/platform-reviews', require('./routes/platformReview'));
+apiRouter.use('/payment', require('./routes/payment'));
+apiRouter.use('/availability', require('./routes/availability'));
 
 // Mount the router on /api
 apiRouter.use('/uploads', (req, res, next) => {
@@ -84,4 +87,6 @@ app.use((err, req, res, _next) => {
 // ─── Start Server ─────────────────────────────────────────────
 server.listen(PORT, () => {
   console.log(`🚀 I-CAMS Backend running on PORT ${PORT}`);
+  // Start weekly Sunday doctor schedule reminder
+  scheduleWeeklySundayNotification();
 });

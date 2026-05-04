@@ -1,12 +1,13 @@
 import {
   Calendar, Clock, MapPin, User, Building2, Loader2, Plus,
   CheckCircle2, X, Send, ChevronRight, Stethoscope, AlertCircle,
-  FileText
+  FileText, CreditCard, Receipt
 } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import { format, isPast } from 'date-fns';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router';
 
 // Safely parse a date string or object into a local Date object
 function parseLocalDate(dateInput: any): Date {
@@ -48,6 +49,15 @@ interface Appointment {
   status: ApptStatus;
   doctor_notes?: string;
   created_at: string;
+  payment_status?: string;
+  payment_id?: string;
+}
+
+interface FeeBreakdown {
+  doctorFee: number;
+  hospitalFee: number;
+  icamsFee: number;
+  totalAmount: string;
 }
 
 interface Doctor {
@@ -178,7 +188,14 @@ function ApprovalStepper({ status }: { status: ApptStatus }) {
 }
 
 // ─── Appointment Card ─────────────────────────────────────────────────────────
-function AppointmentCard({ apt }: { apt: Appointment }) {
+function AppointmentCard({
+  apt, onPay, onViewInvoice, isPaying
+}: {
+  apt: Appointment;
+  onPay: (id: string) => void;
+  onViewInvoice: (id: string) => void;
+  isPaying?: boolean;
+}) {
   const isActive = apt.status !== 'completed' && apt.status !== 'cancelled';
   const isConfirmed = apt.status === 'confirmed';
   const isPastAppt = isPast(parseLocalDate(apt.appointment_date));
@@ -247,17 +264,42 @@ function AppointmentCard({ apt }: { apt: Appointment }) {
       {/* Progress stepper or completed badge */}
       {isActive ? (
         <div className="mt-2">
-          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">
-            Approval Progress
-          </p>
+          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Approval Progress</p>
           <ApprovalStepper status={apt.status} />
+          {/* Payment button when confirmed & unpaid */}
+          {apt.status === 'confirmed' && apt.payment_status !== 'completed' && (
+            <button
+              onClick={() => onPay(apt.id)}
+              disabled={isPaying}
+              className="mt-4 w-full flex items-center justify-center gap-2 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black text-sm shadow-lg shadow-emerald-500/20 hover:scale-[1.02] transition-all disabled:opacity-50"
+            >
+              {isPaying ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
+              {isPaying ? 'Processing...' : 'Pay Now — Confirm Appointment'}
+            </button>
+          )}
+          {apt.status === 'confirmed' && apt.payment_status === 'completed' && (
+            <button
+              onClick={() => onViewInvoice(apt.id)}
+              className="mt-4 w-full flex items-center justify-center gap-2 py-3 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-900/30 rounded-2xl font-black text-sm hover:bg-blue-100 transition-all"
+            >
+              <Receipt className="h-4 w-4" /> View Invoice
+            </button>
+          )}
         </div>
       ) : apt.status === 'completed' ? (
-        <div className="flex items-center gap-2 py-2.5 px-4 bg-slate-50 dark:bg-slate-800 rounded-2xl">
-          <CheckCircle2 className="h-4 w-4 text-slate-400 shrink-0" />
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-            Appointment Completed {isPastAppt ? '· ' + format(new Date(apt.appointment_date), 'MMM d, yyyy') : ''}
-          </p>
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 py-2.5 px-4 bg-slate-50 dark:bg-slate-800 rounded-2xl">
+            <CheckCircle2 className="h-4 w-4 text-slate-400 shrink-0" />
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+              Completed {isPastAppt ? '· ' + format(new Date(apt.appointment_date), 'MMM d, yyyy') : ''}
+            </p>
+          </div>
+          {apt.payment_status === 'completed' && (
+            <button onClick={() => onViewInvoice(apt.id)}
+              className="w-full flex items-center justify-center gap-2 py-2.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-900/30 rounded-2xl font-black text-xs hover:bg-blue-100 transition-all">
+              <Receipt className="h-3.5 w-3.5" /> View Invoice
+            </button>
+          )}
         </div>
       ) : (
         <ApprovalStepper status={apt.status} />
@@ -268,10 +310,14 @@ function AppointmentCard({ apt }: { apt: Appointment }) {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 export function Appointments() {
+  const navigate = useNavigate();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [showBookModal, setShowBookModal] = useState(false);
   const [activeFilter, setActiveFilter] = useState<'active' | 'all'>('active');
+  const [feeBreakdown, setFeeBreakdown] = useState<FeeBreakdown | null>(null);
+  const [availableSlots, setAvailableSlots] = useState<string[]>([]);
+  const [payingId, setPayingId] = useState<string | null>(null);
 
   // Booking Form State
   const [doctors, setDoctors] = useState<Doctor[]>([]);
@@ -289,7 +335,10 @@ export function Appointments() {
     if (!token) return;
     try {
       const res = await fetch('/api/appointments/my', {
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Cache-Control': 'no-cache'
+        }
       });
       if (res.ok) {
         const data = await res.json();
@@ -314,28 +363,69 @@ export function Appointments() {
   const fetchDoctorHospitals = useCallback(async (doctorId: string) => {
     try {
       const res = await fetch(`/api/doctors/${doctorId}/hospitals`);
-      if (res.ok) {
-        const data = await res.json();
-        setHospitals(data);
-      }
+      if (res.ok) setHospitals(await res.json());
     } catch (error) {
       console.error('Error fetching doctor hospitals:', error);
     }
   }, []);
 
-  useEffect(() => {
-    fetchAppointments();
-    fetchDoctors();
+  const fetchFeeBreakdown = useCallback(async (doctorId: string, hospitalId: string) => {
+    if (!doctorId || !hospitalId) { setFeeBreakdown(null); return; }
+    try {
+      const res = await fetch(`/api/availability/fees/${doctorId}/${hospitalId}`);
+      if (res.ok) setFeeBreakdown(await res.json());
+    } catch { /* silent */ }
+  }, []);
+
+  const fetchAvailableSlots = useCallback(async (doctorId: string, hospitalId: string, date: string) => {
+    if (!doctorId || !hospitalId || !date) { setAvailableSlots([]); return; }
+    try {
+      const res = await fetch(`/api/availability/doctor/${doctorId}/hospital/${hospitalId}`);
+      if (res.ok) {
+        const avail = await res.json();
+        const dayName = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][new Date(date + 'T00:00:00').getDay()];
+        const daySlot = avail.find((s: any) => s.day_of_week === dayName);
+        if (!daySlot) { setAvailableSlots([]); return; }
+        // Generate time slots
+        const slots: string[] = [];
+        const [sh, sm] = daySlot.start_time.split(':').map(Number);
+        const [eh, em] = daySlot.end_time.split(':').map(Number);
+        const dur = daySlot.slot_duration_minutes || 30;
+        let cur = sh * 60 + sm;
+        const end = eh * 60 + em;
+        while (cur + dur <= end) {
+          const hh = Math.floor(cur / 60).toString().padStart(2, '0');
+          const mm = (cur % 60).toString().padStart(2, '0');
+          slots.push(`${hh}:${mm}`);
+          cur += dur;
+        }
+        setAvailableSlots(slots);
+      }
+    } catch { /* silent */ }
+  }, []);
+
+  useEffect(() => { 
+    fetchAppointments(); 
+    fetchDoctors(); 
+    
+    // Refresh when user returns to this tab (from PayHere)
+    const handleFocus = () => fetchAppointments();
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, [fetchAppointments, fetchDoctors]);
 
   useEffect(() => {
-    if (selectedDoctorId) {
-      fetchDoctorHospitals(selectedDoctorId);
-    } else {
-      setHospitals([]);
-      setSelectedHospitalId('');
-    }
+    if (selectedDoctorId) fetchDoctorHospitals(selectedDoctorId);
+    else { setHospitals([]); setSelectedHospitalId(''); }
   }, [selectedDoctorId, fetchDoctorHospitals]);
+
+  useEffect(() => {
+    fetchFeeBreakdown(selectedDoctorId, selectedHospitalId);
+  }, [selectedDoctorId, selectedHospitalId, fetchFeeBreakdown]);
+
+  useEffect(() => {
+    fetchAvailableSlots(selectedDoctorId, selectedHospitalId, appointmentDate);
+  }, [selectedDoctorId, selectedHospitalId, appointmentDate, fetchAvailableSlots]);
 
   const handleBookAppointment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -373,12 +463,42 @@ export function Appointments() {
     }
   };
 
+  const handlePay = async (appointmentId: string) => {
+    if (!token) return;
+    setPayingId(appointmentId);
+    try {
+      const res = await fetch('/api/payment/initiate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ appointment_id: appointmentId })
+      });
+      if (!res.ok) { toast.error('Payment initiation failed'); return; }
+      const data = await res.json();
+      console.log('[PayHere Frontend Debug]', data);
+      const { payHereData } = data;
+      // Build and submit PayHere form
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = 'https://sandbox.payhere.lk/pay/checkout'; // Change to live for production
+      Object.entries(payHereData).forEach(([key, value]) => {
+        const input = document.createElement('input');
+        input.type = 'hidden'; input.name = key; input.value = String(value);
+        form.appendChild(input);
+      });
+      document.body.appendChild(form);
+      form.submit();
+    } catch { toast.error('Payment error. Please try again.'); }
+    finally { setPayingId(null); }
+  };
+
   const resetForm = () => {
     setSelectedDoctorId('');
     setSelectedHospitalId('');
     setAppointmentDate('');
     setAppointmentTime('');
     setReason('');
+    setFeeBreakdown(null);
+    setAvailableSlots([]);
   };
 
   // ─── Computed lists ─────────────────────────────────────────────────────────
@@ -493,7 +613,13 @@ export function Appointments() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {displayed.map(apt => (
-            <AppointmentCard key={apt.id} apt={apt} />
+            <AppointmentCard
+              key={apt.id}
+              apt={apt}
+              onPay={handlePay}
+              onViewInvoice={(id) => navigate(`/patient/invoice/${id}`)}
+              isPaying={payingId === apt.id}
+            />
           ))}
         </div>
       )}
@@ -568,34 +694,62 @@ export function Appointments() {
                   </select>
                 </div>
 
-                {/* Date & Time */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                      <Calendar className="h-3 w-3" /> Date
-                    </label>
-                    <input
-                      type="date"
-                      min={new Date().toISOString().split('T')[0]}
-                      value={appointmentDate}
-                      onChange={e => setAppointmentDate(e.target.value)}
-                      className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white font-bold text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                      <Clock className="h-3 w-3" /> Time
-                    </label>
-                    <input
-                      type="time"
-                      value={appointmentTime}
-                      onChange={e => setAppointmentTime(e.target.value)}
-                      className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white font-bold text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                      required
-                    />
-                  </div>
+                {/* Date */}
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                    <Calendar className="h-3 w-3" /> Date
+                  </label>
+                  <input type="date" min={new Date().toISOString().split('T')[0]}
+                    value={appointmentDate} onChange={e => setAppointmentDate(e.target.value)}
+                    className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white font-bold text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    required />
                 </div>
+
+                {/* Time Slots */}
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                    <Clock className="h-3 w-3" /> Available Time Slots
+                  </label>
+                  {availableSlots.length > 0 ? (
+                    <div className="grid grid-cols-4 gap-2">
+                      {availableSlots.map(slot => (
+                        <button key={slot} type="button" onClick={() => setAppointmentTime(slot)}
+                          className={`py-2 px-2 text-xs rounded-xl border font-black transition-all ${
+                            appointmentTime === slot
+                              ? 'bg-blue-600 text-white border-blue-600'
+                              : 'border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-blue-400'
+                          }`}>
+                          {slot}
+                        </button>
+                      ))}
+                    </div>
+                  ) : appointmentDate && selectedHospitalId ? (
+                    <p className="text-xs text-amber-600 font-bold py-2">No available slots on this day. Try another date.</p>
+                  ) : (
+                    <p className="text-xs text-slate-400 font-bold py-2">Select a doctor, hospital and date first.</p>
+                  )}
+                </div>
+
+                {/* Fee Breakdown */}
+                {feeBreakdown && (
+                  <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl border border-emerald-200 dark:border-emerald-900/30">
+                    <p className="text-[9px] font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-widest mb-3 flex items-center gap-1">
+                      <CreditCard className="h-3 w-3" /> Fee Breakdown
+                    </p>
+                    {[
+                      { label: 'Doctor Fee', val: feeBreakdown.doctorFee },
+                      { label: 'Hospital Fee', val: feeBreakdown.hospitalFee },
+                      { label: 'I-CAMS Fee', val: feeBreakdown.icamsFee },
+                    ].map(r => (
+                      <div key={r.label} className="flex justify-between text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">
+                        <span>{r.label}</span><span>LKR {r.val.toLocaleString()}</span>
+                      </div>
+                    ))}
+                    <div className="flex justify-between text-sm font-black text-emerald-700 dark:text-emerald-400 border-t border-emerald-200 dark:border-emerald-900/40 pt-2 mt-2">
+                      <span>Total</span><span>LKR {parseFloat(feeBreakdown.totalAmount).toLocaleString()}</span>
+                    </div>
+                  </div>
+                )}
 
                 {/* Reason */}
                 <div className="space-y-2">

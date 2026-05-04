@@ -1,4 +1,4 @@
-import { Calendar, Users, Building2, Clock, Loader2, Send } from 'lucide-react';
+import { Calendar, Users, Building2, Clock, Loader2, Send, CreditCard, Save } from 'lucide-react';
 import { format, isToday } from 'date-fns';
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'motion/react';
@@ -51,6 +51,8 @@ export function HospitalDashboard() {
   const [appointments, setAppointments] = useState<any[]>([]);
   const [patients, setPatients] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hospitalFee, setHospitalFee] = useState<number>(0);
+  const [savingFee, setSavingFee] = useState(false);
 
   // Use stored hospital from session if available, otherwise fallback to mock
   const hospital = (storedRole === 'hospital' && storedUserName) 
@@ -75,12 +77,37 @@ export function HospitalDashboard() {
         const pData = await patientsRes.json();
         setPatients(pData);
       }
+
+      const feeRes = await fetch(`/api/availability/hospital-fee/${hospitalId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (feeRes.ok) {
+        const feeData = await feeRes.json();
+        setHospitalFee(feeData.appointment_fee);
+      }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
       setLoading(false);
     }
   }, [token, hospitalId]);
+
+  const handleUpdateFee = async () => {
+    setSavingFee(true);
+    try {
+      const res = await fetch(`/api/availability/hospital-fee`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ hospital_id: hospitalId, appointment_fee: hospitalFee })
+      });
+      if (res.ok) toast.success('Hospital fee updated successfully');
+      else toast.error('Failed to update fee');
+    } catch { toast.error('Network error'); }
+    finally { setSavingFee(false); }
+  };
 
   useEffect(() => {
     fetchAppointments();
@@ -216,6 +243,35 @@ export function HospitalDashboard() {
               ))}
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Hospital Settings */}
+      <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5">
+        <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2 mb-6">
+          <CreditCard className="h-5 w-5 text-blue-500" /> Hospital Settings & Finance
+        </h3>
+        <div className="max-w-md space-y-4">
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Default Hospital Appointment Fee (LKR)</label>
+            <div className="flex gap-3">
+              <input 
+                type="number" 
+                value={hospitalFee} 
+                onChange={e => setHospitalFee(Number(e.target.value))}
+                className="flex-1 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white font-bold text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              />
+              <button 
+                onClick={handleUpdateFee}
+                disabled={savingFee}
+                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs transition-all flex items-center gap-2 disabled:opacity-50"
+              >
+                {savingFee ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
+                SAVE
+              </button>
+            </div>
+            <p className="text-[10px] text-slate-400">This fee will be charged from patients for every appointment booked at your hospital.</p>
+          </div>
         </div>
       </div>
 

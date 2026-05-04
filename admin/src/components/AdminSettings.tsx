@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { Loader2, Save, User, Mail, Lock, Shield, Activity } from 'lucide-react';
+import { Loader2, Save, User, Mail, Lock, Shield, Activity, CreditCard } from 'lucide-react';
 import { API_URL } from '../config';
 
 export const AdminSettings = () => {
@@ -15,6 +15,8 @@ export const AdminSettings = () => {
     newPassword: '',
     confirmPassword: '',
   });
+  const [platformFee, setPlatformFee] = useState<number>(0);
+  const [savingPlatform, setSavingPlatform] = useState(false);
 
   const fetchProfile = async () => {
     setLoading(true);
@@ -40,8 +42,42 @@ export const AdminSettings = () => {
     }
   };
 
+  const fetchPlatformFee = async () => {
+    const token = sessionStorage.getItem('admin_token');
+    try {
+      const res = await fetch(`${API_URL}/api/availability/platform-fee`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setPlatformFee(data.icams_appointment_fee);
+      }
+    } catch (err: any) { 
+      console.error('[Platform Fee Fetch Error]', err);
+    }
+  };
+
+  const handleUpdatePlatformFee = async () => {
+    setSavingPlatform(true);
+    const token = sessionStorage.getItem('admin_token');
+    try {
+      const res = await fetch(`${API_URL}/api/availability/platform-fee`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ icams_appointment_fee: platformFee })
+      });
+      if (res.ok) toast.success('Platform fee updated');
+      else toast.error('Update failed');
+    } catch { toast.error('Network error'); }
+    finally { setSavingPlatform(false); }
+  };
+
   useEffect(() => {
     fetchProfile();
+    fetchPlatformFee();
   }, []);
 
   const handleProfileUpdate = async (e: React.FormEvent) => {
@@ -199,6 +235,31 @@ export const AdminSettings = () => {
             </p>
           </div>
           
+          <div className="glass-card p-6">
+            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+              <CreditCard className="w-5 h-5 text-blue-500" /> Platform Fees
+            </h3>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Global Appointment Fee (LKR)</label>
+                <input 
+                  type="number" 
+                  value={platformFee} 
+                  onChange={e => setPlatformFee(Number(e.target.value))}
+                  className="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-2 text-white font-bold"
+                />
+              </div>
+              <button 
+                onClick={handleUpdatePlatformFee}
+                disabled={savingPlatform}
+                className="w-full py-2 bg-blue-600 hover:bg-blue-500 rounded-xl text-[10px] font-black text-white transition-all flex items-center justify-center gap-2"
+              >
+                {savingPlatform ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
+                UPDATE PLATFORM FEE
+              </button>
+            </div>
+          </div>
+
           <div className="glass-card p-6">
             <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
               <Activity className="w-5 h-5 text-emerald-500" /> Account Status

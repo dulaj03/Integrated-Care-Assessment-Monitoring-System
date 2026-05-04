@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, MapPin, Phone, Star, Building2, ChevronRight, CheckCircle, X, Calendar, Stethoscope, Clock } from 'lucide-react';
+import { Search, MapPin, Phone, Star, Building2, ChevronRight, CheckCircle, X, Calendar, Stethoscope, Clock, CreditCard } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
 import {
@@ -19,7 +19,14 @@ interface ExtendedDoctor extends HospitalDoctor {
   years_of_experience?: number;
 }
 
-const TIME_SLOTS = ['08:00 AM', '08:30 AM', '09:00 AM', '09:30 AM', '10:00 AM', '10:30 AM', '11:00 AM', '02:00 PM', '02:30 PM', '03:00 PM', '03:30 PM', '04:00 PM'];
+
+
+interface FeeBreakdown {
+  doctorFee: number;
+  hospitalFee: number;
+  icamsFee: number;
+  totalAmount: string;
+}
 
 type BookingStep = 'browse' | 'select_doctor' | 'select_time' | 'confirm' | 'booked';
 
@@ -36,6 +43,8 @@ export function HospitalFinder() {
   const [reason, setReason] = useState('');
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [selectedProfileDoctor, setSelectedProfileDoctor] = useState<ExtendedDoctor | null>(null);
+  const [feeBreakdown, setFeeBreakdown] = useState<FeeBreakdown | null>(null);
+  const [availableSlots, setAvailableSlots] = useState<string[]>([]);
 
   const [dbHospitals, setDbHospitals] = useState<ExtendedHospital[]>([]);
   const [dbDoctors, setDbDoctors] = useState<ExtendedDoctor[]>([]);
@@ -67,6 +76,53 @@ export function HospitalFinder() {
       console.error('Error fetching doctors:', error);
     }
   };
+
+  const fetchFeeBreakdown = async (doctorId: string, hospitalId: string) => {
+    if (!doctorId || !hospitalId) return;
+    try {
+      const res = await fetch(`/api/availability/fees/${doctorId}/${hospitalId}`);
+      if (res.ok) setFeeBreakdown(await res.json());
+    } catch { /* silent */ }
+  };
+
+  const fetchAvailableSlots = async (doctorId: string, hospitalId: string, date: string) => {
+    if (!doctorId || !hospitalId || !date) { setAvailableSlots([]); return; }
+    try {
+      const res = await fetch(`/api/availability/doctor/${doctorId}/hospital/${hospitalId}`);
+      if (res.ok) {
+        const avail = await res.json();
+        const dayName = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][new Date(date + 'T00:00:00').getDay()];
+        const daySlot = avail.find((s: any) => s.day_of_week === dayName);
+        if (!daySlot) { setAvailableSlots([]); return; }
+        // Generate time slots
+        const slots: string[] = [];
+        const [sh, sm] = daySlot.start_time.split(':').map(Number);
+        const [eh, em] = daySlot.end_time.split(':').map(Number);
+        const dur = daySlot.slot_duration_minutes || 30;
+        let cur = sh * 60 + sm;
+        const end = eh * 60 + em;
+        while (cur + dur <= end) {
+          const hh = Math.floor(cur / 60).toString().padStart(2, '0');
+          const mm = (cur % 60).toString().padStart(2, '0');
+          slots.push(`${hh}:${mm}`);
+          cur += dur;
+        }
+        setAvailableSlots(slots);
+      }
+    } catch { /* silent */ }
+  };
+
+  useEffect(() => {
+    if (selectedDoctor && selectedHospital && selectedDate) {
+      fetchAvailableSlots(String(selectedDoctor.id), String(selectedHospital.id), selectedDate);
+    }
+  }, [selectedDoctor, selectedHospital, selectedDate]);
+
+  useEffect(() => {
+    if (selectedDoctor && selectedHospital) {
+      fetchFeeBreakdown(String(selectedDoctor.id), String(selectedHospital.id));
+    }
+  }, [selectedDoctor, selectedHospital]);
 
   const hospitalsToDisplay: ExtendedHospital[] = dbHospitals.length > 0 ? dbHospitals : (MOCK_HOSPITALS as ExtendedHospital[]);
 
@@ -414,18 +470,50 @@ export function HospitalFinder() {
 
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">Available Time Slots</label>
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-                {TIME_SLOTS.map(slot => (
-                  <button key={slot} onClick={() => setSelectedSlot(slot)}
-                    className={`py-2 px-3 text-sm rounded-lg border transition-all ${selectedSlot === slot
-                      ? 'bg-blue-600 text-white border-blue-600 font-medium'
-                      : 'border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:border-blue-400 dark:hover:border-blue-500 bg-white dark:bg-slate-700'
-                    }`}>
-                    {slot}
-                  </button>
-                ))}
-              </div>
+              {availableSlots.length > 0 ? (
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
+                  {availableSlots.map(slot => (
+                    <button key={slot} onClick={() => setSelectedSlot(slot)}
+                      className={`py-2 px-3 text-sm rounded-lg border transition-all ${selectedSlot === slot
+                        ? 'bg-blue-600 text-white border-blue-600 font-medium'
+                        : 'border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:border-blue-400 dark:hover:border-blue-500 bg-white dark:bg-slate-700'
+                      }`}>
+                      {slot}
+                    </button>
+                  ))}
+                </div>
+              ) : selectedDate ? (
+                <p className="text-sm text-amber-600 font-medium p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+                  No available slots found for this date. Please try another day.
+                </p>
+              ) : (
+                <p className="text-sm text-slate-500 font-medium p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                  Please select a date to view available time slots.
+                </p>
+              )}
             </div>
+
+            {feeBreakdown && (
+              <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-200 dark:border-emerald-800">
+                <p className="text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-widest mb-3 flex items-center gap-1">
+                  <CreditCard className="h-3 w-3" /> Estimated Fee Breakdown
+                </p>
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs text-slate-600 dark:text-slate-400">
+                    <span>Consultation Fee</span><span>LKR {feeBreakdown.doctorFee.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-xs text-slate-600 dark:text-slate-400">
+                    <span>Facility Charge</span><span>LKR {feeBreakdown.hospitalFee.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-xs text-slate-600 dark:text-slate-400">
+                    <span>Platform Fee</span><span>LKR {feeBreakdown.icamsFee.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-sm font-bold text-emerald-700 dark:text-emerald-400 border-t border-emerald-200 dark:border-emerald-700 pt-2 mt-2">
+                    <span>Total Estimated</span><span>LKR {parseFloat(feeBreakdown.totalAmount).toLocaleString()}</span>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <button
               disabled={!selectedSlot || !selectedDate || !reason}
@@ -451,7 +539,10 @@ export function HospitalFinder() {
                   { label: 'Specialization', value: selectedDoctor.specialization },
                   { label: 'Date', value: selectedDate },
                   { label: 'Time', value: selectedSlot },
-                  { label: 'Consultation Fee', value: `LKR ${(selectedDoctor.consultationFee || 2500).toLocaleString()}` },
+                  { label: 'Consultation Fee', value: `LKR ${feeBreakdown?.doctorFee.toLocaleString() || '...'}` },
+                  { label: 'Hospital Fee', value: `LKR ${feeBreakdown?.hospitalFee.toLocaleString() || '...'}` },
+                  { label: 'Platform Fee', value: `LKR ${feeBreakdown?.icamsFee.toLocaleString() || '...'}` },
+                  { label: 'Total Amount', value: `LKR ${parseFloat(feeBreakdown?.totalAmount || '0').toLocaleString()}` },
                   { label: 'Reason', value: reason },
                 ].map(item => (
                   <div key={item.label} className="flex justify-between items-start border-b border-slate-100 dark:border-slate-700 pb-3 last:border-0 last:pb-0">
