@@ -79,7 +79,7 @@ export function DoctorSchedule() {
 
   const fetchAvailability = useCallback(async (hospitalId: string) => {
     try {
-      const res = await fetch(`/api/availability/my`, { headers: { 'Authorization': `Bearer ${token}` } });
+      const res = await fetch('/api/availability/my', { headers: { 'Authorization': `Bearer ${token}` } });
       if (res.ok) {
         const data = await res.json();
         const hospitalSlots = data.filter((s: any) => String(s.hospital_id) === String(hospitalId));
@@ -117,7 +117,7 @@ export function DoctorSchedule() {
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ status })
       });
-      if (res.ok) { toast.success(`Status updated`); fetchAppointments(); }
+      if (res.ok) { toast.success('Status updated'); fetchAppointments(); }
     } catch { toast.error('Update failed'); }
   };
 

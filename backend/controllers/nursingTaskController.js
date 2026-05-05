@@ -41,7 +41,7 @@ const nursingTaskController = {
       // Update linked test status
       if (lab_test_id) {
         await client.query(
-          "UPDATE lab_results SET status = 'processing' WHERE id = $1",
+          'UPDATE lab_results SET status = \'processing\' WHERE id = $1',
           [lab_test_id]
         );
       }
@@ -155,7 +155,7 @@ const nursingTaskController = {
 
       // Check if all steps are completed
       const checkRes = await pool.query(
-        "SELECT count(*) as total, count(*) FILTER (WHERE status = 'completed') as completed FROM nursing_task_steps WHERE task_id = $1",
+        'SELECT count(*) as total, count(*) FILTER (WHERE status = \'completed\') as completed FROM nursing_task_steps WHERE task_id = $1',
         [taskId]
       );
 

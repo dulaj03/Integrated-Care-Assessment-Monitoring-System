@@ -66,7 +66,7 @@ const messageController = {
 
       if (role === 'patient') {
         // All hospitals
-        const hospitals = await pool.query("SELECT id, name, 'hospital' as role FROM hospitals");
+        const hospitals = await pool.query('SELECT id, name, \'hospital\' as role FROM hospitals');
         // Assigned Doctor
         const doctors = await pool.query(
           `SELECT d.id, d.full_name as name, 'doctor' as role 

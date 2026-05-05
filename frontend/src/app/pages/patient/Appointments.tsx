@@ -855,7 +855,7 @@ export function Appointments() {
                   },
                 ].map(item => (
                   <div key={item.step} className={`flex items-start gap-4 p-4 ${item.bg} rounded-2xl`}>
-                    <div className={`h-9 w-9 rounded-xl bg-white dark:bg-slate-900 shadow-sm flex items-center justify-center shrink-0`}>
+                    <div className='h-9 w-9 rounded-xl bg-white dark:bg-slate-900 shadow-sm flex items-center justify-center shrink-0'>
                       <item.icon className={`h-4 w-4 ${item.color}`} />
                     </div>
                     <div>

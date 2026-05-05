@@ -147,7 +147,7 @@ const availabilityController = {
           [doctorId, hospitalId]
         ),
         pool.query('SELECT appointment_fee FROM hospitals WHERE id = $1', [hospitalId]),
-        pool.query("SELECT setting_value FROM platform_settings WHERE setting_key = 'icams_appointment_fee'")
+        pool.query('SELECT setting_value FROM platform_settings WHERE setting_key = \'icams_appointment_fee\'')
       ]);
 
       const doctorFee = parseFloat(doctorFeeRes.rows[0]?.consultation_fee || 0);
@@ -197,7 +197,7 @@ const availabilityController = {
   getPlatformFee: async (req, res) => {
     try {
       const result = await pool.query(
-        "SELECT setting_value FROM platform_settings WHERE setting_key = 'icams_appointment_fee'"
+        'SELECT setting_value FROM platform_settings WHERE setting_key = \'icams_appointment_fee\''
       );
       res.json({ icams_appointment_fee: parseFloat(result.rows[0]?.setting_value || 0) });
     } catch (error) {

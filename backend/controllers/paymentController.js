@@ -70,7 +70,7 @@ const paymentController = {
           [appt.doctor_id, appt.hospital_id]
         ),
         pool.query('SELECT appointment_fee FROM hospitals WHERE id = $1', [appt.hospital_id]),
-        pool.query("SELECT setting_value FROM platform_settings WHERE setting_key = 'icams_appointment_fee'")
+        pool.query('SELECT setting_value FROM platform_settings WHERE setting_key = \'icams_appointment_fee\'')
       ]);
 
       const doctorFee = parseFloat(doctorFeeRes.rows[0]?.consultation_fee || 0);

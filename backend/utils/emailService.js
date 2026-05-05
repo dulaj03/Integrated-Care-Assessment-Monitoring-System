@@ -223,7 +223,7 @@ exports.sendPaymentReminder = async (email, patientName, doctorName, date, time,
   const mailOptions = {
     from: `"I-CAMS Appointments" <${process.env.EMAIL_USER}>`,
     to: email,
-    subject: `⚠️ URGENT: Complete Your Payment in 12 Hours or Appointment Will Be Cancelled`,
+    subject: '⚠️ URGENT: Complete Your Payment in 12 Hours or Appointment Will Be Cancelled',
     html: `<!DOCTYPE html>
 <html>
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
@@ -329,7 +329,7 @@ exports.sendAppointmentCancelledUnpaid = async (email, patientName, doctorName, 
   const mailOptions = {
     from: `"I-CAMS Appointments" <${process.env.EMAIL_USER}>`,
     to: email,
-    subject: `❌ Appointment Cancelled — Payment Not Received | I-CAMS`,
+    subject: '❌ Appointment Cancelled — Payment Not Received | I-CAMS',
     html: `<!DOCTYPE html>
 <html>
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
@@ -419,7 +419,7 @@ exports.sendAppointmentApproval = async (email, patientName, doctorName, date, t
   const mailOptions = {
     from: `"I-CAMS Appointments" <${process.env.EMAIL_USER}>`,
     to: email,
-    subject: `✅ Appointment Approved — Complete Your Payment | I-CAMS`,
+    subject: '✅ Appointment Approved — Complete Your Payment | I-CAMS',
     html: `<!DOCTYPE html>
 <html>
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>

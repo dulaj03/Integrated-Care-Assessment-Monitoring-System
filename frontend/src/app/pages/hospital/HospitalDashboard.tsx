@@ -95,7 +95,7 @@ export function HospitalDashboard() {
   const handleUpdateFee = async () => {
     setSavingFee(true);
     try {
-      const res = await fetch(`/api/availability/hospital-fee`, {
+      const res = await fetch('/api/availability/hospital-fee', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
