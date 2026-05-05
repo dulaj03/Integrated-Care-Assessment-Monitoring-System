@@ -57,7 +57,7 @@ interface FeeBreakdown {
   doctorFee: number;
   hospitalFee: number;
   icamsFee: number;
-  totalAmount: string;
+  totalFee: number;
 }
 
 interface Doctor {
@@ -314,6 +314,7 @@ export function Appointments() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [showBookModal, setShowBookModal] = useState(false);
+  const [showBookingSuccess, setShowBookingSuccess] = useState(false);
   const [activeFilter, setActiveFilter] = useState<'active' | 'all'>('active');
   const [feeBreakdown, setFeeBreakdown] = useState<FeeBreakdown | null>(null);
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
@@ -408,10 +409,15 @@ export function Appointments() {
     fetchAppointments(); 
     fetchDoctors(); 
     
-    // Refresh when user returns to this tab (from PayHere)
+    // Refresh when user returns to this tab/page (from PayHere or invoice Back button)
     const handleFocus = () => fetchAppointments();
+    const handleVisibility = () => { if (document.visibilityState === 'visible') fetchAppointments(); };
     window.addEventListener('focus', handleFocus);
-    return () => window.removeEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
   }, [fetchAppointments, fetchDoctors]);
 
   useEffect(() => {
@@ -448,10 +454,10 @@ export function Appointments() {
       });
 
       if (res.ok) {
-        toast.success('Appointment requested! Awaiting hospital approval.');
         setShowBookModal(false);
         resetForm();
         fetchAppointments();
+        setShowBookingSuccess(true); // Show the process explanation popup
       } else {
         const data = await res.json();
         toast.error(data.error || 'Failed to book appointment');
@@ -746,7 +752,7 @@ export function Appointments() {
                       </div>
                     ))}
                     <div className="flex justify-between text-sm font-black text-emerald-700 dark:text-emerald-400 border-t border-emerald-200 dark:border-emerald-900/40 pt-2 mt-2">
-                      <span>Total</span><span>LKR {parseFloat(feeBreakdown.totalAmount).toLocaleString()}</span>
+                      <span>Total</span><span>LKR {(feeBreakdown.totalFee || 0).toLocaleString()}</span>
                     </div>
                   </div>
                 )}
@@ -788,6 +794,91 @@ export function Appointments() {
                   {submitting ? 'Submitting...' : 'Send Appointment Request'}
                 </button>
               </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Booking Success Info Popup ─────────────────────────────────────── */}
+      <AnimatePresence>
+        {showBookingSuccess && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-lg">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 24 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 24 }}
+              className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl w-full max-w-lg border border-slate-200 dark:border-slate-800 overflow-hidden"
+            >
+              {/* Green header */}
+              <div className="bg-gradient-to-r from-emerald-500 to-teal-500 p-8 text-center">
+                <div className="h-16 w-16 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle2 className="h-9 w-9 text-white" />
+                </div>
+                <h3 className="text-2xl font-black text-white">Request Submitted!</h3>
+                <p className="text-emerald-100 text-sm mt-1 font-bold">Your appointment is now in the approval pipeline</p>
+              </div>
+
+              {/* Steps */}
+              <div className="p-7 space-y-4">
+                {[
+                  {
+                    step: '1',
+                    icon: Building2,
+                    color: 'text-blue-600',
+                    bg: 'bg-blue-50 dark:bg-blue-900/20',
+                    title: 'Hospital Reviews Your Request',
+                    desc: 'The hospital will check availability and approve your slot.'
+                  },
+                  {
+                    step: '2',
+                    icon: Stethoscope,
+                    color: 'text-emerald-600',
+                    bg: 'bg-emerald-50 dark:bg-emerald-900/20',
+                    title: 'Doctor Confirms the Appointment',
+                    desc: 'Once the doctor approves, you will be notified by email to complete payment.'
+                  },
+                  {
+                    step: '3',
+                    icon: CreditCard,
+                    color: 'text-purple-600',
+                    bg: 'bg-purple-50 dark:bg-purple-900/20',
+                    title: 'Complete Your Payment',
+                    desc: 'Return to this page, click "Pay Now" on your appointment card to confirm.'
+                  },
+                  {
+                    step: '4',
+                    icon: FileText,
+                    color: 'text-orange-600',
+                    bg: 'bg-orange-50 dark:bg-orange-900/20',
+                    title: 'Show Invoice at Hospital',
+                    desc: 'Present your I-CAMS invoice at the hospital reception — they will guide you further.'
+                  },
+                ].map(item => (
+                  <div key={item.step} className={`flex items-start gap-4 p-4 ${item.bg} rounded-2xl`}>
+                    <div className={`h-9 w-9 rounded-xl bg-white dark:bg-slate-900 shadow-sm flex items-center justify-center shrink-0`}>
+                      <item.icon className={`h-4 w-4 ${item.color}`} />
+                    </div>
+                    <div>
+                      <p className={`text-xs font-black uppercase tracking-widest ${item.color} mb-0.5`}>Step {item.step}</p>
+                      <p className="text-sm font-black text-slate-800 dark:text-white">{item.title}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+
+                <div className="pt-2 pb-1 px-1 bg-amber-50 dark:bg-amber-900/20 rounded-2xl p-4 border border-amber-200 dark:border-amber-900/30">
+                  <p className="text-xs text-amber-700 dark:text-amber-400 font-bold text-center">
+                    📧 You will receive an email notification when the doctor approves and your payment is ready.
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => setShowBookingSuccess(false)}
+                  className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black text-sm shadow-lg shadow-emerald-500/20 transition-all hover:scale-[1.02]"
+                >
+                  Got it — I'll wait for the email!
+                </button>
+              </div>
             </motion.div>
           </div>
         )}

@@ -108,6 +108,19 @@ export function Invoice() {
     }
   }, [token, appointmentId, retries]);
 
+  // Confirm payment as soon as patient lands on invoice page from PayHere
+  // PayHere only redirects here on SUCCESS, so this is safe to call immediately
+  useEffect(() => {
+    if (!token || !appointmentId) return;
+    fetch(`/api/payment/confirm-return/${appointmentId}`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+      .then(r => r.json())
+      .then(d => console.log('[Payment Confirmed]', d.status))
+      .catch(err => console.warn('[Confirm Return Error]', err));
+  }, [token, appointmentId]);
+
   useEffect(() => { fetchInvoice(); }, [fetchInvoice]);
 
   const handleDownloadPDF = () => {

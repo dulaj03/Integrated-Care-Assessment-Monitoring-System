@@ -81,26 +81,31 @@ const paymentController = {
       const invoiceNumber = generateInvoiceNumber();
       const orderId = `${invoiceNumber}`;
 
-      // Create payment record (pending)
-      const paymentRes = await pool.query(
-        `INSERT INTO payments 
-           (appointment_id, patient_id, doctor_id, hospital_id, doctor_fee, hospital_fee, 
-            icams_fee, total_amount, payment_status, payhere_order_id, invoice_number)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-         RETURNING *`,
-        [appointment_id, patient_id, appt.doctor_id, appt.hospital_id, 
-          doctorFee, hospitalFee, icamsFee, totalAmount, 'pending', orderId, invoiceNumber]
+      // Check for existing payment record for this appointment
+      const existingPayment = await pool.query(
+        'SELECT * FROM payments WHERE appointment_id = $1 ORDER BY created_at DESC LIMIT 1',
+        [appointment_id]
       );
 
-      let paymentRecord = paymentRes.rows[0];
+      let paymentRecord = existingPayment.rows[0];
 
-      // If already exists, fetch it
-      if (!paymentRecord) {
-        const existing = await pool.query(
-          'SELECT * FROM payments WHERE appointment_id = $1 AND patient_id = $2',
-          [appointment_id, patient_id]
+      // If already completed, block re-payment
+      if (paymentRecord && paymentRecord.payment_status === 'completed') {
+        return res.status(400).json({ error: 'Payment already completed for this appointment' });
+      }
+
+      // If no existing record (or prior one failed/cancelled), create a fresh pending record
+      if (!paymentRecord || ['cancelled', 'failed', 'chargedback'].includes(paymentRecord.payment_status)) {
+        const paymentRes = await pool.query(
+          `INSERT INTO payments 
+             (appointment_id, patient_id, doctor_id, hospital_id, doctor_fee, hospital_fee, 
+              icams_fee, total_amount, payment_status, payhere_order_id, invoice_number)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+           RETURNING *`,
+          [appointment_id, patient_id, appt.doctor_id, appt.hospital_id,
+            doctorFee, hospitalFee, icamsFee, totalAmount, 'pending', orderId, invoiceNumber]
         );
-        paymentRecord = existing.rows[0];
+        paymentRecord = paymentRes.rows[0];
       }
 
       const FRONTEND_URL = process.env.FRONTEND_URL || 'https://icams.pandanlabs.net';
@@ -291,6 +296,114 @@ const paymentController = {
     } catch (error) {
       console.error('[paymentNotify Error]', error);
       res.status(500).send('Error');
+    }
+  },
+
+  // ─── Confirm payment on return from PayHere (fallback for notify URL) ───────
+  // PayHere only redirects to return_url on SUCCESS, so if the patient
+  // lands here with a valid auth token & owns this appointment → mark paid.
+  confirmPaymentReturn: async (req, res) => {
+    try {
+      const { appointmentId } = req.params;
+      const patient_id = req.user.id;
+
+      // Find the most recent payment record owned by this patient
+      const paymentRes = await pool.query(
+        `SELECT pay.* FROM payments pay
+         JOIN appointments a ON pay.appointment_id = a.id
+         WHERE pay.appointment_id = $1 AND a.patient_id = $2
+         ORDER BY pay.created_at DESC LIMIT 1`,
+        [appointmentId, patient_id]
+      );
+
+      if (paymentRes.rows.length === 0) {
+        return res.status(404).json({ error: 'No payment record found' });
+      }
+
+      const payment = paymentRes.rows[0];
+
+      // Already completed — nothing to do
+      if (payment.payment_status === 'completed') {
+        return res.json({ status: 'already_completed' });
+      }
+
+      // Mark payment as completed
+      await pool.query(
+        `UPDATE payments
+         SET payment_status = 'completed', paid_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+         WHERE id = $1`,
+        [payment.id]
+      );
+
+      // Sync the appointment row too
+      await pool.query(
+        `UPDATE appointments
+         SET payment_status = 'completed', payment_id = $1, updated_at = CURRENT_TIMESTAMP
+         WHERE id = $2`,
+        [payment.id, appointmentId]
+      );
+
+      console.log(`[confirmPaymentReturn] Appointment ${appointmentId} marked completed via return URL.`);
+
+      // ─── Post-Confirmation Tasks (Emails & Notifications) ───────────────────
+      try {
+        const [patient, doctor, hospital] = await Promise.all([
+          PatientModel.findById(payment.patient_id),
+          DoctorModel.findById(payment.doctor_id),
+          HospitalModel.findById(payment.hospital_id)
+        ]);
+
+        const apptRes = await pool.query('SELECT * FROM appointments WHERE id = $1', [appointmentId]);
+        const appt = apptRes.rows[0];
+
+        // 1. Send In-App Notifications
+        await Promise.all([
+          NotificationModel.create({
+            user_id: payment.patient_id,
+            user_role: 'patient',
+            title: '✅ Payment Successful',
+            message: `Your appointment with Dr. ${doctor?.full_name || 'your doctor'} has been confirmed. Invoice: ${payment.invoice_number}`,
+            type: 'success'
+          }),
+          NotificationModel.create({
+            user_id: payment.hospital_id,
+            user_role: 'hospital',
+            title: '💳 Appointment Payment Confirmed',
+            message: `Facility fee for appointment #${appointmentId} received. Invoice: ${payment.invoice_number}`,
+            type: 'info'
+          })
+        ]);
+
+        // 2. Send Invoice Email
+        if (patient && patient.email) {
+          await emailService.sendInvoiceEmail(
+            patient.email,
+            patient.full_name,
+            {
+              invoiceNumber: payment.invoice_number,
+              doctorName: doctor?.full_name || 'Your Doctor',
+              hospitalName: hospital?.name || 'I-CAMS Network',
+              appointmentDate: appt?.appointment_date,
+              appointmentTime: appt?.appointment_time,
+              reason: appt?.reason,
+              doctorFee: payment.doctor_fee,
+              hospitalFee: payment.hospital_fee,
+              icamsFee: payment.icams_fee,
+              totalAmount: payment.total_amount,
+              paidAt: new Date(), // It was just marked as paid
+              paymentId: payment.payhere_payment_id || `RET-${payment.id}`
+            }
+          );
+        }
+      } catch (postErr) {
+        console.error('[confirmPaymentReturn Post-Task Error]', postErr);
+        // We don't fail the whole request if email fails, as DB is already updated
+      }
+
+      res.json({ status: 'completed' });
+    } catch (error) {
+      console.error('[confirmPaymentReturn Error]', error);
+      res.status(500).json({ error: 'Failed to confirm payment' });
     }
   },
 

@@ -5,7 +5,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const path = require('path');
 const http = require('http');
-const { scheduleWeeklySundayNotification } = require('./utils/scheduler');
+const { scheduleWeeklySundayNotification, schedulePaymentDeadlineJobs } = require('./utils/scheduler');
 
 // Import DB connection
 require('./config/db');
@@ -89,4 +89,6 @@ server.listen(PORT, () => {
   console.log(`🚀 I-CAMS Backend running on PORT ${PORT}`);
   // Start weekly Sunday doctor schedule reminder
   scheduleWeeklySundayNotification();
+  // Start payment deadline jobs (24h reminder + 36h auto-cancel)
+  schedulePaymentDeadlineJobs();
 });

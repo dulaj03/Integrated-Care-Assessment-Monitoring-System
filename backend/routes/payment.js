@@ -9,6 +9,9 @@ router.post('/initiate', verifyPatientToken, paymentController.initiatePayment);
 // PayHere server-to-server notification (no auth – PayHere calls this)
 router.post('/notify', paymentController.paymentNotify);
 
+// Called when patient is redirected back from PayHere (return_url fallback)
+router.post('/confirm-return/:appointmentId', verifyPatientToken, paymentController.confirmPaymentReturn);
+
 // Get invoice for a specific appointment
 router.get('/invoice/:appointmentId', verifyToken, paymentController.getInvoice);
 

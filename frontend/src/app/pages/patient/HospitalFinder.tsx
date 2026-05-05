@@ -25,7 +25,7 @@ interface FeeBreakdown {
   doctorFee: number;
   hospitalFee: number;
   icamsFee: number;
-  totalAmount: string;
+  totalFee: number;
 }
 
 type BookingStep = 'browse' | 'select_doctor' | 'select_time' | 'confirm' | 'booked';
@@ -509,7 +509,7 @@ export function HospitalFinder() {
                     <span>Platform Fee</span><span>LKR {feeBreakdown.icamsFee.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between text-sm font-bold text-emerald-700 dark:text-emerald-400 border-t border-emerald-200 dark:border-emerald-700 pt-2 mt-2">
-                    <span>Total Estimated</span><span>LKR {parseFloat(feeBreakdown.totalAmount).toLocaleString()}</span>
+                    <span>Total Estimated</span><span>LKR {(feeBreakdown.totalFee || 0).toLocaleString()}</span>
                   </div>
                 </div>
               </div>
@@ -542,7 +542,7 @@ export function HospitalFinder() {
                   { label: 'Consultation Fee', value: `LKR ${feeBreakdown?.doctorFee.toLocaleString() || '...'}` },
                   { label: 'Hospital Fee', value: `LKR ${feeBreakdown?.hospitalFee.toLocaleString() || '...'}` },
                   { label: 'Platform Fee', value: `LKR ${feeBreakdown?.icamsFee.toLocaleString() || '...'}` },
-                  { label: 'Total Amount', value: `LKR ${parseFloat(feeBreakdown?.totalAmount || '0').toLocaleString()}` },
+                  { label: 'Total Amount', value: `LKR ${(feeBreakdown?.totalFee || 0).toLocaleString()}` },
                   { label: 'Reason', value: reason },
                 ].map(item => (
                   <div key={item.label} className="flex justify-between items-start border-b border-slate-100 dark:border-slate-700 pb-3 last:border-0 last:pb-0">

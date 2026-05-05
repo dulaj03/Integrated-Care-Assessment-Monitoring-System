@@ -100,10 +100,14 @@ const appointmentController = {
       const { id, role } = req.user;
       let query;
       if (role === 'patient') {
-        query = `SELECT a.*, d.full_name as doctor_name, h.name as hospital_name 
-                         FROM appointments a 
-                         JOIN doctors d ON a.doctor_id = d.id 
-                         JOIN hospitals h ON a.hospital_id = h.id 
+        query = `SELECT a.*, d.full_name as doctor_name, h.name as hospital_name,
+                         COALESCE(
+                           (SELECT pay.payment_status FROM payments pay WHERE pay.appointment_id = a.id ORDER BY pay.created_at DESC LIMIT 1),
+                           a.payment_status
+                         ) as payment_status
+                         FROM appointments a
+                         JOIN doctors d ON a.doctor_id = d.id
+                         JOIN hospitals h ON a.hospital_id = h.id
                          WHERE a.patient_id = $1 ORDER BY a.appointment_date DESC`;
       } else if (role === 'doctor') {
         query = `SELECT a.*, p.full_name as patient_name, h.name as hospital_name 

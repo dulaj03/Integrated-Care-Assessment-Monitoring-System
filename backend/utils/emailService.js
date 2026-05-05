@@ -211,49 +211,326 @@ exports.sendCriticalAlert = async (recipients, patientName, vitalsData, reasons)
 };
 
 /**
- * Notify Patient of Appointment Approval
+ * Urgent Payment Reminder — 24 hours after doctor approval, payment still pending
  */
-exports.sendAppointmentApproval = async (email, patientName, doctorName, date, time, hospitalName) => {
+exports.sendPaymentReminder = async (email, patientName, doctorName, date, time, hospitalName) => {
+  const FRONTEND_URL = process.env.FRONTEND_URL || 'https://icams.pandanlabs.net';
+  const loginUrl = `${FRONTEND_URL}/login/patient`;
+  const formatDate = (d) => {
+    if (!d) return 'N/A';
+    return new Date(d).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
+  };
   const mailOptions = {
     from: `"I-CAMS Appointments" <${process.env.EMAIL_USER}>`,
     to: email,
-    subject: `CONFIRMED: Your Appointment with Dr. ${doctorName}`,
-    html: `
-      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #1e293b; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden;">
-        <div style="background-color: #2563eb; color: white; padding: 30px; text-align: center;">
-          <h2 style="margin: 0; font-weight: 800;">Appointment Confirmed</h2>
-          <p style="margin: 5px 0 0; opacity: 0.9;">Your healthcare visit has been approved</p>
-        </div>
-        <div style="padding: 30px; background-color: #ffffff;">
-          <p>Dear <strong>${patientName}</strong>,</p>
-          <p>This is to inform you that your appointment request has been reviewed and officially confirmed by your doctor.</p>
-          <div style="background-color: #f8fafc; border-radius: 12px; padding: 20px; margin: 25px 0; border: 1px solid #e2e8f0;">
-            <table style="width: 100%;">
-              <tr>
-                <td style="padding: 5px 0; color: #64748b; font-size: 13px;">Consultant</td>
-                <td style="padding: 5px 0; text-align: right; font-weight: bold;">Dr. ${doctorName}</td>
-              </tr>
-              <tr>
-                <td style="padding: 5px 0; color: #64748b; font-size: 13px;">Facility</td>
-                <td style="padding: 5px 0; text-align: right; font-weight: bold;">${hospitalName}</td>
-              </tr>
-              <tr>
-                <td style="padding: 5px 0; color: #64748b; font-size: 13px;">Date</td>
-                <td style="padding: 5px 0; text-align: right; font-weight: bold;">${date}</td>
-              </tr>
-              <tr>
-                <td style="padding: 5px 0; color: #64748b; font-size: 13px;">Time</td>
-                <td style="padding: 5px 0; text-align: right; font-weight: bold;">${time}</td>
-              </tr>
-            </table>
-          </div>
-          <p style="font-size: 14px; color: #475569; text-align: center; margin-top: 30px;">Please arrive at <strong>${hospitalName}</strong> 15 minutes prior to your scheduled time.</p>
-          <div style="margin-top: 40px; text-align: center; border-top: 1px solid #f1f5f9; padding-top: 20px;">
-            <p style="margin: 0; color: #94a3b8; font-size: 11px;">© 2026 I-CAMS. Professional Clinical Management.</p>
-          </div>
-        </div>
-      </div>
-    `
+    subject: `⚠️ URGENT: Complete Your Payment in 12 Hours or Appointment Will Be Cancelled`,
+    html: `<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background:#fff7ed;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+<div style="max-width:650px;margin:40px auto;background:#ffffff;border-radius:24px;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,0.12);border:2px solid #fed7aa;">
+
+  <!-- Urgent Header -->
+  <div style="background:linear-gradient(135deg,#ea580c 0%,#f97316 60%,#fb923c 100%);padding:45px 40px;text-align:center;">
+    <table align="center" border="0" cellpadding="0" cellspacing="0" style="margin:0 auto 20px;">
+      <tr>
+        <td align="center" style="background:rgba(255,255,255,0.2);border-radius:50%;width:70px;height:70px;vertical-align:middle;">
+          <span style="font-size:36px;line-height:70px;">⚠️</span>
+        </td>
+      </tr>
+    </table>
+    <h1 style="margin:0;color:white;font-size:24px;font-weight:800;">Action Required!</h1>
+    <p style="margin:10px 0 0;color:rgba(255,255,255,0.9);font-size:15px;font-weight:600;">Your appointment payment is overdue — 12 hours remaining</p>
+  </div>
+
+  <!-- Body -->
+  <div style="padding:40px;">
+    <p style="font-size:16px;color:#1e293b;margin-top:0;">Dear <strong>${patientName}</strong>,</p>
+    <p style="font-size:15px;color:#475569;line-height:1.7;">
+      This is an urgent reminder that your approved appointment with <strong>Dr. ${doctorName}</strong> at
+      <strong>${hospitalName}</strong> has <strong style="color:#ea580c;">not yet been paid for</strong>.
+    </p>
+
+    <!-- Warning Box -->
+    <div style="background:#fff7ed;border:2px solid #fed7aa;border-radius:16px;padding:20px;margin:25px 0;">
+      <p style="margin:0 0 10px;font-size:14px;font-weight:800;color:#9a3412;">⏰ Time is running out:</p>
+      <ul style="margin:0;padding-left:20px;color:#7c2d12;font-size:14px;line-height:2;">
+        <li>You have <strong>12 hours remaining</strong> to complete payment</li>
+        <li>If not paid, your appointment will be <strong>automatically cancelled</strong></li>
+        <li>You will need to make a new booking at a different date/time</li>
+      </ul>
+    </div>
+
+    <!-- Appointment Details -->
+    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:16px;padding:20px;margin-bottom:30px;">
+      <p style="margin:0 0 12px;font-size:11px;color:#64748b;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;">📅 Your Appointment</p>
+      <table style="width:100%;border-collapse:collapse;">
+        <tr>
+          <td style="padding:5px 0;font-size:13px;color:#64748b;">Physician</td>
+          <td style="padding:5px 0;text-align:right;font-weight:800;color:#1e293b;">Dr. ${doctorName}</td>
+        </tr>
+        <tr>
+          <td style="padding:5px 0;font-size:13px;color:#64748b;">Facility</td>
+          <td style="padding:5px 0;text-align:right;font-weight:800;color:#1e293b;">${hospitalName}</td>
+        </tr>
+        <tr>
+          <td style="padding:5px 0;font-size:13px;color:#64748b;">Date</td>
+          <td style="padding:5px 0;text-align:right;font-weight:800;color:#1e293b;">${formatDate(date)}</td>
+        </tr>
+        <tr>
+          <td style="padding:5px 0;font-size:13px;color:#64748b;">Time</td>
+          <td style="padding:5px 0;text-align:right;font-weight:800;color:#1e293b;">${time}</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- CTA Button -->
+    <div style="text-align:center;margin:30px 0;">
+      <a href="${loginUrl}" style="
+        display:inline-block;
+        background:linear-gradient(135deg,#ea580c,#f97316);
+        color:#ffffff;
+        text-decoration:none;
+        font-size:17px;
+        font-weight:800;
+        padding:18px 48px;
+        border-radius:14px;
+        box-shadow:0 8px 25px rgba(234,88,12,0.4);
+      ">💳 Login &amp; Pay Now</a>
+    </div>
+    <p style="text-align:center;font-size:13px;color:#94a3b8;">Or go to: <span style="color:#ea580c;">${loginUrl}</span></p>
+
+    <p style="font-size:15px;color:#1e293b;margin-top:35px;">Regards,<br>
+      <strong style="color:#ea580c;">I-CAMS Appointment Team</strong>
+    </p>
+  </div>
+
+  <!-- Footer -->
+  <div style="background:#fff7ed;padding:20px 40px;text-align:center;border-top:1px solid #fed7aa;">
+    <p style="margin:0;color:#94a3b8;font-size:11px;">© 2026 I-CAMS Sri Lanka · This is an automated reminder. Please do not reply.</p>
+  </div>
+</div>
+</body>
+</html>`
+  };
+  return transporter.sendMail(mailOptions);
+};
+
+/**
+ * Auto-Cancellation Notice — appointment cancelled after 36 hours without payment
+ */
+exports.sendAppointmentCancelledUnpaid = async (email, patientName, doctorName, date, hospitalName) => {
+  const FRONTEND_URL = process.env.FRONTEND_URL || 'https://icams.pandanlabs.net';
+  const loginUrl = `${FRONTEND_URL}/login`;
+  const formatDate = (d) => {
+    if (!d) return 'N/A';
+    return new Date(d).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
+  };
+  const mailOptions = {
+    from: `"I-CAMS Appointments" <${process.env.EMAIL_USER}>`,
+    to: email,
+    subject: `❌ Appointment Cancelled — Payment Not Received | I-CAMS`,
+    html: `<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background:#fef2f2;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+<div style="max-width:650px;margin:40px auto;background:#ffffff;border-radius:24px;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,0.1);border:2px solid #fecaca;">
+
+  <!-- Red Header -->
+  <div style="background:linear-gradient(135deg,#b91c1c 0%,#dc2626 60%,#ef4444 100%);padding:45px 40px;text-align:center;">
+    <div style="background:rgba(255,255,255,0.2);border-radius:50%;width:70px;height:70px;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;">
+      <span style="font-size:36px;">❌</span>
+    </div>
+    <h1 style="margin:0;color:white;font-size:24px;font-weight:800;">Appointment Cancelled</h1>
+    <p style="margin:10px 0 0;color:rgba(255,255,255,0.9);font-size:15px;">Payment was not received within 36 hours of approval</p>
+  </div>
+
+  <!-- Body -->
+  <div style="padding:40px;">
+    <p style="font-size:16px;color:#1e293b;margin-top:0;">Dear <strong>${patientName}</strong>,</p>
+    <p style="font-size:15px;color:#475569;line-height:1.7;">
+      Unfortunately, your appointment with <strong>Dr. ${doctorName}</strong> at <strong>${hospitalName}</strong>
+      scheduled for <strong>${formatDate(date)}</strong> has been <strong style="color:#dc2626;">automatically cancelled</strong>
+      because the payment was not completed within the 36-hour window.
+    </p>
+
+    <!-- Info Box -->
+    <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:16px;padding:20px;margin:25px 0;">
+      <p style="margin:0 0 8px;font-size:14px;font-weight:800;color:#991b1b;">Why was it cancelled?</p>
+      <p style="margin:0;font-size:14px;color:#7f1d1d;line-height:1.7;">
+        To ensure fair access for all patients, appointment slots that are not confirmed by payment within
+        <strong>36 hours</strong> of doctor approval are automatically released back to the system.
+      </p>
+    </div>
+
+    <!-- What to do next -->
+    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:16px;padding:20px;margin-bottom:30px;">
+      <p style="margin:0 0 10px;font-size:13px;font-weight:800;color:#15803d;">✅ What you can do:</p>
+      <ul style="margin:0;padding-left:20px;color:#166534;font-size:14px;line-height:2;">
+        <li>Book a new appointment at your preferred date and time</li>
+        <li>Complete payment immediately after doctor approval next time</li>
+        <li>Contact the hospital if you need urgent assistance</li>
+      </ul>
+    </div>
+
+    <!-- CTA Button -->
+    <div style="text-align:center;margin:30px 0;">
+      <a href="${loginUrl}" style="
+        display:inline-block;
+        background:linear-gradient(135deg,#2563eb,#3b82f6);
+        color:#ffffff;
+        text-decoration:none;
+        font-size:17px;
+        font-weight:800;
+        padding:18px 48px;
+        border-radius:14px;
+        box-shadow:0 8px 25px rgba(37,99,235,0.4);
+      ">📅 Login to Book Again</a>
+    </div>
+
+    <p style="font-size:15px;color:#1e293b;margin-top:35px;">We apologise for the inconvenience.<br>
+      <strong style="color:#2563eb;">I-CAMS Appointment Team</strong>
+    </p>
+  </div>
+
+  <!-- Footer -->
+  <div style="background:#fef2f2;padding:20px 40px;text-align:center;border-top:1px solid #fecaca;">
+    <p style="margin:0;color:#94a3b8;font-size:11px;">© 2026 I-CAMS Sri Lanka · This is an automated system notification.</p>
+  </div>
+</div>
+</body>
+</html>`
+  };
+  return transporter.sendMail(mailOptions);
+};
+
+/**
+ * Notify Patient of Appointment Approval — Ready to Pay
+ */
+exports.sendAppointmentApproval = async (email, patientName, doctorName, date, time, hospitalName) => {
+  const FRONTEND_URL = process.env.FRONTEND_URL || 'https://icams.pandanlabs.net';
+  const loginUrl = `${FRONTEND_URL}/login/patient`;
+
+  const formatDate = (d) => {
+    if (!d) return 'N/A';
+    return new Date(d).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
+  };
+
+  const mailOptions = {
+    from: `"I-CAMS Appointments" <${process.env.EMAIL_USER}>`,
+    to: email,
+    subject: `✅ Appointment Approved — Complete Your Payment | I-CAMS`,
+    html: `<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background:#f8fafc;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+<div style="max-width:650px;margin:40px auto;background:#ffffff;border-radius:24px;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,0.1);border:1px solid #e2e8f0;">
+
+  <!-- Header -->
+  <div style="background:linear-gradient(135deg,#059669 0%,#10b981 60%,#34d399 100%);padding:50px 40px;text-align:center;">
+    <div style="display:inline-block;background:rgba(255,255,255,0.2);border-radius:16px;padding:12px 24px;margin-bottom:20px;">
+      <span style="color:white;font-size:28px;font-weight:900;letter-spacing:-1px;">I-CAMS</span>
+    </div>
+    <table align="center" border="0" cellpadding="0" cellspacing="0" style="margin:0 auto 20px;">
+      <tr>
+        <td align="center" style="background:rgba(255,255,255,0.25);border-radius:50%;width:70px;height:70px;vertical-align:middle;">
+          <span style="font-size:36px;line-height:70px;">✅</span>
+        </td>
+      </tr>
+    </table>
+    <h1 style="margin:0;color:white;font-size:26px;font-weight:800;">Appointment Approved!</h1>
+    <p style="margin:10px 0 0;color:rgba(255,255,255,0.9);font-size:15px;">Your appointment is confirmed — complete your payment to secure your slot.</p>
+  </div>
+
+  <!-- Body -->
+  <div style="padding:40px;">
+    <p style="font-size:16px;color:#1e293b;margin-top:0;">Dear <strong>${patientName}</strong>,</p>
+    <p style="font-size:15px;color:#475569;line-height:1.7;">
+      Great news! Both <strong>${hospitalName}</strong> and <strong>Dr. ${doctorName}</strong> have reviewed and approved your appointment request.
+      Your slot is reserved — please complete the payment on I-CAMS to fully confirm your booking.
+    </p>
+
+    <!-- Appointment Card -->
+    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:20px;padding:25px;margin:30px 0;">
+      <p style="margin:0 0 15px;font-size:11px;color:#15803d;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;">📅 Your Appointment Details</p>
+      <table style="width:100%;border-collapse:collapse;">
+        <tr>
+          <td style="padding:8px 0;width:50%;vertical-align:top;">
+            <p style="margin:0;font-size:12px;color:#6b7280;font-weight:700;text-transform:uppercase;">Physician</p>
+            <p style="margin:4px 0 0;font-size:16px;font-weight:800;color:#1e293b;">Dr. ${doctorName}</p>
+          </td>
+          <td style="padding:8px 0;text-align:right;vertical-align:top;">
+            <p style="margin:0;font-size:12px;color:#6b7280;font-weight:700;text-transform:uppercase;">Healthcare Facility</p>
+            <p style="margin:4px 0 0;font-size:16px;font-weight:800;color:#1e293b;">${hospitalName}</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:15px 0 0;">
+            <p style="margin:0;font-size:12px;color:#6b7280;font-weight:700;text-transform:uppercase;">Date</p>
+            <p style="margin:4px 0 0;font-size:15px;font-weight:800;color:#1e293b;">${formatDate(date)}</p>
+          </td>
+          <td style="padding:15px 0 0;text-align:right;">
+            <p style="margin:0;font-size:12px;color:#6b7280;font-weight:700;text-transform:uppercase;">Time</p>
+            <p style="margin:4px 0 0;font-size:15px;font-weight:800;color:#1e293b;">${time}</p>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- Next Step Instructions -->
+    <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:16px;padding:20px;margin-bottom:30px;">
+      <p style="margin:0 0 8px;font-size:13px;font-weight:800;color:#92400e;">⚡ What you need to do next:</p>
+      <ol style="margin:0;padding-left:20px;color:#78350f;font-size:14px;line-height:1.8;">
+        <li>Click the button below to log in to I-CAMS</li>
+        <li>Go to <strong>My Appointments</strong></li>
+        <li>Click <strong>"Pay Now — Confirm Appointment"</strong> on your approved appointment</li>
+        <li>Complete the secure payment via PayHere</li>
+        <li>You will receive your invoice by email — <strong>show it at the hospital reception</strong></li>
+      </ol>
+    </div>
+
+    <!-- CTA Button -->
+    <div style="text-align:center;margin:35px 0;">
+      <a href="${loginUrl}" style="
+        display:inline-block;
+        background:linear-gradient(135deg,#059669,#10b981);
+        color:#ffffff;
+        text-decoration:none;
+        font-size:17px;
+        font-weight:800;
+        padding:18px 48px;
+        border-radius:14px;
+        letter-spacing:0.02em;
+        box-shadow:0 8px 25px rgba(16,185,129,0.45);
+      ">💳 Login to Pay &amp; Confirm</a>
+    </div>
+    <p style="text-align:center;font-size:13px;color:#94a3b8;margin-top:8px;">Or paste this link: <span style="color:#059669;">${loginUrl}</span></p>
+
+    <!-- Arrival Note -->
+    <div style="background:#f0fdf4;border-left:4px solid #10b981;border-radius:8px;padding:16px 20px;margin-top:30px;">
+      <p style="margin:0;font-size:14px;color:#065f46;">
+        📌 <strong>At the hospital:</strong> Present your I-CAMS invoice (email or app) at the reception desk upon arrival. The hospital team will guide you from there.
+      </p>
+    </div>
+
+    <p style="font-size:15px;color:#1e293b;margin-top:40px;">Warm regards,<br>
+      <strong style="color:#059669;">I-CAMS Appointment Team</strong><br>
+      <span style="font-size:12px;color:#94a3b8;">Sri Lanka's Premier Clinical Network</span>
+    </p>
+  </div>
+
+  <!-- Footer -->
+  <div style="background:#f1f5f9;padding:25px 40px;text-align:center;border-top:1px solid #e2e8f0;">
+    <p style="margin:0;color:#94a3b8;font-size:11px;line-height:1.8;">
+      &copy; 2026 I-CAMS Sri Lanka · Integrated Care &amp; Monitoring System<br>
+      Support: infoicams123@gmail.com<br>
+      <span style="color:#cbd5e1;">This is an automated notification. Please do not reply directly.</span>
+    </p>
+  </div>
+
+</div>
+</body>
+</html>`
   };
   return transporter.sendMail(mailOptions);
 };
@@ -631,103 +908,127 @@ exports.sendInvoiceEmail = async (email, patientName, invoiceData) => {
     <div style="display:inline-block;background:rgba(255,255,255,0.2);border-radius:16px;padding:12px 24px;margin-bottom:20px;backdrop-filter:blur(10px);">
        <span style="color:white;font-size:28px;font-weight:900;letter-spacing:-1px;">I-CAMS</span>
     </div>
-    <h1 style="margin:0;color:white;font-size:24px;font-weight:800;letter-spacing:-0.5px;">Payment Confirmed</h1>
-    <p style="margin:8px 0 0;color:rgba(255,255,255,0.85);font-size:14px;font-weight:500;">Your consultation booking is now fully secured.</p>
-    <div style="margin-top:25px;background:#10b981;border-radius:12px;padding:10px 20px;display:inline-block;border:1px solid rgba(255,255,255,0.2);">
-      <span style="color:white;font-size:13px;font-weight:900;letter-spacing:0.05em;">PAID — INVOICE ${invoiceNumber}</span>
+    <table align="center" border="0" cellpadding="0" cellspacing="0" style="margin:0 auto 20px;">
+      <tr>
+        <td align="center" style="background:rgba(255,255,255,0.25);border-radius:50%;width:70px;height:70px;vertical-align:middle;">
+          <span style="font-size:36px;line-height:70px;">✅</span>
+        </td>
+      </tr>
+    </table>
+    <h1 style="margin:0;color:white;font-size:26px;font-weight:800;letter-spacing:-0.5px;">Payment Confirmed</h1>
+    <p style="margin:8px 0 0;color:rgba(255,255,255,0.85);font-size:15px;font-weight:500;">Your consultation booking is now officially secured.</p>
+    <div style="margin-top:25px;background:#10b981;border-radius:12px;padding:10px 24px;display:inline-block;border:1px solid rgba(255,255,255,0.2);box-shadow:0 4px 15px rgba(16,185,129,0.3);">
+      <span style="color:white;font-size:13px;font-weight:900;letter-spacing:0.05em;">PAID &middot; INVOICE ${invoiceNumber}</span>
     </div>
   </div>
 
   <!-- Content Section -->
   <div style="padding:40px;">
-    <p style="font-size:16px;color:#1e293b;margin-top:0;">Dear <strong>${patientName}</strong>,</p>
-    <p style="font-size:15px;color:#475569;line-height:1.7;">Thank you for choosing the I-CAMS network. Your payment has been successfully processed. Below is your official tax invoice and appointment confirmation.</p>
+    <p style="font-size:17px;color:#1e293b;margin-top:0;">Dear <strong>${patientName}</strong>,</p>
+    <p style="font-size:15px;color:#475569;line-height:1.7;">
+      Success! Your payment has been processed and your appointment is now confirmed. 
+      Below are your official booking details and financial receipt.
+    </p>
 
-    <!-- Appointment Summary Card -->
-    <div style="background:#f1f5f9;border-radius:20px;padding:25px;margin:30px 0;border:1px solid #e2e8f0;">
-      <p style="margin:0 0 15px;font-size:11px;color:#64748b;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;">📅 Appointment Summary</p>
+    <!-- Appointment Card -->
+    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:24px;padding:30px;margin:30px 0;position:relative;">
+      <div style="position:absolute;top:20px;right:25px;color:#cbd5e1;font-size:11px;font-weight:900;text-transform:uppercase;">Booking Confirmed</div>
+      <p style="margin:0 0 20px;font-size:11px;color:#64748b;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;">📅 Appointment Summary</p>
       <table style="width:100%;border-collapse:collapse;">
         <tr>
-          <td style="padding:8px 0;width:50%;">
+          <td style="padding:0 0 20px;width:50%;vertical-align:top;">
             <p style="margin:0;font-size:12px;color:#94a3b8;font-weight:700;text-transform:uppercase;">Physician</p>
-            <p style="margin:4px 0 0;font-size:15px;font-weight:800;color:#1e293b;">Dr. ${doctorName}</p>
+            <p style="margin:4px 0 0;font-size:16px;font-weight:800;color:#1e293b;">Dr. ${doctorName}</p>
           </td>
-          <td style="padding:8px 0;text-align:right;">
+          <td style="padding:0 0 20px;text-align:right;vertical-align:top;">
             <p style="margin:0;font-size:12px;color:#94a3b8;font-weight:700;text-transform:uppercase;">Healthcare Facility</p>
-            <p style="margin:4px 0 0;font-size:15px;font-weight:800;color:#1e293b;">${hospitalName}</p>
+            <p style="margin:4px 0 0;font-size:16px;font-weight:800;color:#1e293b;">${hospitalName}</p>
           </td>
         </tr>
         <tr>
-          <td style="padding:15px 0 0;">
+          <td style="padding:0;width:50%;vertical-align:top;">
             <p style="margin:0;font-size:12px;color:#94a3b8;font-weight:700;text-transform:uppercase;">Date</p>
-            <p style="margin:4px 0 0;font-size:15px;font-weight:800;color:#1e293b;">${formatDate(appointmentDate)}</p>
+            <p style="margin:4px 0 0;font-size:16px;font-weight:800;color:#1e293b;">${formatDate(appointmentDate)}</p>
           </td>
-          <td style="padding:15px 0 0;text-align:right;">
+          <td style="padding:0;text-align:right;vertical-align:top;">
             <p style="margin:0;font-size:12px;color:#94a3b8;font-weight:700;text-transform:uppercase;">Time</p>
-            <p style="margin:4px 0 0;font-size:15px;font-weight:800;color:#1e293b;">${formatTime(appointmentTime)}</p>
+            <p style="margin:4px 0 0;font-size:16px;font-weight:800;color:#1e293b;">${formatTime(appointmentTime)}</p>
           </td>
         </tr>
       </table>
     </div>
 
     <!-- Financial Breakdown -->
-    <div style="border:1px solid #e2e8f0;border-radius:20px;overflow:hidden;margin-bottom:30px;">
-      <div style="background:#0f172a;padding:15px 25px;">
-        <span style="color:#94a3b8;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;">💳 Financial Breakdown</span>
+    <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:24px;overflow:hidden;margin-bottom:35px;box-shadow:0 10px 30px rgba(0,0,0,0.02);">
+      <div style="background:#0f172a;padding:18px 30px;">
+        <span style="color:white;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.15em;">💳 Financial breakdown</span>
       </div>
-      <table style="width:100%;border-collapse:collapse;">
-        <tr style="border-bottom:1px solid #f1f5f9;">
-          <td style="padding:15px 25px;font-size:14px;color:#475569;">Doctor Consultation Fee</td>
-          <td style="padding:15px 25px;text-align:right;font-weight:700;color:#1e293b;font-size:14px;">${formatCurrency(doctorFee)}</td>
-        </tr>
-        <tr style="border-bottom:1px solid #f1f5f9;">
-          <td style="padding:15px 25px;font-size:14px;color:#475569;">Hospital Facility Charge</td>
-          <td style="padding:15px 25px;text-align:right;font-weight:700;color:#1e293b;font-size:14px;">${formatCurrency(hospitalFee)}</td>
-        </tr>
-        <tr style="border-bottom:1px solid #f1f5f9;">
-          <td style="padding:15px 25px;font-size:14px;color:#475569;">I-CAMS Platform Service Fee</td>
-          <td style="padding:15px 25px;text-align:right;font-weight:700;color:#1e293b;font-size:14px;">${formatCurrency(icamsFee)}</td>
-        </tr>
-        <tr style="background:#eff6ff;">
-          <td style="padding:20px 25px;font-size:16px;font-weight:900;color:#1e3a8a;">Total Amount Paid</td>
-          <td style="padding:20px 25px;text-align:right;font-size:22px;font-weight:900;color:#1e3a8a;">${formatCurrency(totalAmount)}</td>
-        </tr>
-      </table>
-    </div>
-
-    <!-- Security/Transaction Row -->
-    <div style="border-top:1px solid #f1f5f9;padding-top:25px;margin-bottom:30px;display:flex;justify-content:space-between;align-items:flex-start;">
-      <div style="width:50%;">
-        <p style="margin:0;font-size:10px;color:#94a3b8;font-weight:800;text-transform:uppercase;">Transaction ID</p>
-        <p style="margin:2px 0 0;font-size:12px;font-weight:600;color:#475569;">${paymentId || 'N/A'}</p>
-      </div>
-      <div style="width:50%;text-align:right;">
-        <p style="margin:0;font-size:10px;color:#94a3b8;font-weight:800;text-transform:uppercase;">Processing Date</p>
-        <p style="margin:2px 0 0;font-size:12px;font-weight:600;color:#475569;">${formatDate(paidAt)}</p>
-      </div>
-    </div>
-
-    <!-- Arrival Instructions -->
-    <div style="background:#ecfdf5;border:1px solid #d1fae5;border-radius:16px;padding:20px;">
       <table style="width:100%;border-collapse:collapse;">
         <tr>
-          <td style="width:40px;vertical-align:top;padding-top:2px;"><span style="font-size:20px;">📌</span></td>
-          <td>
-            <p style="margin:0;font-size:14px;color:#065f46;font-weight:700;">Important Arrival Instructions</p>
-            <p style="margin:5px 0 0;font-size:13px;color:#047857;line-height:1.6;">Please arrive at <strong>${hospitalName}</strong> at least <strong>15 minutes</strong> before your scheduled time. Present a digital or printed copy of this invoice at the reception desk.</p>
-          </td>
+          <td style="padding:20px 30px;font-size:14px;color:#475569;border-bottom:1px solid #f1f5f9;">Doctor Consultation Fee</td>
+          <td style="padding:20px 30px;text-align:right;font-weight:700;color:#1e293b;font-size:14px;border-bottom:1px solid #f1f5f9;">${formatCurrency(doctorFee)}</td>
+        </tr>
+        <tr>
+          <td style="padding:20px 30px;font-size:14px;color:#475569;border-bottom:1px solid #f1f5f9;">Hospital Facility Charge</td>
+          <td style="padding:20px 30px;text-align:right;font-weight:700;color:#1e293b;font-size:14px;border-bottom:1px solid #f1f5f9;">${formatCurrency(hospitalFee)}</td>
+        </tr>
+        <tr>
+          <td style="padding:20px 30px;font-size:14px;color:#475569;border-bottom:1px solid #f1f5f9;">I-CAMS Service Fee</td>
+          <td style="padding:20px 30px;text-align:right;font-weight:700;color:#1e293b;font-size:14px;border-bottom:1px solid #f1f5f9;">${formatCurrency(icamsFee)}</td>
+        </tr>
+        <tr style="background:#f0f9ff;">
+          <td style="padding:25px 30px;font-size:16px;font-weight:900;color:#1e3a8a;">Total Amount Paid</td>
+          <td style="padding:25px 30px;text-align:right;font-size:24px;font-weight:900;color:#1e3a8a;">${formatCurrency(totalAmount)}</td>
         </tr>
       </table>
     </div>
 
-    <p style="font-size:15px;color:#1e293b;margin-top:40px;">Warm regards,<br>
-      <strong style="color:#2563eb;">I-CAMS Billing & Payments</strong><br>
-      <span style="font-size:12px;color:#94a3b8;">Sri Lanka's Premier Clinical Network</span>
+    <!-- Transaction Bar -->
+    <div style="border-top:2px solid #f1f5f9;border-bottom:2px solid #f1f5f9;padding:20px 0;margin-bottom:35px;display:flex;justify-content:space-between;">
+      <div style="width:50%;">
+        <p style="margin:0;font-size:10px;color:#94a3b8;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;">Transaction Reference</p>
+        <p style="margin:4px 0 0;font-size:12px;font-weight:700;color:#475569;font-family:monospace;">${paymentId || 'I-CAMS-PX-'+invoiceNumber}</p>
+      </div>
+      <div style="width:50%;text-align:right;">
+        <p style="margin:0;font-size:10px;color:#94a3b8;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;">Settlement Date</p>
+        <p style="margin:4px 0 0;font-size:12px;font-weight:700;color:#475569;">${formatDate(paidAt || new Date())}</p>
+      </div>
+    </div>
+
+    <!-- Instructions & Preparation -->
+    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:24px;padding:30px;margin-bottom:35px;">
+      <h3 style="margin:0 0 15px;font-size:15px;color:#166534;font-weight:800;">🏥 Preparing for your visit</h3>
+      <ul style="margin:0;padding-left:20px;color:#14532d;font-size:14px;line-height:1.9;">
+        <li>Please arrive at <strong>${hospitalName}</strong> at least <strong>15 minutes</strong> early.</li>
+        <li>Present a <strong>digital copy</strong> of this invoice at the reception.</li>
+        <li>Bring any relevant medical history or previous prescriptions.</li>
+        <li>Follow any specific preparation instructions given by the doctor.</li>
+      </ul>
+    </div>
+
+    <!-- Dashboard CTA -->
+    <div style="text-align:center;margin:40px 0;">
+      <a href="${process.env.FRONTEND_URL || 'https://icams.pandanlabs.net'}/login" style="
+        display:inline-block;
+        background:linear-gradient(135deg,#2563eb,#3b82f6);
+        color:#ffffff;
+        text-decoration:none;
+        font-size:16px;
+        font-weight:800;
+        padding:18px 45px;
+        border-radius:14px;
+        box-shadow:0 8px 25px rgba(37,99,235,0.3);
+      ">🖥️ Open My Patient Dashboard</a>
+    </div>
+
+    <p style="font-size:15px;color:#1e293b;margin-top:45px;">Wishing you a speedy recovery,<br>
+      <strong style="color:#2563eb;">I-CAMS Billing & Care Team</strong><br>
+      <span style="font-size:12px;color:#94a3b8;">Sri Lanka's Premier Digital Healthcare Network</span>
     </p>
   </div>
 
   <!-- Footer Section -->
-  <div style="background:#f1f5f9;padding:30px 40px;text-align:center;border-top:1px solid #e2e8f0;">
+  <div style="background:#f8fafc;padding:30px 40px;text-align:center;border-top:1px solid #e2e8f0;">
     <p style="margin:0;color:#94a3b8;font-size:11px;line-height:1.8;">
       &copy; 2026 I-CAMS Sri Lanka · Integrated Care & Monitoring System<br>
       Colombo, Sri Lanka · Support: infoicams123@gmail.com<br>

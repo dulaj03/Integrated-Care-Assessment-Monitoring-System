@@ -2,27 +2,40 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 const pool = require('../config/db');
 const PatientModel = require('../models/patientModel');
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-
 const aiController = {
   chat: async (req, res) => {
     try {
+      const API_KEY = process.env.GEMINI_API_KEY;
+      
+      if (!API_KEY) {
+        console.error('❌ AI_ERROR: GEMINI_API_KEY is missing in .env file');
+        return res.status(503).json({ 
+          error: 'AI Service Unavailable', 
+          details: 'The server is missing the GEMINI_API_KEY. Please verify your .env file on the server.' 
+        });
+      }
+
+      const genAI = new GoogleGenerativeAI(API_KEY);
       const { message, history } = req.body;
-      const user = req.user; // May be undefined for guests
+      const user = req.user;
+
+      if (!message) {
+        return res.status(400).json({ error: 'Message is required' });
+      }
 
       // 1. Fetch relevant context from DB
       let hospitals = [];
       let doctors = [];
       
       try {
-        const hospitalsRes = await pool.query('SELECT name, address, phone, type, specialties FROM hospitals WHERE status = \'ACTIVE\'');
+        const hospitalsRes = await pool.query('SELECT name, address, phone, type, specialties FROM hospitals WHERE status = \'ACTIVE\' LIMIT 20');
         hospitals = hospitalsRes.rows;
       } catch (err) {
         console.warn('Could not fetch hospitals:', err.message);
       }
 
       try {
-        const doctorsRes = await pool.query('SELECT full_name, specialization, years_of_experience, institution_name FROM doctors WHERE status = \'ACTIVE\'');
+        const doctorsRes = await pool.query('SELECT full_name, specialization, years_of_experience, institution_name FROM doctors WHERE status = \'ACTIVE\' LIMIT 20');
         doctors = doctorsRes.rows;
       } catch (err) {
         console.warn('Could not fetch doctors:', err.message);
@@ -32,19 +45,20 @@ const aiController = {
       if (user && user.role === 'patient') {
         try {
           const patient = await PatientModel.findById(user.id);
-          const apptsRes = await pool.query(
-            `SELECT a.appointment_date, a.appointment_time, a.reason, a.status, d.full_name as doctor_name 
-             FROM appointments a 
-             JOIN doctors d ON a.doctor_id = d.id 
-             WHERE a.patient_id = $1 ORDER BY a.appointment_date DESC LIMIT 5`,
-            [user.id]
-          );
-          const healthLogsRes = await pool.query(
-            'SELECT systolic_bp, diastolic_bp, heart_rate, temperature, created_at FROM health_logs WHERE patient_id = $1 ORDER BY created_at DESC LIMIT 5',
-            [user.id]
-          );
+          if (patient) {
+            const apptsRes = await pool.query(
+              `SELECT a.appointment_date, a.appointment_time, a.reason, a.status, d.full_name as doctor_name 
+               FROM appointments a 
+               JOIN doctors d ON a.doctor_id = d.id 
+               WHERE a.patient_id = $1 ORDER BY a.appointment_date DESC LIMIT 5`,
+              [user.id]
+            );
+            const healthLogsRes = await pool.query(
+              'SELECT systolic_bp, diastolic_bp, heart_rate, temperature, created_at FROM health_logs WHERE patient_id = $1 ORDER BY created_at DESC LIMIT 5',
+              [user.id]
+            );
 
-          patientContext = `
+            patientContext = `
 YOU ARE TALKING TO A LOGGED-IN PATIENT.
 Patient Name: ${patient.full_name}
 Age: ${patient.age || 'Not provided'}
@@ -53,90 +67,98 @@ Condition: ${patient.condition || 'None stated'}
 Recent Appointments: ${JSON.stringify(apptsRes.rows)}
 Recent Health Vitals: ${JSON.stringify(healthLogsRes.rows)}
 `;
+          }
         } catch (err) {
           console.warn('Could not fetch patient context:', err.message);
         }
       }
 
       const systemPrompt = `
-You are "Dr. ICAMS - Assistant", a warm, friendly and knowledgeable healthcare AI assistant for the I-CAMS system (Integrated Clinical & Administrative Management System) in Sri Lanka.
+You are "Dr. ICAMS - Assistant", a warm, friendly and knowledgeable healthcare AI assistant for the I-CAMS system in Sri Lanka.
 
-CORE PERSONALITY & BEHAVIOR:
-1. CONVERSATIONAL: Be warm and friendly like chatting with a trusted friend who happens to be a doctor. Use casual, natural language. Ask follow-up questions about symptoms before jumping to conclusions.
-2. EMPATHETIC: Acknowledge the user's concerns with care (e.g., "That sounds uncomfortable!", "Don't worry, let's figure this out together.").
-3. MULTILINGUAL: Detect the language of the user's message and ALWAYS reply in the SAME language. Support English, Sinhala (සිංහල), and Tamil (தமிழ்).
-4. KEEP RESPONSES CONCISE: Avoid very long answers. Be clear and to-the-point.
+CORE PERSONALITY:
+1. Warm, friendly, and empathetic.
+2. Multilingual: Reply in the same language as the user (English, Sinhala, or Tamil).
+3. Concise: Keep answers helpful but short.
 
 MEDICAL GUIDANCE:
-- Discuss symptoms, give first aid tips, explain conditions in simple terms.
-- For first aid questions, provide clear step-by-step instructions.
-- ALWAYS end any medical advice with a gentle reminder: "Remember, I'm an AI — please see a real doctor for a proper diagnosis! 😊"
+- Discuss symptoms, first aid, and conditions simply.
+- ALWAYS end with: "Remember, I'm an AI — please see a real doctor for a proper diagnosis! 😊"
 
-SYSTEM RECOMMENDATIONS:
-- When suggesting specialists or care, ALWAYS recommend from OUR I-CAMS hospitals and doctors listed below.
-- Mention their specialization and where they are located.
-- Encourage the user to book an appointment through I-CAMS.
-
-OUR HOSPITALS IN THE SYSTEM:
-${JSON.stringify(hospitals)}
-
-OUR DOCTORS IN THE SYSTEM:
-${JSON.stringify(doctors)}
+I-CAMS SYSTEM CONTEXT:
+Hospitals: ${JSON.stringify(hospitals)}
+Doctors: ${JSON.stringify(doctors)}
 
 ${patientContext}
-
-Current User Role: ${user ? user.role : 'GUEST'}
 `;
 
-      const model = genAI.getGenerativeModel({ 
-        model: 'gemini-1.5-flash',
-        systemInstruction: systemPrompt
-      });
+      // 2. Prepare history with system prompt at the beginning to avoid v1beta systemInstruction 404s
+      const systemContextHistory = [
+        { role: 'user', parts: [{ text: `SYSTEM INSTRUCTIONS: ${systemPrompt}` }] },
+        { role: 'model', parts: [{ text: 'I understand my role as Dr. ICAMS - Assistant. I will follow all instructions and use the provided healthcare context for recommendations.' }] },
+        ...(history || [])
+      ];
 
-      const chat = model.startChat({
-        history: history || [],
-        generationConfig: {
-          maxOutputTokens: 2048,
-        },
-      });
-
-      const result = await chat.sendMessage(message);
-      const response = await result.response;
-      const text = response.text();
-
-      res.json({ reply: text });
-    } catch (error) {
-      console.error('🔥 AI Chat Error Details:', {
-        message: error.message,
-        status: error.status,
-        apiKeyExists: !!process.env.GEMINI_API_KEY,
-        fullError: error
-      });
-
-      // Handle rate limit errors (429) with a user-friendly message
-      if (error.status === 429 || (error.message && error.message.includes('429'))) {
-        let details = 'The AI service is temporarily busy. Please wait a moment and try again.';
-        
-        if (error.message.includes('limit: 0') || error.message.includes('quota exceeded')) {
-          details = 'Your API key has no quota (limit: 0). Please check that the Generative Language API is enabled in Google AI Studio for this specific key.';
-        }
-
-        return res.status(429).json({
-          error: 'Rate limit reached',
-          details: details
+      let response;
+      try {
+        // Use gemini-2.0-flash (stable in 2026) or gemini-flash-latest
+        const model = genAI.getGenerativeModel({ 
+          model: 'gemini-2.0-flash' 
         });
+        
+        const chat = model.startChat({
+          history: systemContextHistory,
+          generationConfig: { 
+            maxOutputTokens: 2048,
+            temperature: 0.7
+          },
+        });
+
+        const result = await chat.sendMessage(message);
+        response = await result.response;
+      } catch (err) {
+        console.warn('⚠️ gemini-2.0-flash failed, trying fallback to gemini-flash-latest...', err.message);
+        
+        try {
+          const fallbackModel = genAI.getGenerativeModel({ 
+            model: 'gemini-flash-latest' 
+          });
+          const fallbackChat = fallbackModel.startChat({
+            history: systemContextHistory,
+            generationConfig: { maxOutputTokens: 2048 },
+          });
+          const result = await fallbackChat.sendMessage(message);
+          response = await result.response;
+        } catch (fallbackErr) {
+          console.error('🔥 Both primary and fallback models failed:', fallbackErr.message);
+          throw fallbackErr;
+        }
+      }
+      
+      if (response.promptFeedback && response.promptFeedback.blockReason) {
+        return res.status(400).json({ error: 'Blocked', details: `Safety blockage: ${response.promptFeedback.blockReason}` });
       }
 
-      // Handle invalid API key / auth errors
-      if (error.status === 400 || error.status === 403) {
-        return res.status(503).json({
-          error: 'AI service configuration error',
-          details: 'There is a configuration issue with the AI service. Please contact support.'
-        });
+      const text = response.text();
+      res.json({ reply: text });
+
+    } catch (error) {
+      console.error('🔥 AI_CONTROLLER_CRASH:', error);
+      
+      // Determine if it's an API error or a code error
+      const isQuotaError = error.message?.includes('429') || error.message?.includes('quota');
+      const isAuthError = error.message?.includes('API_KEY_INVALID') || error.status === 400 || error.status === 403;
+
+      if (isQuotaError) {
+        return res.status(429).json({ error: 'Quota Exceeded', details: 'The AI service limit has been reached. Please try again later.' });
+      }
+      
+      if (isAuthError) {
+        return res.status(503).json({ error: 'Configuration Error', details: 'The AI API key is invalid or restricted.' });
       }
 
       res.status(500).json({ 
-        error: 'Failed to get AI response', 
+        error: 'Internal Server Error', 
         details: error.message 
       });
     }

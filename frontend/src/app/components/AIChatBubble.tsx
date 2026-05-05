@@ -72,9 +72,10 @@ export function AIChatBubble() {
       if (response.ok) {
         setMessages(prev => [...prev, { role: 'model', content: data.reply }]);
       } else if (response.status === 429) {
-        setMessages(prev => [...prev, { role: 'model', content: '⏳ The AI service is a bit busy right now. Please wait a few seconds and try again!' }]);
+        setMessages(prev => [...prev, { role: 'model', content: data.details || '⏳ The AI service is a bit busy right now. Please wait a few seconds and try again!' }]);
       } else {
-        setMessages(prev => [...prev, { role: 'model', content: `I'm sorry, something went wrong on my end (Error ${response.status}). Please try again in a moment.` }]);
+        const errorMsg = data.details || `I'm sorry, something went wrong on my end (Error ${response.status}). Please try again in a moment.`;
+        setMessages(prev => [...prev, { role: 'model', content: errorMsg }]);
       }
     } catch (error) {
       setMessages(prev => [...prev, { role: 'model', content: '⚠️ Unable to reach the AI service. Please check your connection and try again.' }]);
@@ -201,8 +202,16 @@ export function AIChatBubble() {
         )}
       </AnimatePresence>
 
-      {/* Floating Button with Noticeable Label */}
-      <div className="flex items-center gap-3">
+      {/* Floating Button Unit - Draggable */}
+      <motion.div 
+        drag
+        dragConstraints={{ left: -300, right: 0, top: -600, bottom: 0 }}
+        dragElastic={0.1}
+        dragTransition={{ bounceStiffness: 600, bounceDamping: 20 }}
+        className="flex items-center gap-3 touch-none"
+        style={{ cursor: 'grab' }}
+        whileDrag={{ cursor: 'grabbing', scale: 1.1 }}
+      >
         <AnimatePresence>
           {!isOpen && (
             <motion.div
@@ -211,10 +220,10 @@ export function AIChatBubble() {
                 opacity: 1, 
                 x: 0, 
                 width: 'auto',
-                transition: { delay: 1 } // Show after 1s delay
+                transition: { delay: 1 } 
               }}
               exit={{ opacity: 0, x: 20, width: 0 }}
-              className="bg-white dark:bg-slate-800 px-4 py-2 rounded-full shadow-lg border border-slate-200 dark:border-slate-700 pointer-events-none overflow-hidden whitespace-nowrap"
+              className="bg-white dark:bg-slate-800 px-4 py-2 rounded-full shadow-lg border border-slate-200 dark:border-slate-700 pointer-events-none overflow-hidden whitespace-nowrap hidden md:block"
             >
               <span className="text-sm font-semibold text-blue-600 dark:text-blue-400 flex items-center gap-2">
                 <Sparkles size={14} className="animate-pulse" />
@@ -259,7 +268,7 @@ export function AIChatBubble() {
             <span className="absolute top-0 right-0 w-3 h-3 bg-red-500 border-2 border-white dark:border-slate-900 rounded-full animate-bounce" />
           )}
         </motion.button>
-      </div>
+      </motion.div>
     </div>
   );
 }
