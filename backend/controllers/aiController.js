@@ -101,9 +101,15 @@ ${patientContext}
 
       let response;
       try {
-        // Use gemini-2.0-flash (stable in 2026) or gemini-flash-latest
         const model = genAI.getGenerativeModel({ 
-          model: 'gemini-2.0-flash' 
+          model: 'gemini-2.0-flash',
+          // Relax safety settings to allow clinical/medical discussions within system guardrails
+          safetySettings: [
+            { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
+            { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
+            { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
+            { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
+          ]
         });
         
         const chat = model.startChat({
@@ -114,10 +120,11 @@ ${patientContext}
           },
         });
 
+        console.log(`[AI_CHAT] Request from ${user?.role || 'guest'}: "${message.substring(0, 50)}..."`);
         const result = await chat.sendMessage(message);
         response = await result.response;
       } catch (err) {
-        console.warn('⚠️ gemini-2.0-flash failed, trying fallback to gemini-flash-latest...', err.message);
+        console.error('⚠️ AI Model Error:', err.message);
         
         try {
           const fallbackModel = genAI.getGenerativeModel({ 
@@ -130,12 +137,13 @@ ${patientContext}
           const result = await fallbackChat.sendMessage(message);
           response = await result.response;
         } catch (fallbackErr) {
-          console.error('🔥 Both primary and fallback models failed:', fallbackErr.message);
+          console.error('🔥 AI_FAILURE:', fallbackErr.message);
           throw fallbackErr;
         }
       }
       
       if (response.promptFeedback && response.promptFeedback.blockReason) {
+        console.warn('🚫 AI_BLOCKED:', response.promptFeedback.blockReason);
         return res.status(400).json({ error: 'Blocked', details: `Safety blockage: ${response.promptFeedback.blockReason}` });
       }
 

@@ -16,21 +16,33 @@ export function AIChatBubble() {
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Load initial greeting if first time opening
-    if (isOpen && messages.length === 0) {
+    // Load or update greeting if chat is opened
+    if (isOpen) {
       const userName = sessionStorage.getItem('userName');
       const isLoggedIn = !!sessionStorage.getItem('token');
       
-      const greeting = isLoggedIn && userName
-        ? `Hello ${userName}! I am Dr. ICAMS - Assistant. How can I help you today? You can ask me about symptoms, hospitals, doctors, or your health history.`
-        : 'Hello Guest! I am Dr. ICAMS - Assistant. How can I help you today? You can ask me about symptoms, hospitals, and doctors.';
+      const currentGreetingIsGuest = messages.length === 1 && messages[0].content.includes('Hello Guest');
+      const currentGreetingIsUser = messages.length === 1 && !currentGreetingIsGuest && messages[0].content.includes('Hello ');
+      
+      const shouldBeLoggedInGreeting = isLoggedIn && userName;
+      const shouldBeGuestGreeting = !isLoggedIn;
 
-      setMessages([
-        {
-          role: 'model',
-          content: greeting
-        }
-      ]);
+      // Reset greeting if login status changed while chat was closed or just opened
+      if (messages.length === 0 || 
+         (currentGreetingIsGuest && shouldBeLoggedInGreeting) || 
+         (currentGreetingIsUser && shouldBeGuestGreeting)) {
+        
+        const greeting = shouldBeLoggedInGreeting
+          ? `Hello ${userName}! I am Dr. ICAMS - Assistant. How can I help you today? You can ask me about symptoms, hospitals, doctors, or your health history.`
+          : 'Hello Guest! I am Dr. ICAMS - Assistant. How can I help you today? You can ask me about symptoms, hospitals, and doctors.';
+
+        setMessages([
+          {
+            role: 'model',
+            content: greeting
+          }
+        ]);
+      }
     }
   }, [isOpen]);
 
