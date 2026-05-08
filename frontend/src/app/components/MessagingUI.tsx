@@ -232,9 +232,9 @@ export function MessagingUI({ conversation, currentUserId, currentUserRole, onSe
           <button
             type="submit"
             disabled={!inputValue.trim() || isSending}
-            className="h-10 w-10 flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg shadow-blue-600/20 transition-all duration-200 disabled:opacity-50 active:scale-95"
+            className="h-11 w-11 md:h-10 md:w-10 flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg shadow-blue-600/20 transition-all duration-200 disabled:opacity-50 active:scale-95 flex-shrink-0 relative z-10 cursor-pointer"
           >
-            <Send className="h-5 w-5" />
+            <Send className="h-5 w-5 md:h-4 md:w-4" />
           </button>
         </form>
       </div>

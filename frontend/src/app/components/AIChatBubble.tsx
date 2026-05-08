@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router';
 import { MessageCircle, X, Send, Bot, User, Loader2, Minimize2, Maximize2, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -14,6 +15,8 @@ export function AIChatBubble() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const location = useLocation();
+  const isMessagesPage = location.pathname.includes('/messages');
 
   useEffect(() => {
     // Load or update greeting if chat is opened
@@ -51,6 +54,10 @@ export function AIChatBubble() {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
     }
   }, [messages, isLoading]);
+
+  if (isMessagesPage) {
+    return null;
+  }
 
   const handleSendMessage = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -97,7 +104,7 @@ export function AIChatBubble() {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-[9999] flex flex-col items-end">
+    <div className="fixed bottom-6 right-6 z-[9999] flex flex-col items-end pointer-events-none">
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -110,7 +117,7 @@ export function AIChatBubble() {
               width: '380px'
             }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden mb-4 transition-all duration-300 ease-in-out"
+            className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden mb-4 transition-all duration-300 ease-in-out pointer-events-auto"
           >
             {/* Header */}
             <div className="p-4 bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-700 dark:to-indigo-800 text-white flex items-center justify-between shadow-md">
@@ -220,7 +227,7 @@ export function AIChatBubble() {
         dragConstraints={{ left: -300, right: 0, top: -600, bottom: 0 }}
         dragElastic={0.1}
         dragTransition={{ bounceStiffness: 600, bounceDamping: 20 }}
-        className="flex items-center gap-3 touch-none"
+        className="flex items-center gap-3 touch-none pointer-events-auto"
         style={{ cursor: 'grab' }}
         whileDrag={{ cursor: 'grabbing', scale: 1.1 }}
       >
