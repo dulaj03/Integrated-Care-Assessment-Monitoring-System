@@ -321,7 +321,7 @@ export function NurseRounds() {
           filteredTasks.map(task => (
             <div key={task.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2.5rem] p-8 shadow-sm hover:shadow-xl transition-all border-l-[12px] border-l-blue-600">
               <div className="flex flex-col lg:flex-row gap-8">
-                <div className="lg:w-1/3 border-r border-slate-100 dark:border-slate-800 pr-8">
+                <div className="lg:w-1/3 border-b lg:border-b-0 lg:border-r border-slate-100 dark:border-slate-800 pb-8 lg:pb-0 lg:pr-8">
                   <div className="flex items-center gap-2 mb-4">
                     <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
                       task.status === 'completed' ? 'bg-emerald-100 text-emerald-700' : 

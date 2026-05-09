@@ -9,11 +9,13 @@ exports.getStats = async (req, res) => {
   try {
     const patientsCount = await pool.query('SELECT COUNT(*) FROM patients');
     const doctorsCount = await pool.query('SELECT COUNT(*) FROM doctors');
+    const nursesCount = await pool.query('SELECT COUNT(*) FROM nurses');
     const hospitalsCount = await pool.query('SELECT COUNT(*) FROM hospitals');
 
     res.json({
       patients: parseInt(patientsCount.rows[0].count),
       doctors: parseInt(doctorsCount.rows[0].count),
+      nurses: parseInt(nursesCount.rows[0].count),
       hospitals: parseInt(hospitalsCount.rows[0].count),
     });
   } catch (error) {

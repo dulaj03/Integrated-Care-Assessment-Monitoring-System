@@ -23,7 +23,7 @@ interface CounterProps {
 
 function Counter({ value, label, suffix = '', icon: Icon }: CounterProps) {
   const ref = useRef<HTMLSpanElement>(null);
-  const isInView = useInView(ref, { once: true, margin: '-100px' });
+  const isInView = useInView(ref, { once: true, margin: '-20px' });
 
   const springValue = useSpring(0, {
     mass: 1,
@@ -64,7 +64,7 @@ export function Landing() {
   const navigate = useNavigate();
   const isLoggedIn = !!sessionStorage.getItem('token');
   const userRole = sessionStorage.getItem('userRole');
-  const [stats, setStats] = useState({ patients: 1250, doctors: 380, hospitals: 18 });
+  const [stats, setStats] = useState({ patients: 1250, doctors: 380, nurses: 420, hospitals: 18 });
   const [rollingIndex, setRollingIndex] = useState(0);
   const [featuredReviews, setFeaturedReviews] = useState<any[]>([]);
 
@@ -214,7 +214,7 @@ export function Landing() {
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
                   className="inline-flex items-center gap-2 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-full px-4 py-1.5 mb-6">
                   <Zap className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                  <span className="text-sm font-semibold text-blue-700 dark:text-blue-300">Sri Lanka's First Integrated Care Platform</span>
+                  <span className="text-sm font-semibold text-blue-700 dark:text-blue-300">{t('hero.badge')}</span>
                 </motion.div>
                 <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
                   className="text-4xl tracking-tight font-extrabold text-slate-900 dark:text-white sm:text-5xl md:text-6xl flex flex-col xl:block">
@@ -236,17 +236,17 @@ export function Landing() {
                 </motion.h1>
                 <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}
                   className="mt-3 text-base text-slate-500 dark:text-slate-400 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
-                  {t('hero.description')} — now with direct hospital connectivity, lab test tracking, and real-time care coordination across Sri Lanka.
+                  {t('hero.description')} {t('hero.descriptionExtra')}
                 </motion.p>
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.3 }}
                   className="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start gap-3">
                   <Link to={isLoggedIn ? getDashboardPath() : '/login'}
                     className="flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 md:py-4 md:text-lg md:px-10 transition-colors duration-200 shadow-lg">
-                    {isLoggedIn ? 'Go to Dashboard' : t('common.getStarted')}
+                    {isLoggedIn ? t('common.goToDashboard') : t('common.getStarted')}
                   </Link>
                   <Link to="/features"
                     className="flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-900/50 md:py-4 md:text-lg md:px-10 transition-colors duration-200">
-                    Explore Features
+                    {t('hero.exploreFeatures')}
                   </Link>
                 </motion.div>
               </div>
@@ -268,9 +268,9 @@ export function Landing() {
               viewport={{ once: true }}
               className="grid grid-cols-3 lg:grid-cols-1 gap-4 md:gap-6 w-full max-w-4xl lg:max-w-[280px]"
             >
-              <Counter value={stats.patients} label="Patients" suffix="+" icon={Users} />
-              <Counter value={stats.doctors} label="Doctors" suffix="+" icon={Stethoscope} />
-              <Counter value={stats.hospitals} label="Hospitals" suffix="+" icon={Building2} />
+              <Counter value={stats.patients} label={t('stats.patients')} suffix="+" icon={Users} />
+              <Counter value={stats.doctors} label={t('stats.doctors')} suffix="+" icon={Stethoscope} />
+              <Counter value={stats.nurses} label={t('stats.nurses')} suffix="+" icon={Clipboard} />
             </motion.div>
           </div>
         </div>
@@ -281,10 +281,10 @@ export function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             {[
-              { value: '4 Roles', label: 'User Portals', icon: Users },
-              { value: `${stats.hospitals}+`, label: 'Sri Lankan Hospitals', icon: Building2 },
-              { value: 'Real-time', label: 'Lab Tracking', icon: FlaskConical },
-              { value: '24 / 7', label: 'System Access', icon: Clock },
+              { value: t('stats.fourRoles'), label: t('stats.userPortals'), icon: Users },
+              { value: `${stats.hospitals}+`, label: t('stats.sriLankanHospitals'), icon: Building2 },
+              { value: t('stats.realtime'), label: t('stats.labTracking'), icon: FlaskConical },
+              { value: t('stats.allDay'), label: t('stats.systemAccess'), icon: Clock },
             ].map((stat, i) => (
               <motion.div key={stat.label} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: i * 0.1 }} viewport={{ once: true }}

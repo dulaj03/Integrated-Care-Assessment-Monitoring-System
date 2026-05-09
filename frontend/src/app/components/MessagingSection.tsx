@@ -98,7 +98,7 @@ export function MessagingSection() {
   }
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 h-[calc(100vh-180px)] md:h-[650px] flex flex-col md:flex-row overflow-hidden">
+    <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 h-[calc(100vh-120px)] md:h-[650px] flex flex-col md:flex-row overflow-hidden">
       {/* Sidebar - Hidden on mobile if a conversation is selected */}
       <div className={`w-full md:w-80 border-r border-slate-100 dark:border-slate-800 flex flex-col ${selectedConversation ? 'hidden md:flex' : 'flex'}`}>
         <div className="p-4 border-b border-slate-100 dark:border-slate-800">

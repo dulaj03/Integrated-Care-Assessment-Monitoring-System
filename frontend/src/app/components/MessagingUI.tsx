@@ -133,11 +133,12 @@ export function MessagingUI({ conversation, currentUserId, currentUserRole, onSe
   return (
     <div className="flex flex-col h-full bg-white dark:bg-slate-900 shadow-2xl border border-slate-100 dark:border-slate-800 overflow-hidden relative">
       {/* Header */}
-      <div className="bg-white dark:bg-slate-900 px-4 md:px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3 md:gap-4">
+      <div className="bg-white dark:bg-slate-900 px-4 md:px-6 py-3 md:py-4 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3 md:gap-4 z-10">
         {onBack && (
           <button 
             onClick={onBack} 
-            className="md:hidden p-2 -ml-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+            className="md:hidden flex items-center justify-center p-3 -ml-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl transition-all active:scale-95"
+            aria-label="Back to conversations"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -174,7 +175,7 @@ export function MessagingUI({ conversation, currentUserId, currentUserRole, onSe
       {/* Messages */}
       <div
         ref={scrollContainerRef}
-        className="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50/50 dark:bg-slate-950/30"
+        className="flex-1 min-h-0 overflow-y-auto p-4 md:p-6 space-y-4 bg-slate-50/50 dark:bg-slate-950/30 overscroll-contain scroll-smooth touch-pan-y"
       >
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center space-y-3">
@@ -188,7 +189,7 @@ export function MessagingUI({ conversation, currentUserId, currentUserRole, onSe
           </div>
         ) : (
           messages.map((message, idx) => {
-            const isSender = String(message.sender_id) === String(currentUserId);
+            const isSender = String(message.sender_id) === String(currentUserId) && message.sender_role === currentUserRole;
 
             return (
               <div

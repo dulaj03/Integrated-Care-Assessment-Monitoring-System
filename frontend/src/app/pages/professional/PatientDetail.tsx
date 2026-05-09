@@ -210,45 +210,47 @@ export function PatientDetail() {
   return (
     <div className="space-y-8 pb-10">
       {/* Header Panel */}
-      <div className="bg-white dark:bg-slate-900 p-8 rounded-[40px] border border-slate-200 dark:border-slate-800 shadow-xl relative overflow-hidden group">
-        <div className="absolute top-0 right-0 p-8 flex flex-col items-end">
-          <span className={`px-6 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest ${
+      <div className="bg-white dark:bg-slate-900 p-6 lg:p-8 rounded-[2rem] lg:rounded-[40px] border border-slate-200 dark:border-slate-800 shadow-xl relative overflow-hidden group">
+        <div className="lg:absolute top-0 right-0 p-4 lg:p-8 flex flex-col items-end">
+          <span className={`px-4 lg:px-6 py-2 rounded-xl lg:rounded-2xl text-[9px] lg:text-[10px] font-black uppercase tracking-widest ${
             patient.condition === 'critical' ? 'bg-rose-500 text-white animate-pulse' : 'bg-emerald-500 text-white'
           }`}>
             {patient.condition || 'STABLE'}
           </span>
         </div>
-        <div className="flex items-center gap-8">
-          <Link to="/nurse/patients" className="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">
-            <ArrowLeft className="h-6 w-6" />
-          </Link>
-          <div className="h-24 w-24 rounded-3xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-300 font-black text-4xl shadow-inner uppercase tracking-tighter">
-            {patient.full_name?.charAt(0)}
+        <div className="flex flex-col lg:flex-row items-center lg:items-center gap-4 lg:gap-8 text-center lg:text-left mt-4 lg:mt-0">
+          <div className="flex items-center gap-4">
+            <Link to="/nurse/patients" className="p-3 lg:p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">
+              <ArrowLeft className="h-5 w-5 lg:h-6 lg:w-6" />
+            </Link>
+            <div className="h-16 w-16 lg:h-24 lg:w-24 rounded-2xl lg:rounded-3xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-300 font-black text-2xl lg:text-4xl shadow-inner uppercase tracking-tighter">
+              {patient.full_name?.charAt(0)}
+            </div>
           </div>
           <div>
-            <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight mb-2">{patient.full_name}</h1>
-            <p className="text-slate-500 font-bold uppercase text-[10px] tracking-[0.2em]">Patient Supervision Panel • ID: PAT-{patient.id.toString().padStart(4, '0')}</p>
+            <h1 className="text-2xl lg:text-4xl font-black text-slate-900 dark:text-white tracking-tight mb-2">{patient.full_name}</h1>
+            <p className="text-slate-500 font-bold uppercase text-[9px] lg:text-[10px] tracking-[0.2em]">Patient Supervision Panel • ID: PAT-{patient.id.toString().padStart(4, '0')}</p>
           </div>
         </div>
       </div>
 
       {/* Quick Vitals Strip */}
       {latestVitals && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           {[
             { label: 'Blood Pressure', value: `${latestVitals.systolic_bp}/${latestVitals.diastolic_bp}`, unit: 'mmHg', icon: Activity, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
             { label: 'Heart Rate', value: latestVitals.heart_rate, unit: 'bpm', icon: Heart, color: 'text-rose-600', bg: 'bg-rose-50 dark:bg-rose-900/20' },
             { label: 'Temperature', value: latestVitals.temperature, unit: '°C', icon: Thermometer, color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-900/20' },
             { label: 'SpO2', value: latestVitals.oxygen_level, unit: '%', icon: Droplet, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
           ].map((stat, i) => (
-            <div key={i} className={`${stat.bg} p-5 rounded-3xl border border-slate-200 dark:border-slate-800 relative overflow-hidden group`}>
-              <stat.icon className={`h-14 w-14 absolute -right-2 -bottom-2 opacity-5 ${stat.color}`} />
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{stat.label}</p>
+            <div key={i} className={`${stat.bg} p-4 lg:p-5 rounded-2xl lg:rounded-3xl border border-slate-200 dark:border-slate-800 relative overflow-hidden group`}>
+              <stat.icon className={`h-12 w-12 lg:h-14 lg:w-14 absolute -right-2 -bottom-2 opacity-5 ${stat.color}`} />
+              <p className="text-[8px] lg:text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{stat.label}</p>
               <div className="flex items-baseline gap-1">
-                <span className={`text-2xl font-black ${stat.color}`}>{stat.value}</span>
-                <span className="text-[10px] font-bold text-slate-400">{stat.unit}</span>
+                <span className={`text-xl lg:text-2xl font-black ${stat.color}`}>{stat.value}</span>
+                <span className="text-[9px] lg:text-[10px] font-bold text-slate-400">{stat.unit}</span>
               </div>
-              <p className="text-[9px] text-slate-400 mt-1">{format(new Date(latestVitals.created_at), 'MMM d, h:mm a')}</p>
+              <p className="text-[8px] lg:text-[9px] text-slate-400 mt-1">{format(new Date(latestVitals.created_at), 'MMM d, h:mm a')}</p>
             </div>
           ))}
         </div>

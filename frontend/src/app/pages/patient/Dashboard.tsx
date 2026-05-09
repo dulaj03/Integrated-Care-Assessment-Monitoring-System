@@ -967,12 +967,13 @@ export function PatientDashboard() {
         {selectedReportId && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-200 dark:border-slate-800">
+              className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-200 dark:border-slate-800 max-h-[95vh] flex flex-col"
+            >
               <div className="p-6 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-blue-600 text-white">
                 <h3 className="font-bold text-lg">Nurse Shift Report Detail</h3>
                 <button onClick={() => setSelectedReportId(null)}><Plus className="h-6 w-6 rotate-45" /></button>
               </div>
-              <div className="p-6 max-h-[70vh] overflow-y-auto space-y-6">
+              <div className="p-6 overflow-y-auto space-y-6 custom-scrollbar">
                 {nurseReports.filter(r => r.id === selectedReportId).map(report => (
                   <div key={report.id} className="space-y-5">
                     <div className="flex justify-between items-start">
@@ -1046,7 +1047,7 @@ export function PatientDashboard() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-200 dark:border-slate-800"
+              className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-200 dark:border-slate-800 max-h-[95vh] flex flex-col"
             >
               <div className="p-6 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-blue-600">
                 <h3 className="text-xl font-bold text-white">{t('patient_dashboard.logFormTitle')}</h3>
@@ -1054,7 +1055,7 @@ export function PatientDashboard() {
                   <Plus className="h-6 w-6 rotate-45" />
                 </button>
               </div>
-              <form onSubmit={handleLogSubmit} className="p-6 space-y-4">
+              <form onSubmit={handleLogSubmit} className="p-6 space-y-4 overflow-y-auto custom-scrollbar">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">{t('patient_dashboard.systolicBP')}</label>

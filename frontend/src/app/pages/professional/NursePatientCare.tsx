@@ -219,36 +219,36 @@ export function NursePatientCare() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-100px)] overflow-hidden bg-slate-50 dark:bg-slate-950 rounded-[40px] border border-slate-200 dark:border-slate-800 shadow-2xl">
-      <div className="flex h-full">
+    <div className="flex flex-col h-auto lg:h-[calc(100vh-100px)] overflow-hidden bg-slate-50 dark:bg-slate-950 rounded-[2rem] lg:rounded-[40px] border border-slate-200 dark:border-slate-800 shadow-2xl">
+      <div className="flex flex-col lg:flex-row h-full overflow-y-auto lg:overflow-hidden">
         {/* Left Sidebar: Patient List & Tabs */}
-        <div className="w-[380px] flex flex-col border-r border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl">
-          <div className="p-8">
-            <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-2">Nursing HQ</h2>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-8">Active Supervision Center</p>
+        <div className="w-full lg:w-[380px] flex flex-col border-b lg:border-b-0 lg:border-r border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl">
+          <div className="p-6 lg:p-8">
+            <h2 className="text-xl lg:text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-2">Nursing HQ</h2>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 lg:mb-8">Active Supervision Center</p>
               
-            <div className="space-y-2">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-1 gap-2 lg:space-y-2">
               {TABS.map(tab => (
-                <button
-                  key={tab.key}
-                  onClick={() => setActiveTab(tab.key)}
-                  className={`w-full flex items-center gap-4 px-6 py-4 rounded-3xl text-sm font-black transition-all ${
-                    activeTab === tab.key 
-                      ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-xl scale-[1.02]' 
-                      : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-                  }`}
-                >
-                  <tab.icon className="h-5 w-5" />
-                  <span className="flex-1 text-left uppercase tracking-widest text-[11px]">{tab.label}</span>
-                  {tab.badge && tab.badge > 0 && (
-                    <span className="h-5 w-5 rounded-full bg-blue-500 text-white flex items-center justify-center text-[9px]">{tab.badge}</span>
-                  )}
-                </button>
+                  <button
+                    key={tab.key}
+                    onClick={() => setActiveTab(tab.key)}
+                    className={`w-full flex items-center gap-3 lg:gap-4 px-4 lg:px-6 py-3 lg:py-4 rounded-2xl lg:rounded-3xl text-sm font-black transition-all ${
+                      activeTab === tab.key 
+                        ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-xl scale-[1.02]' 
+                        : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                    }`}
+                  >
+                    <tab.icon className="h-4 w-4 lg:h-5 lg:w-5" />
+                    <span className="flex-1 text-left uppercase tracking-widest text-[9px] lg:text-[11px] truncate">{tab.label}</span>
+                    {tab.badge && tab.badge > 0 && (
+                      <span className="h-4 w-4 lg:h-5 lg:w-5 rounded-full bg-blue-500 text-white flex items-center justify-center text-[8px] lg:text-[9px]">{tab.badge}</span>
+                    )}
+                  </button>
               ))}
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto px-6 pb-8 custom-scrollbar">
+          <div className="flex-1 overflow-y-auto px-6 pb-8 custom-scrollbar max-h-[300px] lg:max-h-none">
             <div className="space-y-4">
               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-2 mb-2">Assigned Patients</p>
               {patients.length === 0 ? (
@@ -283,7 +283,7 @@ export function NursePatientCare() {
         </div>
 
         {/* Main Workspace */}
-        <div className="flex-1 overflow-y-auto bg-white/30 dark:bg-slate-900/10 p-10 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto bg-white/30 dark:bg-slate-900/10 p-6 lg:p-10 custom-scrollbar">
           <AnimatePresence mode="wait">
             {!selectedPatientId ? (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full flex flex-col items-center justify-center text-center space-y-4">
@@ -298,7 +298,7 @@ export function NursePatientCare() {
                 {/* Workspace Header */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-6">
-                    <div className="h-20 w-20 rounded-[2rem] bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center text-3xl font-black shadow-2xl">
+                    <div className="h-16 w-16 lg:h-20 lg:w-20 rounded-2xl lg:rounded-[2rem] bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center text-2xl lg:text-3xl font-black shadow-2xl">
                       {selectedPatient?.full_name?.charAt(0)}
                     </div>
                     <div>
@@ -311,15 +311,18 @@ export function NursePatientCare() {
                       </div>
                     </div>
                   </div>
-                  <Link to={`/nurse/patient/${selectedPatientId}`} className="px-8 py-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl text-[11px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-xl">
+                  <Link to={`/nurse/patient/${selectedPatientId}`} className="hidden md:block px-8 py-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl text-[11px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-xl">
                          Full Case History
                   </Link>
                 </div>
+                <Link to={`/nurse/patient/${selectedPatientId}`} className="block md:hidden w-full py-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-[10px] font-black uppercase tracking-widest text-center shadow-lg">
+                       Full Case History
+                </Link>
 
                 {/* Tab Content */}
                 {activeTab === 'log_symptoms' && (
-                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-                    <div className="bg-white dark:bg-slate-900 p-10 rounded-[3.5rem] border border-slate-200 dark:border-slate-800 shadow-sm space-y-8">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div className="bg-white dark:bg-slate-900 p-6 lg:p-10 rounded-[2.5rem] lg:rounded-[3.5rem] border border-slate-200 dark:border-slate-800 shadow-sm space-y-8">
                       <h4 className="text-xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-4">
                         <div className="p-3 bg-blue-500 rounded-2xl text-white"><ClipboardList className="h-6 w-6" /></div>
                               Clinical Observation Round
@@ -430,7 +433,7 @@ export function NursePatientCare() {
 
                 {activeTab === 'nurse_report' && (
                   <div className="max-w-4xl mx-auto space-y-10">
-                    <div className="bg-white dark:bg-slate-900 p-12 rounded-[4rem] border border-slate-200 dark:border-slate-800 shadow-2xl relative overflow-hidden">
+                    <div className="bg-white dark:bg-slate-900 p-6 lg:p-12 rounded-[2.5rem] lg:rounded-[4rem] border border-slate-200 dark:border-slate-800 shadow-2xl relative overflow-hidden">
                       <div className="absolute top-0 right-0 p-12 opacity-5"><Send className="h-32 w-32" /></div>
                       <h4 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter mb-4">Clinical Care Report (Shift Summary)</h4>
                       <p className="text-sm text-slate-500 font-bold mb-10 max-w-lg">Submit a formal summary of the care provided and the patient's status for the medical team and the next shift nurse.</p>
@@ -523,7 +526,7 @@ export function NursePatientCare() {
                                     Laboratory Processing Hub
                       </h4>
 
-                      <div className="grid grid-cols-1 xl:grid-cols-2 gap-10">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                         <div className="space-y-6">
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-4">Pending Diagnostic Orders</p>
                           <div className="space-y-4">

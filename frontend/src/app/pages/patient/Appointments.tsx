@@ -638,10 +638,10 @@ export function Appointments() {
               initial={{ opacity: 0, scale: 0.93, y: 24 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.93, y: 24 }}
-              className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl w-full max-w-xl border border-slate-200 dark:border-slate-800 overflow-hidden"
+              className="bg-white dark:bg-slate-900 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl w-full max-w-xl border border-slate-200 dark:border-slate-800 overflow-hidden max-h-[95vh] flex flex-col"
             >
               {/* Modal header */}
-              <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+              <div className="p-5 md:p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
                 <div className="flex items-center gap-3">
                   <div className="h-10 w-10 rounded-2xl bg-white/20 flex items-center justify-center">
                     <Calendar className="h-5 w-5" />
@@ -656,7 +656,7 @@ export function Appointments() {
                 </button>
               </div>
 
-              <form onSubmit={handleBookAppointment} className="p-6 space-y-5 max-h-[70vh] overflow-y-auto">
+              <form onSubmit={handleBookAppointment} className="p-5 md:p-6 space-y-5 overflow-y-auto custom-scrollbar">
                 {/* Doctor */}
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
@@ -807,10 +807,10 @@ export function Appointments() {
               initial={{ opacity: 0, scale: 0.9, y: 24 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 24 }}
-              className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl w-full max-w-lg border border-slate-200 dark:border-slate-800 overflow-hidden"
+              className="bg-white dark:bg-slate-900 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl w-full max-w-lg border border-slate-200 dark:border-slate-800 overflow-y-auto max-h-[90vh] custom-scrollbar"
             >
               {/* Green header */}
-              <div className="bg-gradient-to-r from-emerald-500 to-teal-500 p-8 text-center">
+              <div className="bg-gradient-to-r from-emerald-500 to-teal-500 p-6 md:p-8 text-center">
                 <div className="h-16 w-16 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-4">
                   <CheckCircle2 className="h-9 w-9 text-white" />
                 </div>
@@ -819,7 +819,7 @@ export function Appointments() {
               </div>
 
               {/* Steps */}
-              <div className="p-7 space-y-4">
+              <div className="p-5 md:p-7 space-y-4">
                 {[
                   {
                     step: '1',
