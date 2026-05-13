@@ -384,7 +384,7 @@ export function PatientWorkspace() {
                     onClick={handleSubmitOrder}
                     className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-[1.5rem] text-sm font-black transition-all shadow-xl shadow-blue-500/20"
                   >
-                        Confirm & Transmit Order
+                    Confirm & Transmit Order
                   </button>
                 </div>
               </div>

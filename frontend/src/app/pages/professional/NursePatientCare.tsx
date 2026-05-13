@@ -226,7 +226,7 @@ export function NursePatientCare() {
           <div className="p-6 lg:p-8">
             <h2 className="text-xl lg:text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-2">Nursing HQ</h2>
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 lg:mb-8">Active Supervision Center</p>
-              
+
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-1 gap-2 lg:space-y-2">
               {TABS.map(tab => (
                 <button

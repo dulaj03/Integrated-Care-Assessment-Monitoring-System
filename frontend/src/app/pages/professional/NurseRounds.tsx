@@ -5,30 +5,30 @@ import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface TaskStep {
-    id: number;
-    step_name: string;
-    status: 'pending' | 'completed';
-    completed_at?: string;
-    notes?: string;
+  id: number;
+  step_name: string;
+  status: 'pending' | 'completed';
+  completed_at?: string;
+  notes?: string;
 }
 
 interface NursingTask {
-    id: number;
-    title: string;
-    task_type: string;
-    patient_id: number;
-    patient_name: string;
-    doctor_name?: string;
-    status: 'pending' | 'in_progress' | 'completed';
-    current_step: number;
-    created_at: string;
-    steps: TaskStep[];
+  id: number;
+  title: string;
+  task_type: string;
+  patient_id: number;
+  patient_name: string;
+  doctor_name?: string;
+  status: 'pending' | 'in_progress' | 'completed';
+  current_step: number;
+  created_at: string;
+  steps: TaskStep[];
 }
 
 interface Patient {
-    id: number;
-    full_name: string;
-    condition: string;
+  id: number;
+  full_name: string;
+  condition: string;
 }
 
 const WORKFLOW_PRESETS = {
@@ -135,7 +135,7 @@ export function NurseRounds() {
 
   const handleCreateTask = async () => {
     if (!selectedPatient || !taskTitle) return;
-        
+
     const targetPatient = patients.find(p => p.id === selectedPatient);
     if (!targetPatient) {
       toast.error('Selected patient not found');
@@ -184,7 +184,7 @@ export function NurseRounds() {
         setSelectedTestId(null);
         fetchTasks();
       }
-    } catch (error) {
+    } catch (_err) {
       toast.error('Failed to create task');
     }
   };
@@ -208,11 +208,11 @@ export function NurseRounds() {
       if (res.ok) {
         const data = await res.json();
         toast.success('Clinical milestone documented');
-                
+
         if (data.is_last_step) {
           setShowFinalizeModal(taskId); // Trigger result collection for the TASK
         }
-                
+
         await fetchTasks();
       } else {
         const err = await res.json();
@@ -245,7 +245,7 @@ export function NurseRounds() {
         setResultFile(null);
         fetchTasks();
       }
-    } catch (e) {
+    } catch (_err) {
       toast.error('Finalization failed');
     }
   };
@@ -613,12 +613,12 @@ export function NurseRounds() {
                 </div>
 
                 <div className="flex gap-3">
-                    <button 
-                      onClick={() => setShowFinalizeModal(null)}
-                      className="flex-1 py-4 bg-slate-100 dark:bg-slate-800 text-slate-500 rounded-2xl font-black text-xs transition-all"
-                    >
-                      Later
-                    </button>
+                  <button 
+                    onClick={() => setShowFinalizeModal(null)}
+                    className="flex-1 py-4 bg-slate-100 dark:bg-slate-800 text-slate-500 rounded-2xl font-black text-xs transition-all"
+                  >
+                    Later
+                  </button>
                   <button 
                     onClick={() => {
                       const taskId = tasks.find(t => t.steps.some(s => s.id === showFinalizeModal))?.id;

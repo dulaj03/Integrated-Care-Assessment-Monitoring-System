@@ -45,7 +45,7 @@ export function ProceduralOutcomes() {
 
   const filteredRounds = rounds.filter(r => 
     r.patient_name?.toLowerCase().includes(search.toLowerCase()) ||
-        r.title?.toLowerCase().includes(search.toLowerCase())
+    r.title?.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
