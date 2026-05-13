@@ -45,7 +45,7 @@ export function NursePatientCare() {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) setPatients(await res.json());
-    } catch (err) {
+    } catch (_err) {
       toast.error('Failed to sync patient directory');
     } finally {
       setLoading(false);
@@ -71,8 +71,8 @@ export function NursePatientCare() {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (lrRes.ok) setLabTests(await lrRes.json());
-    } catch (err) {
-      console.error('Data pull failed', err);
+    } catch (_err) {
+      console.error('Data pull failed', _err);
     }
   }, [token]);
 
@@ -140,7 +140,7 @@ export function NursePatientCare() {
         });
         fetchSelectedData(selectedPatientId);
       }
-    } catch (err) {
+    } catch (_err) {
       toast.error('Sync error: log not saved');
     }
   };
@@ -166,7 +166,7 @@ export function NursePatientCare() {
         setReportRecs('');
         fetchSelectedData(selectedPatientId);
       }
-    } catch (err) {
+    } catch (_err) {
       toast.error('Report submission failed');
     }
   };
@@ -193,7 +193,7 @@ export function NursePatientCare() {
         setLabUpload({ id: null, summary: '', file: null });
         if (selectedPatientId) fetchSelectedData(selectedPatientId);
       }
-    } catch (err) {
+    } catch (_err) {
       toast.error('Upload failed');
     } finally {
       setUploadingLab(false);
@@ -229,21 +229,21 @@ export function NursePatientCare() {
               
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-1 gap-2 lg:space-y-2">
               {TABS.map(tab => (
-                  <button
-                    key={tab.key}
-                    onClick={() => setActiveTab(tab.key)}
-                    className={`w-full flex items-center gap-3 lg:gap-4 px-4 lg:px-6 py-3 lg:py-4 rounded-2xl lg:rounded-3xl text-sm font-black transition-all ${
-                      activeTab === tab.key 
-                        ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-xl scale-[1.02]' 
-                        : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-                    }`}
-                  >
-                    <tab.icon className="h-4 w-4 lg:h-5 lg:w-5" />
-                    <span className="flex-1 text-left uppercase tracking-widest text-[9px] lg:text-[11px] truncate">{tab.label}</span>
-                    {tab.badge && tab.badge > 0 && (
-                      <span className="h-4 w-4 lg:h-5 lg:w-5 rounded-full bg-blue-500 text-white flex items-center justify-center text-[8px] lg:text-[9px]">{tab.badge}</span>
-                    )}
-                  </button>
+                <button
+                  key={tab.key}
+                  onClick={() => setActiveTab(tab.key)}
+                  className={`w-full flex items-center gap-3 lg:gap-4 px-4 lg:px-6 py-3 lg:py-4 rounded-2xl lg:rounded-3xl text-sm font-black transition-all ${
+                    activeTab === tab.key 
+                      ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-xl scale-[1.02]' 
+                      : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  }`}
+                >
+                  <tab.icon className="h-4 w-4 lg:h-5 lg:w-5" />
+                  <span className="flex-1 text-left uppercase tracking-widest text-[9px] lg:text-[11px] truncate">{tab.label}</span>
+                  {tab.badge && tab.badge > 0 && (
+                    <span className="h-4 w-4 lg:h-5 lg:w-5 rounded-full bg-blue-500 text-white flex items-center justify-center text-[8px] lg:text-[9px]">{tab.badge}</span>
+                  )}
+                </button>
               ))}
             </div>
           </div>
@@ -312,11 +312,11 @@ export function NursePatientCare() {
                     </div>
                   </div>
                   <Link to={`/nurse/patient/${selectedPatientId}`} className="hidden md:block px-8 py-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl text-[11px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-xl">
-                         Full Case History
+                    Full Case History
                   </Link>
                 </div>
                 <Link to={`/nurse/patient/${selectedPatientId}`} className="block md:hidden w-full py-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-[10px] font-black uppercase tracking-widest text-center shadow-lg">
-                       Full Case History
+                  Full Case History
                 </Link>
 
                 {/* Tab Content */}
@@ -325,9 +325,8 @@ export function NursePatientCare() {
                     <div className="bg-white dark:bg-slate-900 p-6 lg:p-10 rounded-[2.5rem] lg:rounded-[3.5rem] border border-slate-200 dark:border-slate-800 shadow-sm space-y-8">
                       <h4 className="text-xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-4">
                         <div className="p-3 bg-blue-500 rounded-2xl text-white"><ClipboardList className="h-6 w-6" /></div>
-                              Clinical Observation Round
+                        Clinical Observation Round
                       </h4>
-                           
                       <div className="grid grid-cols-2 gap-6">
                         <div className="space-y-2">
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">BP (Sys/Dia)</p>
@@ -364,7 +363,7 @@ export function NursePatientCare() {
                       </div>
 
                       <button onClick={handleSubmitLog} className="w-full py-6 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-[2rem] font-black text-sm uppercase tracking-widest shadow-2xl hover:scale-[1.02] transition-all">
-                              Commit Round Findings
+                        Commit Round Findings
                       </button>
                     </div>
 
@@ -407,7 +406,7 @@ export function NursePatientCare() {
                     <div className="bg-white dark:bg-slate-900 p-10 rounded-[3.5rem] border-2 border-amber-100 dark:border-amber-900/30">
                       <h4 className="text-xl font-black text-amber-600 dark:text-amber-400 mb-8 flex items-center gap-4">
                         <div className="p-3 bg-amber-500 rounded-2xl text-white"><Activity className="h-6 w-6" /></div>
-                              Active Medical Orders
+                        Active Medical Orders
                       </h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {doctorOrders.length === 0 ? (
@@ -465,7 +464,7 @@ export function NursePatientCare() {
                         </div>
 
                         <button onClick={handleSubmitReport} className="w-full py-8 bg-blue-600 text-white rounded-[2.5rem] font-black text-md uppercase tracking-[0.2em] shadow-2xl hover:scale-[1.02] transition-all">
-                                  Submit Official Shift Report
+                          Submit Official Shift Report
                         </button>
                       </div>
                     </div>
@@ -477,7 +476,7 @@ export function NursePatientCare() {
                     <div className="bg-white dark:bg-slate-900 p-10 rounded-[3.5rem] border-2 border-purple-100 dark:border-purple-900/30">
                       <h4 className="text-xl font-black text-purple-600 dark:text-purple-400 mb-8 flex items-center gap-4">
                         <div className="p-3 bg-purple-500 rounded-2xl text-white"><MessageSquare className="h-6 w-6" /></div>
-                               Clinical Directives & HQ Comms
+                        Clinical Directives & HQ Comms
                       </h4>
                       <div className="space-y-6">
                         {clinicalNotes.length === 0 ? (
@@ -523,7 +522,7 @@ export function NursePatientCare() {
                     <div className="bg-white dark:bg-slate-900 p-12 rounded-[4rem] border border-slate-200 dark:border-slate-800 shadow-2xl">
                       <h4 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter mb-10 flex items-center gap-6">
                         <div className="p-4 bg-purple-600 rounded-3xl text-white shadow-xl shadow-purple-500/20"><Activity className="h-8 w-8" /></div>
-                                    Laboratory Processing Hub
+                        Laboratory Processing Hub
                       </h4>
 
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">

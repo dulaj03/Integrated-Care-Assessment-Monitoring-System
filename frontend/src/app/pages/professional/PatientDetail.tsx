@@ -71,7 +71,7 @@ export function PatientDetail() {
       });
       if (lRes.ok) setLabResults(await lRes.json());
 
-    } catch (err) {
+    } catch (_err) {
       toast.error('Patient record synchronization error');
     } finally {
       setLoading(false);
@@ -109,7 +109,7 @@ export function PatientDetail() {
         setVitalsForm({ systolic: '', diastolic: '', pulse: '', temp: '', spo2: '', notes: '', mood: 'good', symptoms: [] });
         fetchData();
       }
-    } catch (err) {
+    } catch (_err) {
       toast.error('Sync failed');
     }
   };
@@ -135,7 +135,7 @@ export function PatientDetail() {
         setReportForm({ title: 'Daily Care Review', summary: '', recommendations: '' });
         fetchData();
       }
-    } catch (err) {
+    } catch (_err) {
       toast.error('System error: Report submission failed');
     }
   };
@@ -159,7 +159,7 @@ export function PatientDetail() {
         setLabForm({ test_name: '', test_type: 'blood' });
         fetchData();
       }
-    } catch (err) {
+    } catch (_err) {
       toast.error('Failed to order lab test');
     }
   };
@@ -188,7 +188,7 @@ export function PatientDetail() {
         setLabUpload({ id: null, summary: '', file: null });
         fetchData();
       }
-    } catch (err) {
+    } catch (_err) {
       toast.error('Clinical upload failed');
     } finally {
       setUploadingLab(false);
@@ -349,12 +349,12 @@ export function PatientDetail() {
                           onClick={() => setLabUpload(prev => ({ ...prev, id: res.id }))}
                           className="text-[8px] font-black text-blue-600 underline uppercase mt-1 cursor-pointer"
                         >
-                                     Upload Results
+                          Upload Results
                         </button>
                       )}
                     </div>
                   </div>
-                         
+
                   {labUpload.id === res.id ? (
                     <div className="p-4 bg-white dark:bg-slate-900 rounded-2xl border-2 border-blue-500 space-y-4 animate-in slide-in-from-top-2 duration-300">
                       <div className="space-y-1">
@@ -566,7 +566,7 @@ export function PatientDetail() {
               </button>
               <h3 className="text-3xl font-black text-slate-900 dark:text-white mb-2 tracking-tight">Shift Report Filing</h3>
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-10">Formal nursing care summary submission</p>
-                 
+
               <div className="space-y-6">
                 <div className="space-y-2">
                   <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Summary of Care</p>
@@ -577,7 +577,7 @@ export function PatientDetail() {
                   <input className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl p-4 text-sm font-bold dark:text-white" placeholder="Actions for next shift or doctor..." value={reportForm.recommendations} onChange={e => setReportForm({...reportForm, recommendations: e.target.value})} />
                 </div>
                 <button onClick={handleSubmitReport} className="w-full py-5 bg-blue-600 text-white rounded-[1.5rem] font-black text-sm uppercase tracking-widest shadow-2xl hover:scale-105 transition-all">
-                       Submit Final Report
+                  Submit Final Report
                 </button>
               </div>
             </motion.div>

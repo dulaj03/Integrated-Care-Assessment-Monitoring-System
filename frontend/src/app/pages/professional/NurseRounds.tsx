@@ -368,7 +368,7 @@ export function NurseRounds() {
                         }}
                         className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-emerald-500/20 animate-pulse hover:animate-none transition-all"
                       >
-                                                Finalize Outcome & Upload Results
+                        Finalize Outcome & Upload Results
                       </button>
                     )}
                   </div>
@@ -561,7 +561,7 @@ export function NurseRounds() {
                   disabled={!selectedPatient || !taskTitle}
                   className="w-full py-5 bg-blue-600 disabled:opacity-50 text-white rounded-[2rem] font-black text-sm shadow-xl shadow-blue-500/30 transition-all hover:scale-[1.02]"
                 >
-                                    START ROUND WORKFLOW
+                  START ROUND WORKFLOW
                 </button>
               </div>
             </motion.div>
@@ -613,12 +613,12 @@ export function NurseRounds() {
                 </div>
 
                 <div className="flex gap-3">
-                  <button 
-                    onClick={() => setShowFinalizeModal(null)}
-                    className="flex-1 py-4 bg-slate-100 dark:bg-slate-800 text-slate-500 rounded-2xl font-black text-xs transition-all"
-                  >
-                                        Later
-                  </button>
+                    <button 
+                      onClick={() => setShowFinalizeModal(null)}
+                      className="flex-1 py-4 bg-slate-100 dark:bg-slate-800 text-slate-500 rounded-2xl font-black text-xs transition-all"
+                    >
+                      Later
+                    </button>
                   <button 
                     onClick={() => {
                       const taskId = tasks.find(t => t.steps.some(s => s.id === showFinalizeModal))?.id;
@@ -626,7 +626,7 @@ export function NurseRounds() {
                     }}
                     className="flex-[2] py-4 bg-emerald-600 text-white rounded-2xl font-black text-xs shadow-xl shadow-emerald-500/30 transition-all hover:scale-105"
                   >
-                                        FINALIZE & NOTIFY DOCTOR
+                    FINALIZE & NOTIFY DOCTOR
                   </button>
                 </div>
               </div>

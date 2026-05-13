@@ -56,7 +56,7 @@ export function ProceduralOutcomes() {
           <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Procedural Outcome Hub</h1>
           <p className="text-slate-500 font-bold flex items-center gap-2 mt-1">
             <Activity className="w-4 h-4 text-blue-500" />
-                        Central repository for all nursing tasks and procedural results
+            Central repository for all nursing tasks and procedural results
           </p>
         </div>
 
@@ -107,7 +107,7 @@ export function ProceduralOutcomes() {
                   <div>
                     <h4 className="font-black text-sm">{round.title}</h4>
                     <p className={`text-[10px] font-bold ${selectedRound?.id === round.id ? 'text-blue-100' : 'text-slate-400'}`}>
-                                            Patient: {round.patient_name}
+                      Patient: {round.patient_name}
                     </p>
                   </div>
                 </div>
@@ -172,7 +172,7 @@ export function ProceduralOutcomes() {
                     <div className="space-y-6">
                       <h3 className="text-sm font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
                         <Activity className="w-4 h-4 text-emerald-500" />
-                                                Procedural Milestones
+                        Procedural Milestones
                       </h3>
                       <div className="space-y-4">
                         {selectedRound.steps?.map((step: any, idx: number) => (
@@ -195,7 +195,7 @@ export function ProceduralOutcomes() {
                               </h4>
                               {step.completed_at && (
                                 <p className="text-[10px] font-bold text-slate-400 mt-0.5">
-                                                                    Documented at {format(new Date(step.completed_at), 'h:mm a')}
+                                  Documented at {format(new Date(step.completed_at), 'h:mm a')}
                                 </p>
                               )}
                             </div>
@@ -209,11 +209,11 @@ export function ProceduralOutcomes() {
                       <div className="p-8 bg-blue-50/50 dark:bg-blue-900/10 rounded-[2.5rem] border border-blue-100 dark:border-blue-900/20">
                         <h3 className="text-sm font-black uppercase tracking-widest text-blue-600 flex items-center gap-2 mb-4">
                           <FileText className="w-4 h-4" />
-                                                    Clinical Summary
+                          Clinical Summary
                         </h3>
                         {selectedRound.result_summary ? (
                           <p className="text-lg font-bold text-slate-800 dark:text-slate-200 leading-relaxed italic">
-                                                        "{selectedRound.result_summary}"
+                            "{selectedRound.result_summary}"
                           </p>
                         ) : (
                           <p className="text-slate-400 font-bold italic">No final result summary provided yet.</p>

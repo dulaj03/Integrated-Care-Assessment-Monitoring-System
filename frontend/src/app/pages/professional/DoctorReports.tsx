@@ -72,9 +72,9 @@ export function DoctorReports() {
   const filteredReports = reports.filter(report => {
     const matchesSearch = report.patient_name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || 
-                         (statusFilter === 'pending' && ['ordered', 'processing'].includes(report.status)) ||
-                         (statusFilter === 'completed' && report.status === 'ready') ||
-                         (statusFilter === 'reviewed' && report.status === 'reviewed');
+      (statusFilter === 'pending' && ['ordered', 'processing'].includes(report.status)) ||
+      (statusFilter === 'completed' && report.status === 'ready') ||
+      (statusFilter === 'reviewed' && report.status === 'reviewed');
     return matchesSearch && matchesStatus;
   });
 
@@ -317,7 +317,7 @@ export function DoctorReports() {
                       <ShieldCheck className="w-5 h-5 text-emerald-500" />
                     </div>
                     <p className="text-sm font-medium leading-relaxed italic opacity-90">
-                         "{selectedReport.result_summary || 'No detailed observations provided for this record.'}"
+                      "{selectedReport.result_summary || 'No detailed observations provided for this record.'}"
                     </p>
                   </div>
                 </div>
@@ -373,7 +373,7 @@ export function DoctorReports() {
                   onClick={() => { setSelectedReport(null); setReviewNote(''); }}
                   className="w-full py-4 bg-slate-900 text-white dark:bg-white dark:text-slate-900 rounded-2xl font-black text-sm transition-all hover:scale-[1.02] shadow-xl"
                 >
-                   DISMISS CASE
+                  DISMISS CASE
                 </button>
               </div>
             </motion.div>

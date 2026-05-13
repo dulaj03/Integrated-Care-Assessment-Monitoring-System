@@ -111,7 +111,7 @@ export function PatientWorkspace() {
       });
       const data = await res.json();
       setAvailableNurses(Array.isArray(data) ? data : []);
-    } catch (err) {
+    } catch (_err) {
       toast.error('Could not load staff list');
     }
   }, [patient?.hospital_id, token]);
@@ -137,7 +137,7 @@ export function PatientWorkspace() {
         const errorData = await res.json();
         toast.error(`Assignment failed: ${errorData.error || 'System error'}`);
       }
-    } catch (err) {
+    } catch (_err) {
       toast.error('Assignment failed: Connection error');
     }
   };
@@ -162,7 +162,7 @@ export function PatientWorkspace() {
       } else {
         toast.error('Order failed to synchronize. Please check data.');
       }
-    } catch (err) {
+    } catch (_err) {
       toast.error('System error: Connection timeout');
     }
   };
@@ -182,7 +182,7 @@ export function PatientWorkspace() {
         toast.success('Report reviewed and signed');
         fetchData();
       }
-    } catch (err) {
+    } catch (_err) {
       toast.error('Signature failed');
     }
   };
@@ -209,7 +209,7 @@ export function PatientWorkspace() {
         const errorData = await res.json();
         toast.error(`Lab Order Failed: ${errorData.error || 'Check hospital association'}`);
       }
-    } catch (err) {
+    } catch (_err) {
       toast.error('Failed to initiate lab workflow - network error');
     }
   };
@@ -232,7 +232,7 @@ export function PatientWorkspace() {
         setNoteForm({ assessment: '', plan: '', request: '' });
         fetchData();
       }
-    } catch (err) {
+    } catch (_err) {
       toast.error('Failed to save record');
     }
   };
@@ -352,7 +352,7 @@ export function PatientWorkspace() {
               <div className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-200 dark:border-slate-800 shadow-sm">
                 <h3 className="text-xl font-black text-slate-900 dark:text-white mb-6 tracking-tight flex items-center gap-3">
                   <div className="p-2 bg-blue-600 rounded-xl"><Send className="h-5 w-5 text-white" /></div> 
-                     Instant Care Order
+                  Instant Care Order
                 </h3>
                 <div className="space-y-4">
                   <div className="flex flex-wrap gap-2 mb-2">
@@ -537,7 +537,7 @@ export function PatientWorkspace() {
                 </div>
                 <h4 className="text-xl font-black text-slate-900 dark:text-white mb-1">{test.test_name}</h4>
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">Type: {test.test_type} • Date: {format(new Date(test.created_at), 'MMM d, yyyy')}</p>
-                   
+
                 {test.result_summary && (
                   <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl mb-4">
                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 underline decoration-indigo-500">Official Findings</p>
@@ -575,7 +575,7 @@ export function PatientWorkspace() {
                       }}
                       className="w-full py-3 bg-indigo-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-indigo-500/20"
                     >
-                           Sign & Finalize Result
+                      Sign & Finalize Result
                     </button>
                   </div>
                 ) : (
@@ -591,7 +591,7 @@ export function PatientWorkspace() {
           <motion.div key="orders_tab" className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {orders.length === 0 ? (
               <div className="md:col-span-2 p-20 text-center font-bold text-slate-400 uppercase tracking-widest bg-slate-50 dark:bg-slate-800/50 rounded-[2.5rem] border-2 border-dashed border-slate-200 dark:border-slate-800">
-                  No active clinical orders for this patient.
+                No active clinical orders for this patient.
               </div>
             ) : (
               orders.map(order => (
@@ -655,7 +655,7 @@ export function PatientWorkspace() {
                 />
               </div>
               <button onClick={handleSubmitNote} className="px-10 py-4 bg-slate-900 text-white rounded-[1.5rem] text-xs font-black uppercase tracking-widest shadow-2xl">
-                     Save Clinical Record
+                Save Clinical Record
               </button>
             </div>
 
@@ -741,7 +741,7 @@ export function PatientWorkspace() {
             <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="bg-white dark:bg-slate-900 rounded-[3rem] p-10 w-full max-w-md shadow-2xl">
               <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-6 tracking-tight flex items-center gap-3">
                 <div className="p-2 bg-purple-600 rounded-xl text-white"><FlaskConical className="h-5 w-5" /></div>
-                 New Lab Requisition
+                New Lab Requisition
               </h3>
               <div className="space-y-6">
                 <div className="space-y-2">
